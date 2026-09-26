@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'jamilzerati/**'
+  push:
+    branches:
+      - 'jamilzerati/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.testMode }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testMode:
+          - EditMode
+          - PlayMode
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Restore Library cache
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-test-${{ matrix.testMode }}-${{ hashFiles('Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-test-${{ matrix.testMode }}-
+            Library-test-
+
+      - name: Run Unity Tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.6.3f1
+          testMode: ${{ matrix.testMode }}
+          artifactsPath: artifacts-${{ matrix.testMode }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Test Results (${{ matrix.testMode }})
+
+      - name: Upload Test Results Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Test-Results-${{ matrix.testMode }}
+          path: artifacts-${{ matrix.testMode }}
