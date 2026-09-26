@@ -21,19 +21,33 @@ git config merge.unityyamlmerge.driver "'C:/Program Files/Unity/Hub/Editor/6000.
 
 ## Comandos
 
-O harness `tools/unity` (`compile`, `test-edit`, `test-play`, `import-content`, `validate`, `simulate`, `build-android`) é a tarefa NEX-522 e ainda não existe. Até lá, use o Unity direto (`U` = caminho do `Unity.exe`):
+O harness `tools/unity` (`tools/unity.ps1` no PowerShell, `tools/unity.sh` ou `./tools/unity` no Bash) é o caminho canônico de verificação:
 
 ```bash
-"$U" -batchmode -nographics -quit -projectPath . -buildTarget Android -logFile -
+# Setup local de Git LFS e driver UnityYAMLMerge
+./tools/unity setup
+
+# Compilação e checagem de erros de scripts
+./tools/unity compile
+
+# Testes EditMode
+./tools/unity test-edit
+
+# Testes PlayMode
+./tools/unity test-play
+
+# Importação de conteúdo JSON -> ScriptableObjects
+./tools/unity import-content
+
+# Validação de integridade de dados e fases
+./tools/unity validate
+
+# Simulação headless de balanceamento
+./tools/unity simulate
+
+# Build de desenvolvimento Android
+./tools/unity build-android
 ```
-
-```bash
-"$U" -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -testResults .artifacts/editmode.xml -logFile -
-```
-
-Um teste só: acrescente `-testFilter <NomeCompleto.Do.Teste>` ao comando acima. PlayMode: `-testPlatform PlayMode`. Com `-runTests` não passe `-quit`.
-
-Depois que `tools/unity` existir, ele é o único caminho de verificação e este bloco deve ser trocado por ele.
 
 ## Arquitetura-alvo
 
