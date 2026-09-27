@@ -1,0 +1,97 @@
+using System;
+using System.Runtime.CompilerServices;
+using Game.Core;
+using Game.Core.Events;
+using Game.Gameplay;
+using TMPro;
+using UnityEngine;
+
+[assembly: InternalsVisibleTo("Game.Editor")]
+[assembly: InternalsVisibleTo("Game.Tests.EditMode")]
+
+namespace Game.Presentation
+{
+    public class SquadCountHud : MonoBehaviour
+    {
+        [SerializeField] private TMP_Text countText;
+        [SerializeField] private string format = "Tropa: {0}";
+        [SerializeField] private SquadController squadController;
+
+        private IEventBus eventBus;
+        private IDisposable squadSizeSubscription;
+
+        public int DisplayedCount { get; private set; }
+        public TMP_Text CountText => countText;
+        public string Format => format;
+
+        public void Initialize(IEventBus bus = null, int initialCount = 1)
+        {
+            if (squadSizeSubscription != null)
+            {
+                squadSizeSubscription.Dispose();
+                squadSizeSubscription = null;
+            }
+
+            eventBus = bus;
+
+            if (eventBus != null)
+            {
+                squadSizeSubscription = eventBus.Subscribe<SquadSizeChangedEvent>(OnSquadSizeChanged);
+            }
+
+            SetCount(initialCount);
+        }
+
+        private void OnSquadSizeChanged(SquadSizeChangedEvent evt)
+        {
+            SetCount(evt.NewCount);
+        }
+
+        public void SetCount(int count)
+        {
+            DisplayedCount = count;
+            if (countText != null)
+            {
+                countText.text = string.Format(format, count);
+            }
+        }
+
+        internal void SetCountText(TMP_Text text)
+        {
+            countText = text;
+        }
+
+        private void Start()
+        {
+            if (countText == null)
+            {
+                countText = GetComponentInChildren<TMP_Text>();
+            }
+
+            if (squadController == null)
+            {
+                squadController = FindFirstObjectByType<SquadController>();
+            }
+
+            if (squadController != null)
+            {
+                squadController.SquadSizeChanged += OnSquadSizeChanged;
+                SetCount(squadController.SquadCount);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (squadSizeSubscription != null)
+            {
+                squadSizeSubscription.Dispose();
+                squadSizeSubscription = null;
+            }
+
+            if (squadController != null)
+            {
+                squadController.SquadSizeChanged -= OnSquadSizeChanged;
+            }
+        }
+    }
+}

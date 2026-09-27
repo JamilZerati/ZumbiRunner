@@ -25,12 +25,23 @@ namespace Game.Gameplay
             {
                 layout = layoutDefinition.ToLayout();
             }
+
+            if (input == null)
+            {
+                input = GetComponent<ILaneInput>() ?? GetComponentInParent<ILaneInput>() ?? GetComponentInChildren<ILaneInput>();
+            }
         }
 
         private void OnEnable()
         {
+            if (input == null)
+            {
+                input = GetComponent<ILaneInput>() ?? GetComponentInParent<ILaneInput>() ?? GetComponentInChildren<ILaneInput>();
+            }
+
             if (input != null)
             {
+                input.MoveRequested -= OnMoveRequested;
                 input.MoveRequested += OnMoveRequested;
             }
         }
