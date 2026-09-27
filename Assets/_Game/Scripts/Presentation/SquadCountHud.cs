@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Game.Core;
 using Game.Core.Events;
+using Game.Gameplay;
 using TMPro;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace Game.Presentation
     {
         [SerializeField] private TMP_Text countText;
         [SerializeField] private string format = "Tropa: {0}";
+        [SerializeField] private SquadController squadController;
 
         private IEventBus eventBus;
         private IDisposable squadSizeSubscription;
@@ -59,12 +61,36 @@ namespace Game.Presentation
             countText = text;
         }
 
+        private void Start()
+        {
+            if (countText == null)
+            {
+                countText = GetComponentInChildren<TMP_Text>();
+            }
+
+            if (squadController == null)
+            {
+                squadController = FindFirstObjectByType<SquadController>();
+            }
+
+            if (squadController != null)
+            {
+                squadController.SquadSizeChanged += OnSquadSizeChanged;
+                SetCount(squadController.SquadCount);
+            }
+        }
+
         private void OnDestroy()
         {
             if (squadSizeSubscription != null)
             {
                 squadSizeSubscription.Dispose();
                 squadSizeSubscription = null;
+            }
+
+            if (squadController != null)
+            {
+                squadController.SquadSizeChanged -= OnSquadSizeChanged;
             }
         }
     }

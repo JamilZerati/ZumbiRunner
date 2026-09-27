@@ -12,6 +12,8 @@ namespace Game.Gameplay
         private IEventBus eventBus;
         private bool isInitialized;
 
+        public event Action<SquadSizeChangedEvent> SquadSizeChanged;
+
         public int SquadCount { get; private set; }
         public bool IsAlive => SquadCount > 0;
 
@@ -86,7 +88,9 @@ namespace Game.Gameplay
 
             int previous = SquadCount;
             SquadCount = next;
-            eventBus?.Publish(new SquadSizeChangedEvent(previous, SquadCount));
+            var evt = new SquadSizeChangedEvent(previous, SquadCount);
+            eventBus?.Publish(evt);
+            SquadSizeChanged?.Invoke(evt);
             return true;
         }
     }

@@ -104,6 +104,12 @@ namespace Game.Editor
         [MenuItem("Horde Runner/Scenes/Build M2 Greybox Scene")]
         public static void BuildM2GreyboxScene()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogWarning("[Game.Editor.SceneBuilder] Cannot build scene while in Play Mode. Please exit Play Mode first.");
+                return;
+            }
+
             EnsureDirectoryExists(M2GreyboxScenePath);
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -117,15 +123,43 @@ namespace Game.Editor
             trackGo.name = "Track_Floor";
             trackGo.transform.position = new Vector3(0f, -0.1f, 100f);
             trackGo.transform.localScale = new Vector3(4.5f, 0.2f, 200f);
+            var trackRenderer = trackGo.GetComponent<Renderer>();
+            if (trackRenderer != null)
+            {
+                var litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (litShader != null)
+                {
+                    trackRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.18f, 0.20f, 0.22f) };
+                }
+            }
 
             var dividerGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             dividerGo.name = "Lane_Divider";
             dividerGo.transform.position = new Vector3(0f, 0.02f, 100f);
             dividerGo.transform.localScale = new Vector3(0.08f, 0.05f, 200f);
+            var dividerRenderer = dividerGo.GetComponent<Renderer>();
+            if (dividerRenderer != null)
+            {
+                var litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (litShader != null)
+                {
+                    dividerRenderer.sharedMaterial = new Material(litShader) { color = Color.white };
+                }
+            }
 
             var generalGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             generalGo.name = "General";
+            generalGo.transform.position = new Vector3(-1f, 0.5f, 0f);
             generalGo.transform.localScale = Vector3.one;
+            var generalRenderer = generalGo.GetComponent<Renderer>();
+            if (generalRenderer != null)
+            {
+                var litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (litShader != null)
+                {
+                    generalRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.15f, 0.55f, 0.95f) };
+                }
+            }
 
             var input = generalGo.AddComponent<StandaloneLaneInput>();
             var mover = generalGo.AddComponent<LaneMover>();
@@ -147,15 +181,42 @@ namespace Game.Editor
 
             var soldierTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             soldierTemplate.name = "Soldier_Template";
-            soldierTemplate.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-            soldierTemplate.AddComponent<SoldierView>();
+            soldierTemplate.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+            var soldierView = soldierTemplate.AddComponent<SoldierView>();
+            var soldierRenderer = soldierTemplate.GetComponent<Renderer>();
+            if (soldierRenderer != null)
+            {
+                var litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (litShader != null)
+                {
+                    soldierRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.2f, 0.85f, 0.45f) };
+                }
+            }
             soldierTemplate.SetActive(false);
 
             var visualGo = new GameObject("SquadVisualController");
             visualGo.transform.SetParent(generalGo.transform, false);
             var squadVisual = visualGo.AddComponent<SquadVisualController>();
+            var serializedVisual = new SerializedObject(squadVisual);
+            var leaderProp = serializedVisual.FindProperty("leaderTransform");
+            if (leaderProp != null)
+            {
+                leaderProp.objectReferenceValue = generalGo.transform;
+            }
+            var prefabProp = serializedVisual.FindProperty("soldierPrefab");
+            if (prefabProp != null)
+            {
+                prefabProp.objectReferenceValue = soldierView;
+            }
+            var squadCtrlVisualProp = serializedVisual.FindProperty("squadController");
+            if (squadCtrlVisualProp != null)
+            {
+                squadCtrlVisualProp.objectReferenceValue = squad;
+            }
+            serializedVisual.ApplyModifiedProperties();
+
             var pool = new ObjectPool<SoldierView>(
-                factory: () => Object.Instantiate(soldierTemplate).GetComponent<SoldierView>(),
+                factory: () => Object.Instantiate(soldierTemplate, visualGo.transform).GetComponent<SoldierView>(),
                 onRent: s => s.gameObject.SetActive(true),
                 onReturn: s => s.gameObject.SetActive(false),
                 initialCapacity: 5
@@ -166,26 +227,46 @@ namespace Game.Editor
             var canvasGo = new GameObject("Canvas");
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasGo.AddComponent<UnityEngine.UI.CanvasScaler>();
+            var scaler = canvasGo.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
             canvasGo.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-            var hudGo = new GameObject("SquadCountHud");
+            var hudGo = new GameObject("SquadCountHud", typeof(RectTransform));
             hudGo.transform.SetParent(canvasGo.transform, false);
             var hud = hudGo.AddComponent<SquadCountHud>();
 
-            var textGo = new GameObject("CountText");
+            var textGo = new GameObject("CountText", typeof(RectTransform));
             textGo.transform.SetParent(hudGo.transform, false);
+            var rect = textGo.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(0.5f, 1f);
+                rect.anchorMax = new Vector2(0.5f, 1f);
+                rect.pivot = new Vector2(0.5f, 1f);
+                rect.anchoredPosition = new Vector2(0f, -80f);
+                rect.sizeDelta = new Vector2(400f, 100f);
+            }
+
             var tmp = textGo.AddComponent<TMPro.TextMeshProUGUI>();
-            tmp.fontSize = 36;
+            tmp.fontSize = 54;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
             tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            tmp.text = "Tropa: 3";
 
             var serializedHud = new SerializedObject(hud);
             var countTextProp = serializedHud.FindProperty("countText");
             if (countTextProp != null)
             {
                 countTextProp.objectReferenceValue = tmp;
-                serializedHud.ApplyModifiedProperties();
             }
+            var hudSquadProp = serializedHud.FindProperty("squadController");
+            if (hudSquadProp != null)
+            {
+                hudSquadProp.objectReferenceValue = squad;
+            }
+            serializedHud.ApplyModifiedProperties();
             hud.SetCountText(tmp);
             hud.Initialize(null, squad.SquadCount);
 
