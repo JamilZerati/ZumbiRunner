@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.Gameplay
 {
-    public class SquadController : MonoBehaviour
+    public class SquadController : MonoBehaviour, ISquad
     {
         [SerializeField] private int initialCount = 1;
 
