@@ -5,7 +5,8 @@
         "Game.Core",
         "Game.Data",
         "Game.Gameplay",
-        "Game.Infrastructure"
+        "Game.Infrastructure",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

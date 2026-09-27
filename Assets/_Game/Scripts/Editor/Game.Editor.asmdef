@@ -8,7 +8,9 @@
         "Game.Presentation",
         "Game.Infrastructure",
         "Game.Composition",
-        "VContainer"
+        "VContainer",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"
