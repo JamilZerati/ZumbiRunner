@@ -10,15 +10,17 @@ namespace Game.Gameplay
         [SerializeField] private int initialCount = 1;
 
         private IEventBus eventBus;
+        private bool isInitialized;
 
         public int SquadCount { get; private set; }
         public bool IsAlive => SquadCount > 0;
 
         private void Awake()
         {
-            if (SquadCount == 0)
+            if (!isInitialized)
             {
                 SquadCount = Mathf.Max(0, initialCount);
+                isInitialized = true;
             }
         }
 
@@ -26,6 +28,7 @@ namespace Game.Gameplay
         {
             SquadCount = Mathf.Max(0, count);
             eventBus = bus;
+            isInitialized = true;
         }
 
         public bool Add(int amount)
@@ -45,7 +48,7 @@ namespace Game.Gameplay
                 return false;
             }
 
-            return ApplyCountChange(Mathf.Max(0, SquadCount - amount));
+            return ApplyCountChange(SquadCount - amount);
         }
 
         public bool Multiply(int factor)
@@ -55,7 +58,7 @@ namespace Game.Gameplay
                 return false;
             }
 
-            return ApplyCountChange(Mathf.Max(0, SquadCount * factor));
+            return ApplyCountChange(SquadCount * factor);
         }
 
         public bool Divide(int divisor)
@@ -70,11 +73,12 @@ namespace Game.Gameplay
 
         public bool SetCount(int newCount)
         {
-            return ApplyCountChange(Mathf.Max(0, newCount));
+            return ApplyCountChange(newCount);
         }
 
         private bool ApplyCountChange(int next)
         {
+            next = Mathf.Max(0, next);
             if (next == SquadCount)
             {
                 return false;

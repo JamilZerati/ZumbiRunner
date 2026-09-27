@@ -61,6 +61,27 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void Initialize_WithZeroBeforeAwake_PreservesZeroAndIsNotOverwrittenByAwake()
+        {
+            var go = new GameObject("InitZeroTest");
+            try
+            {
+                var comp = go.AddComponent<SquadController>();
+                comp.Initialize(0, bus);
+                typeof(SquadController)
+                    .GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?.Invoke(comp, null);
+
+                Assert.AreEqual(0, comp.SquadCount);
+                Assert.IsFalse(comp.IsAlive);
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
         public void Initialize_SetsValidSquadCount_AndIsAliveIsTrue()
         {
             controller.Initialize(10, bus);
