@@ -2,6 +2,7 @@
 using System.IO;
 using Game.Composition;
 using Game.Core;
+using Game.Data;
 using Game.Gameplay;
 using Game.Infrastructure;
 using Game.Infrastructure.Input;
@@ -17,6 +18,7 @@ namespace Game.Editor
         public const string BootstrapScenePath = "Assets/_Game/Scenes/Bootstrap.unity";
         public const string M1GreyboxScenePath = "Assets/_Game/Scenes/M1_Greybox.unity";
         public const string M2GreyboxScenePath = "Assets/_Game/Scenes/M2_Greybox.unity";
+        public const string M3GreyboxScenePath = "Assets/_Game/Scenes/M3_Greybox.unity";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -294,6 +296,291 @@ namespace Game.Editor
             {
                 EditorApplication.Exit(0);
             }
+        }
+
+        [MenuItem("Horde Runner/Scenes/Build M3 Greybox Scene")]
+        public static void BuildM3GreyboxScene()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogWarning("[Game.Editor.SceneBuilder] Cannot build scene while in Play Mode. Please exit Play Mode first.");
+                return;
+            }
+
+            EnsureDirectoryExists(M3GreyboxScenePath);
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var lightGo = new GameObject("Directional Light");
+            lightGo.AddComponent<Light>().type = LightType.Directional;
+            lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+
+            var litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+
+            var trackGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            trackGo.name = "Track_Floor";
+            trackGo.transform.position = new Vector3(0f, -0.1f, 100f);
+            trackGo.transform.localScale = new Vector3(4.5f, 0.2f, 200f);
+            var trackRenderer = trackGo.GetComponent<Renderer>();
+            if (trackRenderer != null && litShader != null)
+            {
+                trackRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.18f, 0.20f, 0.22f) };
+            }
+
+            var dividerGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            dividerGo.name = "Lane_Divider";
+            dividerGo.transform.position = new Vector3(0f, 0.02f, 100f);
+            dividerGo.transform.localScale = new Vector3(0.08f, 0.05f, 200f);
+            var dividerRenderer = dividerGo.GetComponent<Renderer>();
+            if (dividerRenderer != null && litShader != null)
+            {
+                dividerRenderer.sharedMaterial = new Material(litShader) { color = Color.white };
+            }
+
+            var generalGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            generalGo.name = "General";
+            generalGo.transform.position = new Vector3(-1f, 0.5f, 0f);
+            generalGo.transform.localScale = Vector3.one;
+            var generalRenderer = generalGo.GetComponent<Renderer>();
+            if (generalRenderer != null && litShader != null)
+            {
+                generalRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.15f, 0.55f, 0.95f) };
+            }
+
+            var rb = generalGo.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
+            var input = generalGo.AddComponent<StandaloneLaneInput>();
+            var mover = generalGo.AddComponent<LaneMover>();
+            mover.Initialize(new LaneLayout(2, 2.0f), input, null, 0);
+
+            var scroller = generalGo.AddComponent<TrackScroller>();
+            scroller.ForwardSpeed = 8.0f;
+
+            var squad = generalGo.AddComponent<SquadController>();
+            squad.Initialize(3);
+
+            var serializedSquad = new SerializedObject(squad);
+            var initialCountProp = serializedSquad.FindProperty("initialCount");
+            if (initialCountProp != null)
+            {
+                initialCountProp.intValue = 3;
+                serializedSquad.ApplyModifiedProperties();
+            }
+
+            var soldierTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            soldierTemplate.name = "Soldier_Template";
+            soldierTemplate.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+            var soldierView = soldierTemplate.AddComponent<SoldierView>();
+            var soldierRenderer = soldierTemplate.GetComponent<Renderer>();
+            if (soldierRenderer != null && litShader != null)
+            {
+                soldierRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.2f, 0.85f, 0.45f) };
+            }
+            soldierTemplate.SetActive(false);
+
+            var visualGo = new GameObject("SquadVisualController");
+            visualGo.transform.SetParent(generalGo.transform, false);
+            var squadVisual = visualGo.AddComponent<SquadVisualController>();
+            var serializedVisual = new SerializedObject(squadVisual);
+            serializedVisual.FindProperty("leaderTransform").objectReferenceValue = generalGo.transform;
+            serializedVisual.FindProperty("soldierPrefab").objectReferenceValue = soldierView;
+            serializedVisual.FindProperty("squadController").objectReferenceValue = squad;
+            serializedVisual.ApplyModifiedProperties();
+
+            var pool = new ObjectPool<SoldierView>(
+                factory: () => Object.Instantiate(soldierTemplate, visualGo.transform).GetComponent<SoldierView>(),
+                onRent: s => s.gameObject.SetActive(true),
+                onReturn: s => s.gameObject.SetActive(false),
+                initialCapacity: 5
+            );
+            squadVisual.Initialize(generalGo.transform, pool, null, 0.5f, 5);
+            squadVisual.SynchronizeSquad(squad.SquadCount);
+
+            var canvasGo = new GameObject("Canvas");
+            canvasGo.AddComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGo.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            canvasGo.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            var hudGo = new GameObject("SquadCountHud", typeof(RectTransform));
+            hudGo.transform.SetParent(canvasGo.transform, false);
+            var hud = hudGo.AddComponent<SquadCountHud>();
+
+            var textGo = new GameObject("CountText", typeof(RectTransform));
+            textGo.transform.SetParent(hudGo.transform, false);
+            var rect = textGo.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 1f);
+                rect.anchoredPosition = new Vector2(0f, -80f);
+                rect.sizeDelta = new Vector2(400f, 100f);
+            }
+
+            var tmp = textGo.AddComponent<TMPro.TextMeshProUGUI>();
+            tmp.fontSize = 54;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            tmp.text = "Tropa: 3";
+
+            var serializedHud = new SerializedObject(hud);
+            serializedHud.FindProperty("countText").objectReferenceValue = tmp;
+            serializedHud.FindProperty("squadController").objectReferenceValue = squad;
+            serializedHud.ApplyModifiedProperties();
+            hud.SetCountText(tmp);
+            hud.Initialize(null, squad.SquadCount);
+
+            var camGo = new GameObject("Main Camera");
+            camGo.tag = "MainCamera";
+            var cam = camGo.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Skybox;
+            camGo.transform.rotation = Quaternion.Euler(30f, 0f, 0f);
+
+            var followCam = camGo.AddComponent<FollowCamera>();
+            followCam.Target = generalGo.transform;
+            followCam.Offset = new Vector3(0f, 7.0f, -9.0f);
+            followCam.Snap();
+
+            var gatesRoot = new GameObject("Gates");
+            CreateGatePair(gatesRoot.transform, 25f, 1, LoadPerk("add_5"), LoadPerk("add_10"), litShader);
+            CreateGatePair(gatesRoot.transform, 60f, 2, LoadPerk("multiply_2"), LoadPerk("subtract_3"), litShader);
+            CreateGatePair(gatesRoot.transform, 95f, 3, LoadPerk("divide_2"), LoadPerk("multiply_2"), litShader);
+
+            EditorSceneManager.SaveScene(scene, M3GreyboxScenePath);
+            AssetDatabase.Refresh();
+
+            Debug.Log($"[Game.Editor.SceneBuilder] M3 Greybox scene built successfully at {M3GreyboxScenePath}.");
+        }
+
+        public static void BuildM3GreyboxSceneCli()
+        {
+            BuildM3GreyboxScene();
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        private static PerkDefinition LoadPerk(string id)
+        {
+            string path = $"Assets/_Game/Data/Perks/{id}.asset";
+            var perk = AssetDatabase.LoadAssetAtPath<PerkDefinition>(path);
+            if (perk == null)
+            {
+                PerkImporter.ImportAll();
+                perk = AssetDatabase.LoadAssetAtPath<PerkDefinition>(path);
+            }
+
+            return perk;
+        }
+
+        private static GatePair CreateGatePair(
+            Transform parent,
+            float zPosition,
+            int pairIndex,
+            PerkDefinition lane0Perk,
+            PerkDefinition lane1Perk,
+            Shader shader)
+        {
+            var pairGo = new GameObject($"GatePair_{pairIndex}");
+            pairGo.transform.SetParent(parent, false);
+            pairGo.transform.position = new Vector3(0f, 0f, zPosition);
+            var pair = pairGo.AddComponent<GatePair>();
+
+            var gate0 = CreateSingleGate(pairGo.transform, 0, -1.0f, lane0Perk, pair, shader);
+            var gate1 = CreateSingleGate(pairGo.transform, 1, 1.0f, lane1Perk, pair, shader);
+
+            pair.Initialize(new[] { gate0, gate1 });
+
+            var serializedPair = new SerializedObject(pair);
+            var gatesProp = serializedPair.FindProperty("gates");
+            if (gatesProp != null)
+            {
+                gatesProp.ClearArray();
+                for (int i = 0; i < 2; i++)
+                {
+                    gatesProp.InsertArrayElementAtIndex(i);
+                    gatesProp.GetArrayElementAtIndex(i).objectReferenceValue = i == 0 ? gate0 : gate1;
+                }
+                serializedPair.ApplyModifiedProperties();
+            }
+
+            return pair;
+        }
+
+        private static Gate CreateSingleGate(
+            Transform parent,
+            int laneIndex,
+            float xPosition,
+            PerkDefinition perk,
+            GatePair parentPair,
+            Shader shader)
+        {
+            var gateGo = new GameObject($"Gate_Lane_{laneIndex}");
+            gateGo.transform.SetParent(parent, false);
+            gateGo.transform.localPosition = new Vector3(xPosition, 1.25f, 0f);
+
+            var collider = gateGo.AddComponent<BoxCollider>();
+            collider.isTrigger = true;
+            collider.size = new Vector3(1.8f, 2.5f, 0.4f);
+
+            var gate = gateGo.AddComponent<Gate>();
+            gate.Initialize(laneIndex, perk, parentPair);
+
+            var serializedGate = new SerializedObject(gate);
+            serializedGate.FindProperty("laneIndex").intValue = laneIndex;
+            serializedGate.FindProperty("perk").objectReferenceValue = perk;
+            serializedGate.FindProperty("parentPair").objectReferenceValue = parentPair;
+            serializedGate.ApplyModifiedProperties();
+
+            var frameGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            frameGo.name = "Frame";
+            frameGo.transform.SetParent(gateGo.transform, false);
+            frameGo.transform.localScale = new Vector3(1.9f, 2.6f, 0.15f);
+            Object.DestroyImmediate(frameGo.GetComponent<Collider>());
+            var frameRenderer = frameGo.GetComponent<Renderer>();
+            if (frameRenderer != null && shader != null)
+            {
+                frameRenderer.sharedMaterial = new Material(shader) { color = Color.white };
+            }
+
+            var panelGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            panelGo.name = "Panel";
+            panelGo.transform.SetParent(gateGo.transform, false);
+            panelGo.transform.localPosition = new Vector3(0f, 0f, -0.02f);
+            panelGo.transform.localScale = new Vector3(1.6f, 2.3f, 0.08f);
+            Object.DestroyImmediate(panelGo.GetComponent<Collider>());
+            var panelRenderer = panelGo.GetComponent<Renderer>();
+            if (panelRenderer != null && shader != null)
+            {
+                panelRenderer.sharedMaterial = new Material(shader) { color = Color.white };
+            }
+
+            var textGo = new GameObject("LabelText");
+            textGo.transform.SetParent(gateGo.transform, false);
+            textGo.transform.localPosition = new Vector3(0f, 0.2f, -0.1f);
+            var tmp = textGo.AddComponent<TMPro.TextMeshPro>();
+            tmp.fontSize = 8;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.rectTransform.sizeDelta = new Vector2(2f, 1f);
+
+            var gateView = gateGo.AddComponent<GateView>();
+            gateView.LabelText = tmp;
+            gateView.PanelRenderer = panelRenderer;
+            gateView.FrameRenderer = frameRenderer;
+
+            var serializedView = new SerializedObject(gateView);
+            serializedView.FindProperty("labelText").objectReferenceValue = tmp;
+            serializedView.FindProperty("panelRenderer").objectReferenceValue = panelRenderer;
+            serializedView.FindProperty("frameRenderer").objectReferenceValue = frameRenderer;
+            serializedView.ApplyModifiedProperties();
+
+            gateView.Initialize(perk, gate);
+
+            return gate;
         }
 
         private static void EnsureDirectoryExists(string scenePath)
