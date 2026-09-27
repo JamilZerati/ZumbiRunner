@@ -31,6 +31,11 @@ namespace Game.Tests.EditMode
             var mover = Object.FindAnyObjectByType<LaneMover>();
             Assert.IsNotNull(mover, "LaneMover must exist in M3 Greybox scene.");
 
+            var rb = mover.GetComponent<Rigidbody>();
+            Assert.IsNotNull(rb, "General must have a Rigidbody for physics trigger interactions.");
+            Assert.IsTrue(rb.isKinematic, "General Rigidbody must be kinematic.");
+            Assert.IsFalse(rb.useGravity, "General Rigidbody must not use gravity.");
+
             var squad = Object.FindAnyObjectByType<SquadController>();
             Assert.IsNotNull(squad, "SquadController must exist in M3 Greybox scene.");
             Assert.AreEqual(3, squad.SquadCount, "SquadController should be initialized with 3 soldiers.");

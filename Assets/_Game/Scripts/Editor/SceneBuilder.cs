@@ -346,6 +346,10 @@ namespace Game.Editor
                 generalRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.15f, 0.55f, 0.95f) };
             }
 
+            var rb = generalGo.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
             var input = generalGo.AddComponent<StandaloneLaneInput>();
             var mover = generalGo.AddComponent<LaneMover>();
             mover.Initialize(new LaneLayout(2, 2.0f), input, null, 0);

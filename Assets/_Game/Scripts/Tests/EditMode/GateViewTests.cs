@@ -105,7 +105,7 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(GateView.PositiveColor, view.CurrentColor);
             Assert.IsTrue(panel.sharedMaterial.color == GateView.PositiveColor);
             Assert.IsTrue(frame.sharedMaterial.color == GateView.PositiveColor);
-            Assert.IsTrue(text.color == GateView.PositiveColor);
+            Assert.IsTrue(text.color == GateView.ActiveTextColor);
         }
 
         [Test]
@@ -119,6 +119,7 @@ namespace Game.Tests.EditMode
             Assert.AreEqual("x2", text.text);
             Assert.AreEqual(GateView.PositiveColor, view.CurrentColor);
             Assert.IsTrue(panel.sharedMaterial.color == GateView.PositiveColor);
+            Assert.IsTrue(text.color == GateView.ActiveTextColor);
         }
 
         [Test]
@@ -133,6 +134,7 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(GateView.NegativeColor, view.CurrentColor);
             Assert.IsTrue(panel.sharedMaterial.color == GateView.NegativeColor);
             Assert.IsTrue(frame.sharedMaterial.color == GateView.NegativeColor);
+            Assert.IsTrue(text.color == GateView.ActiveTextColor);
         }
 
         [Test]
@@ -146,6 +148,7 @@ namespace Game.Tests.EditMode
             Assert.AreEqual("÷2", text.text);
             Assert.AreEqual(GateView.NegativeColor, view.CurrentColor);
             Assert.IsTrue(panel.sharedMaterial.color == GateView.NegativeColor);
+            Assert.IsTrue(text.color == GateView.ActiveTextColor);
         }
 
         [Test]
@@ -161,6 +164,7 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(GateView.ConsumedColor, view.CurrentColor);
             Assert.IsTrue(panel.sharedMaterial.color == GateView.ConsumedColor);
             Assert.IsTrue(frame.sharedMaterial.color == GateView.ConsumedColor);
+            Assert.IsTrue(text.color == GateView.ConsumedTextColor);
         }
 
         [Test]
@@ -177,6 +181,7 @@ namespace Game.Tests.EditMode
             Assert.IsFalse(view.IsConsumed);
             Assert.AreEqual(GateView.PositiveColor, view.CurrentColor);
             Assert.IsTrue(panel.sharedMaterial.color == GateView.PositiveColor);
+            Assert.IsTrue(text.color == GateView.ActiveTextColor);
         }
 
         [Test]

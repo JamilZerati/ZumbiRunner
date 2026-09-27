@@ -11,6 +11,8 @@ namespace Game.Presentation
         public static readonly Color PositiveColor = new Color(0.1f, 0.6f, 1f, 1f);
         public static readonly Color NegativeColor = new Color(0.9f, 0.2f, 0.2f, 1f);
         public static readonly Color ConsumedColor = new Color(0.3f, 0.3f, 0.3f, 0.4f);
+        public static readonly Color ActiveTextColor = Color.white;
+        public static readonly Color ConsumedTextColor = new Color(1f, 1f, 1f, 0.4f);
 
         [SerializeField] private TMP_Text labelText;
         [SerializeField] private Renderer panelRenderer;
@@ -128,7 +130,7 @@ namespace Game.Presentation
 
             if (labelText != null)
             {
-                labelText.color = color;
+                labelText.color = IsConsumed ? ConsumedTextColor : ActiveTextColor;
             }
         }
 
