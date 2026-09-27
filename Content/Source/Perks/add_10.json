@@ -1,0 +1,7 @@
+{
+  "id": "add_10",
+  "displayName": "+10",
+  "effects": [
+    { "type": "add", "amount": 10 }
+  ]
+}

@@ -14,7 +14,8 @@ namespace Game.Editor
 
         public static void ImportContent()
         {
-            Debug.Log("[Game.Editor.Cli] ImportContent stub.");
+            int count = PerkImporter.ImportAll();
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {count} perks imported.");
             EditorApplication.Exit(0);
         }
 

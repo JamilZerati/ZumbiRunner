@@ -1,0 +1,7 @@
+{
+  "id": "divide_2",
+  "displayName": "÷2",
+  "effects": [
+    { "type": "divide", "divisor": 2 }
+  ]
+}
