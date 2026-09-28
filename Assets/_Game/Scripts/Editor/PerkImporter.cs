@@ -39,7 +39,7 @@ namespace Game.Editor
             Debug.Log($"[Game.Editor.PerkImporter] Imported {count} perks from '{DefaultSourcePath}' to '{DefaultTargetPath}'.");
         }
 
-        public static int ImportAll(string sourceFolder = null, string targetFolder = null)
+        public static int ImportAll(string sourceFolder = null, string targetFolder = null, List<string> errors = null)
         {
             string source = string.IsNullOrEmpty(sourceFolder) ? DefaultSourcePath : sourceFolder;
             string target = string.IsNullOrEmpty(targetFolder) ? DefaultTargetPath : targetFolder;
