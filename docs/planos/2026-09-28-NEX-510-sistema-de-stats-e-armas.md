@@ -376,7 +376,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 2 + `NEX-569`
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Core/Stats/IWeaponLoadout.cs`, `Core/Events/WeaponEquippedEvent.cs`, `Gameplay/Combat/WeaponController.cs` [NEX-570]
+- [x] **Passo 3 (Marco 3)**: `Core/Stats/IWeaponLoadout.cs`, `Core/Events/WeaponEquippedEvent.cs`, `Gameplay/Combat/WeaponController.cs` [NEX-570]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: `WeaponController` passa a ter uma `StatCollection` própria com bases iniciais iguais à `pistol` (Decisão 7). `Tick` e `Fire` leem `CurrentStats` (resolvido a cada leitura). `TryEquip(id)`: sem catálogo ou id desconhecido → false, nada muda; senão `profile.ApplyAsBase(Stats)`, guarda `SpreadWidth`, atualiza `EquippedWeaponId`, clampa `FireTimer` em `2 × novo intervalo`, publica `WeaponEquippedEvent` no bus se houver. `Start` equipa `initialWeaponId` quando não vazio e o catálogo existir. `FireVolley` aluga `ProjectileCount` projéteis com offset X da Decisão 6, cada um com `Initialize` completo; `Fire()` delega e devolve o primeiro (compatível com testes do M4). Setters legados escrevem base. `TryEquip` não altera `IsFiring`. Armadilhas: spread N = 1; getter × setter; timer na troca; pool e estado reciclado; `StopCombat`.
   - **Dependências / Pré-requisitos**: Passos 1 e 2.
