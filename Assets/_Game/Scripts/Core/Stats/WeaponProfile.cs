@@ -15,9 +15,27 @@ namespace Game.Core.Stats
         public WeaponProfile(string id, float fireRate, int damage, float projectileSpeed,
                              float range, int projectilesPerShot, float spreadWidth)
         {
-            throw new NotImplementedException();
+            Id = id;
+            FireRate = fireRate;
+            Damage = damage;
+            ProjectileSpeed = projectileSpeed;
+            Range = range;
+            ProjectilesPerShot = projectilesPerShot;
+            SpreadWidth = spreadWidth;
         }
 
-        public void ApplyAsBase(StatCollection stats) => throw new NotImplementedException();
+        public void ApplyAsBase(StatCollection stats)
+        {
+            if (stats == null)
+            {
+                throw new ArgumentNullException(nameof(stats));
+            }
+
+            stats.SetBase(StatId.FireRate, FireRate);
+            stats.SetBase(StatId.Damage, Damage);
+            stats.SetBase(StatId.ProjectileSpeed, ProjectileSpeed);
+            stats.SetBase(StatId.Range, Range);
+            stats.SetBase(StatId.ProjectileCount, ProjectilesPerShot);
+        }
     }
 }
