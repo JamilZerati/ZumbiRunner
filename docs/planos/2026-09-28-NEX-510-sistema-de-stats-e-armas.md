@@ -384,7 +384,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 3 + `NEX-570`
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Core/Perks/PerkContext.cs`, `Core/Perks/Effects/{ModifyStatEffect,EquipWeaponEffect}.cs`, `Data/PerkDefinition.cs`, `Gameplay/GatePair.cs`, `Gameplay/Gate.cs`, `Editor/PerkImporter.cs`, `Content/Source/Perks/*.json` [NEX-571]
+- [x] **Passo 4 (Marco 4)**: `Core/Perks/PerkContext.cs`, `Core/Perks/Effects/{ModifyStatEffect,EquipWeaponEffect}.cs`, `Data/PerkDefinition.cs`, `Gameplay/GatePair.cs`, `Gameplay/Gate.cs`, `Editor/PerkImporter.cs`, `Content/Source/Perks/*.json` [NEX-571]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: `PerkContext` ganha `Loadout` e `SourceId` com parâmetros opcionais no fim (chamadas existentes continuam compilando). `PerkDefinition.Apply` injeta `Id` como `SourceId` quando ausente. `ModifyStatEffect` usa `context.SourceId` como fonte (fallback: a própria instância do efeito); `Description` no formato `+25% Dano` / `+1 Cadência`. `EquipWeaponEffect.Description` = id da arma. `GatePair.TryTrigger` recebe `loadout` no fim e o repassa ao `PerkContext`; `Gate.OnTriggerEnter` resolve `IWeaponLoadout` com `GetComponentInParent` e passa `loadout:` por nome. `PerkImporter.CreateEffect` aceita `"weapon"` (valida `weaponId` contra `WeaponImporter.LoadCatalog()`) e `"stat"` (valida `stat`/`kind` com `TryParse` + `IsDefined`; `PercentMultiply` ≤ −1 é erro); `ImportAll` ganha a lista `errors`. Criar os quatro JSON de perk da seção 4 e reimportar. Armadilhas: enum como string; parâmetro posicional em `TryTrigger`; perk importado antes do catálogo.
   - **Dependências / Pré-requisitos**: Passos 2 e 3.
