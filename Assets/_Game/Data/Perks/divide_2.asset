@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae30b5890504af64589332e0949ba4e5, type: 3}
+  m_Name: divide_2
+  m_EditorClassIdentifier: Game.Data::Game.Data.PerkDefinition
+  id: divide_2
+  displayName: "\xF72"
+  effects:
+  - rid: 5800860149564047364
+  references:
+    version: 2
+    RefIds:
+    - rid: 5800860149564047364
+      type: {class: DivideSoldiersEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
+      data:
+        Divisor: 2

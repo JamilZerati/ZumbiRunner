@@ -1,0 +1,7 @@
+{
+  "id": "multiply_2",
+  "displayName": "x2",
+  "effects": [
+    { "type": "multiply", "factor": 2 }
+  ]
+}

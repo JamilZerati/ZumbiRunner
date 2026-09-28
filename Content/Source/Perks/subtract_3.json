@@ -1,0 +1,7 @@
+{
+  "id": "subtract_3",
+  "displayName": "-3",
+  "effects": [
+    { "type": "add", "amount": -3 }
+  ]
+}
