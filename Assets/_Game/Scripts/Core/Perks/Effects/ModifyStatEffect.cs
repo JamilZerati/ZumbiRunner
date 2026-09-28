@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Game.Core.Stats;
 
 namespace Game.Core.Perks.Effects
@@ -21,8 +22,47 @@ namespace Game.Core.Perks.Effects
             Value = value;
         }
 
-        public string Description => throw new NotImplementedException();
+        public string Description => $"{FormatAmount()} {StatLabel(Stat)}";
 
-        public void Apply(PerkContext context) => throw new NotImplementedException();
+        public void Apply(PerkContext context)
+        {
+            context.Loadout?.Stats.AddModifier(new StatModifier(Stat, Kind, Value, context.SourceId ?? (object)this));
+        }
+
+        private string FormatAmount()
+        {
+            switch (Kind)
+            {
+                case ModifierKind.PercentAdd:
+                    return $"{Signed(Value * 100f)}%";
+                case ModifierKind.PercentMultiply:
+                    return $"x{Format(1f + Value)}";
+                default:
+                    return Signed(Value);
+            }
+        }
+
+        private static string Signed(float amount) => amount >= 0f ? $"+{Format(amount)}" : Format(amount);
+
+        private static string Format(float amount) => amount.ToString("0.##", CultureInfo.InvariantCulture);
+
+        private static string StatLabel(StatId stat)
+        {
+            switch (stat)
+            {
+                case StatId.Damage:
+                    return "Dano";
+                case StatId.FireRate:
+                    return "Cadência";
+                case StatId.ProjectileSpeed:
+                    return "Velocidade";
+                case StatId.Range:
+                    return "Alcance";
+                case StatId.ProjectileCount:
+                    return "Projéteis";
+                default:
+                    return stat.ToString();
+            }
+        }
     }
 }

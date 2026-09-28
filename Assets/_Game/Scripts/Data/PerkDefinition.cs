@@ -29,6 +29,11 @@ namespace Game.Data
                 return;
             }
 
+            if (context.SourceId == null)
+            {
+                context = context.WithSourceId(id);
+            }
+
             for (int i = 0; i < effects.Count; i++)
             {
                 effects[i]?.Apply(context);

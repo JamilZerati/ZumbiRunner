@@ -16,8 +16,11 @@ namespace Game.Core.Perks.Effects
             WeaponId = weaponId;
         }
 
-        public string Description => throw new NotImplementedException();
+        public string Description => WeaponId;
 
-        public void Apply(PerkContext context) => throw new NotImplementedException();
+        public void Apply(PerkContext context)
+        {
+            context.Loadout?.TryEquip(WeaponId);
+        }
     }
 }

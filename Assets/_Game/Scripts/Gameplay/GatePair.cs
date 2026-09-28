@@ -84,7 +84,7 @@ namespace Game.Gameplay
 
             if (targetGate.Perk != null)
             {
-                var context = new PerkContext(squad, laneIndex);
+                var context = new PerkContext(squad, laneIndex, loadout);
                 targetGate.Perk.Apply(context);
             }
 
