@@ -38,7 +38,7 @@ namespace Game.Gameplay
 
             var spawned = new List<EnemyController>(count);
             float x = Layout.GetLaneCenterX(laneIndex);
-            var recycleCallback = _onEnemyRecycled ?? OnEnemyRecycled;
+            var recycleCallback = _onEnemyRecycled;
 
             for (int i = 0; i < count; i++)
             {
