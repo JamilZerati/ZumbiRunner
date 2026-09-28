@@ -19,6 +19,7 @@ namespace Game.Editor
         public const string M1GreyboxScenePath = "Assets/_Game/Scenes/M1_Greybox.unity";
         public const string M2GreyboxScenePath = "Assets/_Game/Scenes/M2_Greybox.unity";
         public const string M3GreyboxScenePath = "Assets/_Game/Scenes/M3_Greybox.unity";
+        public const string M4GreyboxScenePath = "Assets/_Game/Scenes/M4_Greybox.unity";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -457,6 +458,262 @@ namespace Game.Editor
         public static void BuildM3GreyboxSceneCli()
         {
             BuildM3GreyboxScene();
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        [MenuItem("Horde Runner/Scenes/Build M4 Greybox Scene")]
+        public static void BuildM4GreyboxScene()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogWarning("[Game.Editor.SceneBuilder] Cannot build scene while in Play Mode. Please exit Play Mode first.");
+                return;
+            }
+
+            EnsureDirectoryExists(M4GreyboxScenePath);
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var lightGo = new GameObject("Directional Light");
+            lightGo.AddComponent<Light>().type = LightType.Directional;
+            lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+
+            var litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+
+            var trackGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            trackGo.name = "Track_Floor";
+            trackGo.transform.position = new Vector3(0f, -0.1f, 100f);
+            trackGo.transform.localScale = new Vector3(4.5f, 0.2f, 200f);
+            var trackRenderer = trackGo.GetComponent<Renderer>();
+            if (trackRenderer != null && litShader != null)
+            {
+                trackRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.18f, 0.20f, 0.22f) };
+            }
+
+            var dividerGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            dividerGo.name = "Lane_Divider";
+            dividerGo.transform.position = new Vector3(0f, 0.02f, 100f);
+            dividerGo.transform.localScale = new Vector3(0.08f, 0.05f, 200f);
+            var dividerRenderer = dividerGo.GetComponent<Renderer>();
+            if (dividerRenderer != null && litShader != null)
+            {
+                dividerRenderer.sharedMaterial = new Material(litShader) { color = Color.white };
+            }
+
+            var generalGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            generalGo.name = "General";
+            generalGo.transform.position = new Vector3(-1f, 0.5f, 0f);
+            generalGo.transform.localScale = Vector3.one;
+            var generalRenderer = generalGo.GetComponent<Renderer>();
+            if (generalRenderer != null && litShader != null)
+            {
+                generalRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.15f, 0.55f, 0.95f) };
+            }
+
+            var rb = generalGo.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
+            var input = generalGo.AddComponent<StandaloneLaneInput>();
+            var mover = generalGo.AddComponent<LaneMover>();
+            mover.Initialize(new LaneLayout(2, 2.0f), input, null, 0);
+
+            var scroller = generalGo.AddComponent<TrackScroller>();
+            scroller.ForwardSpeed = 8.0f;
+
+            var squad = generalGo.AddComponent<SquadController>();
+            squad.Initialize(3);
+
+            var serializedSquad = new SerializedObject(squad);
+            var initialCountProp = serializedSquad.FindProperty("initialCount");
+            if (initialCountProp != null)
+            {
+                initialCountProp.intValue = 3;
+                serializedSquad.ApplyModifiedProperties();
+            }
+
+            var soldierTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            soldierTemplate.name = "Soldier_Template";
+            soldierTemplate.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+            var soldierView = soldierTemplate.AddComponent<SoldierView>();
+            var soldierRenderer = soldierTemplate.GetComponent<Renderer>();
+            if (soldierRenderer != null && litShader != null)
+            {
+                soldierRenderer.sharedMaterial = new Material(litShader) { color = new Color(0.2f, 0.85f, 0.45f) };
+            }
+            soldierTemplate.SetActive(false);
+
+            var visualGo = new GameObject("SquadVisualController");
+            visualGo.transform.SetParent(generalGo.transform, false);
+            var squadVisual = visualGo.AddComponent<SquadVisualController>();
+            var serializedVisual = new SerializedObject(squadVisual);
+            serializedVisual.FindProperty("leaderTransform").objectReferenceValue = generalGo.transform;
+            serializedVisual.FindProperty("soldierPrefab").objectReferenceValue = soldierView;
+            serializedVisual.FindProperty("squadController").objectReferenceValue = squad;
+            serializedVisual.ApplyModifiedProperties();
+
+            var pool = new ObjectPool<SoldierView>(
+                factory: () => Object.Instantiate(soldierTemplate, visualGo.transform).GetComponent<SoldierView>(),
+                onRent: s => s.gameObject.SetActive(true),
+                onReturn: s => s.gameObject.SetActive(false),
+                initialCapacity: 5
+            );
+            squadVisual.Initialize(generalGo.transform, pool, null, 0.5f, 5);
+            squadVisual.SynchronizeSquad(squad.SquadCount);
+
+            // Weapon and Projectile Pool
+            var weapon = generalGo.AddComponent<WeaponController>();
+            weapon.FireRate = 2.0f;
+            weapon.DamagePerShot = 10;
+            weapon.ProjectileSpeed = 15.0f;
+            weapon.MaxDistance = 40.0f;
+
+            var projectilePoolGo = new GameObject("ProjectilePool");
+            projectilePoolGo.transform.SetParent(generalGo.transform, false);
+
+            var projectileTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            projectileTemplate.name = "Projectile_Template";
+            projectileTemplate.transform.SetParent(projectilePoolGo.transform, false);
+            projectileTemplate.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
+            var projCollider = projectileTemplate.GetComponent<SphereCollider>();
+            if (projCollider != null)
+            {
+                projCollider.isTrigger = true;
+            }
+            var projView = projectileTemplate.AddComponent<ProjectileView>();
+            projView.SetupVisuals(new Color(1f, 0.8f, 0.2f));
+            projectileTemplate.AddComponent<Projectile>();
+            projectileTemplate.SetActive(false);
+
+            var projectilePool = new ObjectPool<Projectile>(
+                factory: () => Object.Instantiate(projectileTemplate, projectilePoolGo.transform).GetComponent<Projectile>(),
+                onRent: p => p.gameObject.SetActive(true),
+                onReturn: p => p.gameObject.SetActive(false),
+                initialCapacity: 10
+            );
+            weapon.Initialize(projectilePool, squad);
+
+            // Enemies and HordeSpawner
+            var spawnerGo = new GameObject("HordeSpawner");
+            var spawner = spawnerGo.AddComponent<HordeSpawner>();
+
+            var enemiesParent = new GameObject("Enemies");
+
+            var enemyTemplate = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            enemyTemplate.name = "Enemy_Template";
+            enemyTemplate.transform.SetParent(enemiesParent.transform, false);
+            enemyTemplate.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+            var enemyCollider = enemyTemplate.GetComponent<CapsuleCollider>();
+            if (enemyCollider != null)
+            {
+                enemyCollider.isTrigger = true;
+            }
+            var enemyView = enemyTemplate.AddComponent<EnemyView>();
+            enemyView.SetupVisuals(new Color(0.85f, 0.2f, 0.2f));
+            enemyTemplate.AddComponent<HealthComponent>();
+            enemyTemplate.AddComponent<EnemyController>();
+            enemyTemplate.SetActive(false);
+
+            var enemyPool = new ObjectPool<EnemyController>(
+                factory: () => Object.Instantiate(enemyTemplate, enemiesParent.transform).GetComponent<EnemyController>(),
+                onRent: e => e.gameObject.SetActive(true),
+                onReturn: e => e.gameObject.SetActive(false),
+                initialCapacity: 15
+            );
+
+            var laneLayout = new LaneLayout(2, 2.0f);
+            spawner.Initialize(laneLayout, enemyPool);
+
+            // Pre-spawn waves: z=35, z=75, z=105
+            spawner.SpawnWave(0, 2, 35f, 2f);
+            spawner.SpawnWave(1, 2, 35f, 2f);
+            spawner.SpawnWave(0, 3, 75f, 2f);
+            spawner.SpawnWave(1, 3, 75f, 2f);
+            spawner.SpawnWave(0, 4, 105f, 2f);
+            spawner.SpawnWave(1, 4, 105f, 2f);
+
+            // CombatDirector
+            var director = generalGo.AddComponent<CombatDirector>();
+            var stateMachine = new GameStateMachine(null, GameState.Boot);
+            stateMachine.TryTransition(GameState.Run);
+            director.Initialize(squad, scroller, stateMachine, 120f, spawner);
+
+            var serializedDirector = new SerializedObject(director);
+            var dirSquadProp = serializedDirector.FindProperty("squad");
+            if (dirSquadProp != null) dirSquadProp.objectReferenceValue = squad;
+            var dirScrollerProp = serializedDirector.FindProperty("scroller");
+            if (dirScrollerProp != null) dirScrollerProp.objectReferenceValue = scroller;
+            var dirSpawnerProp = serializedDirector.FindProperty("spawner");
+            if (dirSpawnerProp != null) dirSpawnerProp.objectReferenceValue = spawner;
+            var dirVictoryProp = serializedDirector.FindProperty("victoryDistance");
+            if (dirVictoryProp != null) dirVictoryProp.floatValue = 120f;
+            serializedDirector.ApplyModifiedProperties();
+
+            // HUD
+            var canvasGo = new GameObject("Canvas");
+            canvasGo.AddComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGo.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            canvasGo.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            var hudGo = new GameObject("SquadCountHud", typeof(RectTransform));
+            hudGo.transform.SetParent(canvasGo.transform, false);
+            var hud = hudGo.AddComponent<SquadCountHud>();
+
+            var textGo = new GameObject("CountText", typeof(RectTransform));
+            textGo.transform.SetParent(hudGo.transform, false);
+            var rect = textGo.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 1f);
+                rect.anchoredPosition = new Vector2(0f, -80f);
+                rect.sizeDelta = new Vector2(400f, 100f);
+            }
+
+            var tmp = textGo.AddComponent<TMPro.TextMeshProUGUI>();
+            tmp.fontSize = 54;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            tmp.text = "Tropa: 3";
+
+            var serializedHud = new SerializedObject(hud);
+            serializedHud.FindProperty("countText").objectReferenceValue = tmp;
+            serializedHud.FindProperty("squadController").objectReferenceValue = squad;
+            serializedHud.ApplyModifiedProperties();
+            hud.SetCountText(tmp);
+            hud.Initialize(null, squad.SquadCount);
+
+            // FollowCamera
+            var camGo = new GameObject("Main Camera");
+            camGo.tag = "MainCamera";
+            var cam = camGo.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Skybox;
+            camGo.transform.rotation = Quaternion.Euler(30f, 0f, 0f);
+
+            var followCam = camGo.AddComponent<FollowCamera>();
+            followCam.Target = generalGo.transform;
+            followCam.Offset = new Vector3(0f, 7.0f, -9.0f);
+            followCam.Snap();
+
+            // Gates
+            var gatesRoot = new GameObject("Gates");
+            CreateGatePair(gatesRoot.transform, 25f, 1, LoadPerk("add_5"), LoadPerk("add_10"), litShader);
+            CreateGatePair(gatesRoot.transform, 60f, 2, LoadPerk("multiply_2"), LoadPerk("subtract_3"), litShader);
+            CreateGatePair(gatesRoot.transform, 95f, 3, LoadPerk("divide_2"), LoadPerk("multiply_2"), litShader);
+
+            EditorSceneManager.SaveScene(scene, M4GreyboxScenePath);
+            AssetDatabase.Refresh();
+
+            Debug.Log($"[Game.Editor.SceneBuilder] M4 Greybox scene built successfully at {M4GreyboxScenePath}.");
+        }
+
+        public static void BuildM4GreyboxSceneCli()
+        {
+            BuildM4GreyboxScene();
             if (Application.isBatchMode)
             {
                 EditorApplication.Exit(0);
