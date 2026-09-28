@@ -392,7 +392,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 4 + `NEX-571`
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Editor/SceneBuilder.cs`, `Editor/Cli.cs`, `Assets/_Game/Scenes/M5_Greybox.unity` [NEX-572]
+- [x] **Passo 5 (Marco 5)**: `Editor/SceneBuilder.cs`, `Editor/Cli.cs`, `Assets/_Game/Scenes/M5_Greybox.unity` [NEX-572]
   - **Ação**: Modificar [TELA].
   - **Lógica de Negócios / Responsabilidade**:
     1. **Commit de refactor puro, separado:** extrair o corpo de `BuildM4GreyboxScene` para um builder compartilhado parametrizado (caminho da cena, lista de pares de portões, id da arma inicial, catálogo). `BuildM4GreyboxScene` chama o builder com os valores atuais; `SceneBuilderM4Tests` passa sem alteração antes e depois. Declarar no PR.
