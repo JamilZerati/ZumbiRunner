@@ -1,5 +1,3 @@
-using System;
-
 namespace Game.Core.Events
 {
     public readonly struct WeaponEquippedEvent
@@ -9,7 +7,8 @@ namespace Game.Core.Events
 
         public WeaponEquippedEvent(string weaponId, string previousWeaponId)
         {
-            throw new NotImplementedException();
+            WeaponId = weaponId;
+            PreviousWeaponId = previousWeaponId;
         }
     }
 }
