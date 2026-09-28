@@ -16,11 +16,14 @@ namespace Game.Gameplay
         public IObjectPool<Projectile> Pool { get; private set; }
         public float FireTimer { get; private set; }
 
+        private Action<Projectile> _onProjectileRecycle;
+
         public void Initialize(IObjectPool<Projectile> pool, ISquad squad = null)
         {
             Pool = pool;
             Squad = squad;
             FireTimer = 0f;
+            _onProjectileRecycle = p => Pool?.Return(p);
         }
 
         private void Update()
@@ -37,6 +40,11 @@ namespace Game.Gameplay
 
             FireTimer += deltaTime;
             float interval = 1f / FireRate;
+            if (FireTimer > interval * 2f)
+            {
+                FireTimer = interval * 2f;
+            }
+
             if (FireTimer >= interval)
             {
                 FireTimer -= interval;
@@ -59,7 +67,7 @@ namespace Game.Gameplay
 
             proj.transform.position = transform.position + Vector3.forward * 0.5f;
             proj.gameObject.SetActive(true);
-            proj.Initialize(DamagePerShot, ProjectileSpeed, MaxDistance, p => Pool.Return(p));
+            proj.Initialize(DamagePerShot, ProjectileSpeed, MaxDistance, _onProjectileRecycle ?? (p => Pool.Return(p)));
             return proj;
         }
     }
