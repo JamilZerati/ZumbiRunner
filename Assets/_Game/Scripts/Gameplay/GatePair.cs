@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Events;
 using Game.Core.Perks;
+using Game.Core.Stats;
 using UnityEngine;
 
 namespace Game.Gameplay
@@ -57,7 +58,7 @@ namespace Game.Gameplay
             gate.ParentPair = this;
         }
 
-        public bool TryTrigger(int laneIndex, ISquad squad, IEventBus bus = null)
+        public bool TryTrigger(int laneIndex, ISquad squad, IEventBus bus = null, IWeaponLoadout loadout = null)
         {
             if (IsConsumed || squad == null)
             {

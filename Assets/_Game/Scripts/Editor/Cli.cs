@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
@@ -24,6 +25,11 @@ namespace Game.Editor
             int count = PerkImporter.ImportAll();
             Debug.Log($"[Game.Editor.Cli] ImportContent completed: {count} perks imported.");
             EditorApplication.Exit(0);
+        }
+
+        public static int ComputeImportExitCode(IReadOnlyCollection<string> errors)
+        {
+            throw new System.NotImplementedException();
         }
 
         public static void ValidateContent()

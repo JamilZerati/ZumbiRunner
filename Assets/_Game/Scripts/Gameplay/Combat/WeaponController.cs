@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Stats;
 using Game.Infrastructure;
 using UnityEngine;
 
 namespace Game.Gameplay
 {
-    public class WeaponController : MonoBehaviour
+    public class WeaponController : MonoBehaviour, IWeaponLoadout
     {
         [SerializeField] private Projectile projectilePrefab;
 
@@ -46,13 +48,22 @@ namespace Game.Gameplay
 
         private Action<Projectile> _onProjectileRecycle;
 
-        public void Initialize(IObjectPool<Projectile> pool, ISquad squad = null)
+        public StatCollection Stats => throw new NotImplementedException();
+        public string EquippedWeaponId => throw new NotImplementedException();
+        public WeaponStats CurrentStats => throw new NotImplementedException();
+
+        public void Initialize(IObjectPool<Projectile> pool, ISquad squad = null,
+                               IWeaponCatalog catalog = null, IEventBus eventBus = null)
         {
             Pool = pool;
             Squad = squad;
             FireTimer = 0f;
             _onProjectileRecycle = p => Pool?.Return(p);
         }
+
+        public bool TryEquip(string weaponId) => throw new NotImplementedException();
+
+        public IReadOnlyList<Projectile> FireVolley() => throw new NotImplementedException();
 
         private void Start()
         {

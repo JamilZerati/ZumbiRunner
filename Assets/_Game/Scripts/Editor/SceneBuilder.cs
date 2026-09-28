@@ -20,6 +20,7 @@ namespace Game.Editor
         public const string M2GreyboxScenePath = "Assets/_Game/Scenes/M2_Greybox.unity";
         public const string M3GreyboxScenePath = "Assets/_Game/Scenes/M3_Greybox.unity";
         public const string M4GreyboxScenePath = "Assets/_Game/Scenes/M4_Greybox.unity";
+        public const string M5GreyboxScenePath = "Assets/_Game/Scenes/M5_Greybox.unity";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -752,6 +753,16 @@ namespace Game.Editor
             {
                 EditorApplication.Exit(0);
             }
+        }
+
+        public static void BuildM5GreyboxScene()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public static void BuildM5GreyboxSceneCli()
+        {
+            throw new System.NotImplementedException();
         }
 
         private static PerkDefinition LoadPerk(string id)

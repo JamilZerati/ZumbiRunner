@@ -2,6 +2,7 @@
 > Data: 2026-09-28
 > Issue: NEX-510
 > Status: Pronto para Execução via /executar
+> Status: Cenários validados — Suíte Red comprovada em 2026-09-28
 
 ## 1. Contexto & Arquitetura
 
