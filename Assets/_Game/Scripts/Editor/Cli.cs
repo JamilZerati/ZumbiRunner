@@ -10,7 +10,7 @@ namespace Game.Editor
 {
     public static class Cli
     {
-        public const string DefaultAndroidScenePath = "Assets/_Game/Scenes/M4_Greybox.unity";
+        public const string DefaultAndroidScenePath = "Assets/_Game/Scenes/M5_Greybox.unity";
         public const string DefaultAndroidOutputPath = "Builds/Android/HordeRunner.apk";
         public const string AndroidPackageName = "com.jamilzerati.horderunner";
 

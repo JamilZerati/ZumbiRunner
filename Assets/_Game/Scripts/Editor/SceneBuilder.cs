@@ -479,7 +479,7 @@ namespace Game.Editor
                     new GatePairSpec(95f, "divide_2", "multiply_2"),
                 },
                 initialWeaponId: string.Empty,
-                catalog: null);
+                loadCatalog: null);
         }
 
         private readonly struct GatePairSpec
@@ -501,7 +501,7 @@ namespace Game.Editor
             string sceneLabel,
             IReadOnlyList<GatePairSpec> gatePairs,
             string initialWeaponId,
-            WeaponCatalog catalog)
+            System.Func<WeaponCatalog> loadCatalog)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
@@ -629,7 +629,8 @@ namespace Game.Editor
                 projPrefabProp.objectReferenceValue = projectileComp;
                 serializedWeapon.ApplyModifiedProperties();
             }
-            serializedWeapon.FindProperty("catalog").objectReferenceValue = catalog;
+            // Carregado só depois do NewScene: abrir cena em modo Single descarrega assets sem referência e o campo seria salvo nulo.
+            serializedWeapon.FindProperty("catalog").objectReferenceValue = loadCatalog?.Invoke();
             serializedWeapon.FindProperty("initialWeaponId").stringValue = initialWeaponId ?? string.Empty;
             serializedWeapon.ApplyModifiedProperties();
 
@@ -795,14 +796,48 @@ namespace Game.Editor
             }
         }
 
+        [MenuItem("Horde Runner/Scenes/Build M5 Greybox Scene")]
         public static void BuildM5GreyboxScene()
         {
-            throw new System.NotImplementedException();
+            BuildCombatGreyboxScene(
+                M5GreyboxScenePath,
+                "M5",
+                new[]
+                {
+                    new GatePairSpec(25f, "weapon_shotgun", "weapon_smg"),
+                    new GatePairSpec(60f, "damage_up_25", "fire_rate_up_1"),
+                    new GatePairSpec(95f, "add_10", "multiply_2"),
+                },
+                initialWeaponId: "pistol",
+                loadCatalog: LoadWeaponCatalog);
         }
 
         public static void BuildM5GreyboxSceneCli()
         {
-            throw new System.NotImplementedException();
+            BuildM5GreyboxScene();
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        // Sem catálogo o WeaponController não equipa nada e todo portão de arma vira no-op silencioso.
+        private static WeaponCatalog LoadWeaponCatalog()
+        {
+            var catalog = WeaponImporter.LoadCatalog();
+            if (catalog == null)
+            {
+                WeaponImporter.ImportAll();
+                catalog = WeaponImporter.LoadCatalog();
+            }
+
+            if (catalog == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"[Game.Editor.SceneBuilder] WeaponCatalog not found under {WeaponImporter.DefaultTargetPath}; run tools/unity import-content.");
+            }
+
+            return catalog;
         }
 
         private static PerkDefinition LoadPerk(string id)
