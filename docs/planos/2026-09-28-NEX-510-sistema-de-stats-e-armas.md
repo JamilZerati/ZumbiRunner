@@ -368,7 +368,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 1 + `NEX-568`
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Core/Stats/IWeaponCatalog.cs`, `Data/WeaponDefinition.cs`, `Data/WeaponCatalog.cs`, `Editor/WeaponImporter.cs`, `Editor/Cli.cs`, `Content/Source/Weapons/*.json` [NEX-569]
+- [x] **Passo 2 (Marco 2)**: `Core/Stats/IWeaponCatalog.cs`, `Data/WeaponDefinition.cs`, `Data/WeaponCatalog.cs`, `Editor/WeaponImporter.cs`, `Editor/Cli.cs`, `Content/Source/Weapons/*.json` [NEX-569]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: `WeaponImporter` segue o padrão do `PerkImporter` (DTO + `JsonUtility`, asset em `Assets/_Game/Data/Weapons/<id>.asset`, reaproveita asset existente) e gera/atualiza `WeaponCatalog.asset` com todas as armas importadas. Validação da Decisão 8: campo numérico obrigatório ≤ 0 ou `spreadWidth` < 0 → erro `"<arquivo>: <campo> inválido"` na lista `errors`, sem asset. Id duplicado entre arquivos → erro. `Cli.ImportContent` importa armas, depois perks, loga a contagem e sai 1 se `errors.Count > 0`. Criar os três JSON da tabela da seção 4 e rodar `tools/unity import-content` para gerar os assets. Armadilhas: `JsonUtility` zera campo ausente; `ImportContent` sempre sai 0 hoje; ordem armas → perks.
   - **Dependências / Pré-requisitos**: Passo 1.
