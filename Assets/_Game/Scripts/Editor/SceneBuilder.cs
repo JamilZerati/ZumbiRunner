@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using System.IO;
 using Game.Composition;
 using Game.Core;
@@ -468,13 +469,47 @@ namespace Game.Editor
         [MenuItem("Horde Runner/Scenes/Build M4 Greybox Scene")]
         public static void BuildM4GreyboxScene()
         {
+            BuildCombatGreyboxScene(
+                M4GreyboxScenePath,
+                "M4",
+                new[]
+                {
+                    new GatePairSpec(25f, "add_5", "add_10"),
+                    new GatePairSpec(60f, "multiply_2", "subtract_3"),
+                    new GatePairSpec(95f, "divide_2", "multiply_2"),
+                },
+                initialWeaponId: string.Empty,
+                catalog: null);
+        }
+
+        private readonly struct GatePairSpec
+        {
+            public readonly float Z;
+            public readonly string Lane0PerkId;
+            public readonly string Lane1PerkId;
+
+            public GatePairSpec(float z, string lane0PerkId, string lane1PerkId)
+            {
+                Z = z;
+                Lane0PerkId = lane0PerkId;
+                Lane1PerkId = lane1PerkId;
+            }
+        }
+
+        private static void BuildCombatGreyboxScene(
+            string scenePath,
+            string sceneLabel,
+            IReadOnlyList<GatePairSpec> gatePairs,
+            string initialWeaponId,
+            WeaponCatalog catalog)
+        {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 Debug.LogWarning("[Game.Editor.SceneBuilder] Cannot build scene while in Play Mode. Please exit Play Mode first.");
                 return;
             }
 
-            EnsureDirectoryExists(M4GreyboxScenePath);
+            EnsureDirectoryExists(scenePath);
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             var lightGo = new GameObject("Directional Light");
@@ -594,6 +629,9 @@ namespace Game.Editor
                 projPrefabProp.objectReferenceValue = projectileComp;
                 serializedWeapon.ApplyModifiedProperties();
             }
+            serializedWeapon.FindProperty("catalog").objectReferenceValue = catalog;
+            serializedWeapon.FindProperty("initialWeaponId").stringValue = initialWeaponId ?? string.Empty;
+            serializedWeapon.ApplyModifiedProperties();
 
             var projectilePool = new ObjectPool<Projectile>(
                 factory: () => Object.Instantiate(projectileTemplate, projectilePoolGo.transform).GetComponent<Projectile>(),
@@ -736,14 +774,16 @@ namespace Game.Editor
 
             // Gates
             var gatesRoot = new GameObject("Gates");
-            CreateGatePair(gatesRoot.transform, 25f, 1, LoadPerk("add_5"), LoadPerk("add_10"), litShader);
-            CreateGatePair(gatesRoot.transform, 60f, 2, LoadPerk("multiply_2"), LoadPerk("subtract_3"), litShader);
-            CreateGatePair(gatesRoot.transform, 95f, 3, LoadPerk("divide_2"), LoadPerk("multiply_2"), litShader);
+            for (int i = 0; i < gatePairs.Count; i++)
+            {
+                var spec = gatePairs[i];
+                CreateGatePair(gatesRoot.transform, spec.Z, i + 1, LoadPerk(spec.Lane0PerkId), LoadPerk(spec.Lane1PerkId), litShader);
+            }
 
-            EditorSceneManager.SaveScene(scene, M4GreyboxScenePath);
+            EditorSceneManager.SaveScene(scene, scenePath);
             AssetDatabase.Refresh();
 
-            Debug.Log($"[Game.Editor.SceneBuilder] M4 Greybox scene built successfully at {M4GreyboxScenePath}.");
+            Debug.Log($"[Game.Editor.SceneBuilder] {sceneLabel} Greybox scene built successfully at {scenePath}.");
         }
 
         public static void BuildM4GreyboxSceneCli()
