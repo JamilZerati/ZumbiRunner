@@ -8,8 +8,50 @@ namespace Game.Gameplay
 {
     public class HordeSpawner : MonoBehaviour
     {
-        public LaneLayout Layout { get; private set; }
-        public IObjectPool<EnemyController> Pool { get; private set; }
+        [SerializeField] private int laneCount = 2;
+        [SerializeField] private float laneWidth = 2.0f;
+        [SerializeField] private EnemyController enemyPrefab;
+
+        private LaneLayout? _layout;
+        public LaneLayout Layout
+        {
+            get
+            {
+                if (!_layout.HasValue)
+                {
+                    _layout = new LaneLayout(laneCount > 0 ? laneCount : 2, laneWidth > 0 ? laneWidth : 2.0f);
+                }
+                return _layout.Value;
+            }
+            private set => _layout = value;
+        }
+
+        private IObjectPool<EnemyController> _pool;
+        private bool _isPoolExplicitlySet;
+
+        public IObjectPool<EnemyController> Pool
+        {
+            get
+            {
+                if (!_isPoolExplicitlySet && _pool == null && enemyPrefab != null)
+                {
+                    EnsurePoolInitialized();
+                }
+                return _pool;
+            }
+            private set
+            {
+                _pool = value;
+                _isPoolExplicitlySet = true;
+            }
+        }
+
+        public EnemyController EnemyPrefab
+        {
+            get => enemyPrefab;
+            set => enemyPrefab = value;
+        }
+
         public int DefaultEnemyHealth { get; set; } = 20;
         public float DefaultEnemySpeed { get; set; } = 2f;
         public IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
@@ -21,6 +63,36 @@ namespace Game.Gameplay
         {
             Layout = layout;
             Pool = pool;
+            _onEnemyRecycled = OnEnemyRecycled;
+        }
+
+        public void EnsurePoolInitialized()
+        {
+            if (_pool != null)
+            {
+                return;
+            }
+
+            if (enemyPrefab == null)
+            {
+                enemyPrefab = GetComponentInChildren<EnemyController>(true)
+                    ?? FindFirstObjectByType<EnemyController>(FindObjectsInactive.Include);
+            }
+
+            if (enemyPrefab == null)
+            {
+                return;
+            }
+
+            var poolGo = new GameObject("EnemyPool");
+            poolGo.transform.SetParent(transform, false);
+
+            _pool = new ObjectPool<EnemyController>(
+                factory: () => Instantiate(enemyPrefab, poolGo.transform),
+                onRent: e => e.gameObject.SetActive(true),
+                onReturn: e => e.gameObject.SetActive(false),
+                initialCapacity: 15
+            );
             _onEnemyRecycled = OnEnemyRecycled;
         }
 
@@ -38,7 +110,7 @@ namespace Game.Gameplay
 
             var spawned = new List<EnemyController>(count);
             float x = Layout.GetLaneCenterX(laneIndex);
-            var recycleCallback = _onEnemyRecycled;
+            var recycleCallback = _onEnemyRecycled ?? OnEnemyRecycled;
 
             for (int i = 0; i < count; i++)
             {

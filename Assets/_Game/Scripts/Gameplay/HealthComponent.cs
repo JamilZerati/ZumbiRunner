@@ -7,16 +7,56 @@ namespace Game.Gameplay
 {
     public class HealthComponent : MonoBehaviour, IDamageable
     {
-        private IEventBus eventBus;
+        [SerializeField] private int maxHealth = 20;
 
-        public int CurrentHealth { get; private set; }
-        public int MaxHealth { get; private set; }
+        private IEventBus eventBus;
+        private int _maxHealth;
+        private int _currentHealth;
+        private bool _isInitialized;
+
+        public int CurrentHealth
+        {
+            get
+            {
+                EnsureInitialized();
+                return _currentHealth;
+            }
+            private set => _currentHealth = value;
+        }
+
+        public int MaxHealth
+        {
+            get
+            {
+                EnsureInitialized();
+                return _maxHealth;
+            }
+            private set => _maxHealth = value;
+        }
+
         public bool IsAlive => CurrentHealth > 0;
+
+        private void Awake()
+        {
+            EnsureInitialized();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (!_isInitialized && maxHealth > 0)
+            {
+                _isInitialized = true;
+                _maxHealth = maxHealth;
+                _currentHealth = maxHealth;
+            }
+        }
 
         public void Initialize(int maxHealth, IEventBus eventBus = null)
         {
-            MaxHealth = Math.Max(0, maxHealth);
-            CurrentHealth = MaxHealth;
+            this.maxHealth = Math.Max(0, maxHealth);
+            _isInitialized = true;
+            _maxHealth = this.maxHealth;
+            _currentHealth = _maxHealth;
             this.eventBus = eventBus;
         }
 
