@@ -1,0 +1,10 @@
+{
+  "id": "smg",
+  "displayName": "Submetralhadora",
+  "fireRate": 6,
+  "damage": 4,
+  "projectileSpeed": 20,
+  "range": 35,
+  "projectilesPerShot": 1,
+  "spreadWidth": 0
+}
