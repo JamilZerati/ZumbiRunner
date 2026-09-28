@@ -583,9 +583,16 @@ namespace Game.Editor
                 projCollider.isTrigger = true;
             }
             var projView = projectileTemplate.AddComponent<ProjectileView>();
-            projView.SetupVisuals(new Color(1f, 0.8f, 0.2f));
-            projectileTemplate.AddComponent<Projectile>();
+            var projectileComp = projectileTemplate.AddComponent<Projectile>();
             projectileTemplate.SetActive(false);
+
+            var serializedWeapon = new SerializedObject(weapon);
+            var projPrefabProp = serializedWeapon.FindProperty("projectilePrefab");
+            if (projPrefabProp != null)
+            {
+                projPrefabProp.objectReferenceValue = projectileComp;
+                serializedWeapon.ApplyModifiedProperties();
+            }
 
             var projectilePool = new ObjectPool<Projectile>(
                 factory: () => Object.Instantiate(projectileTemplate, projectilePoolGo.transform).GetComponent<Projectile>(),
@@ -612,9 +619,36 @@ namespace Game.Editor
             }
             var enemyView = enemyTemplate.AddComponent<EnemyView>();
             enemyView.SetupVisuals(new Color(0.85f, 0.2f, 0.2f));
-            enemyTemplate.AddComponent<HealthComponent>();
-            enemyTemplate.AddComponent<EnemyController>();
+            var enemyHealth = enemyTemplate.AddComponent<HealthComponent>();
+            enemyHealth.Initialize(20);
+            var serializedEnemyHealth = new SerializedObject(enemyHealth);
+            var maxHpProp = serializedEnemyHealth.FindProperty("maxHealth");
+            if (maxHpProp != null)
+            {
+                maxHpProp.intValue = 20;
+                serializedEnemyHealth.ApplyModifiedProperties();
+            }
+
+            var enemyCtrl = enemyTemplate.AddComponent<EnemyController>();
             enemyTemplate.SetActive(false);
+
+            var serializedSpawner = new SerializedObject(spawner);
+            var spawnerPrefabProp = serializedSpawner.FindProperty("enemyPrefab");
+            if (spawnerPrefabProp != null)
+            {
+                spawnerPrefabProp.objectReferenceValue = enemyCtrl;
+            }
+            var spawnerLaneCountProp = serializedSpawner.FindProperty("laneCount");
+            if (spawnerLaneCountProp != null)
+            {
+                spawnerLaneCountProp.intValue = 2;
+            }
+            var spawnerLaneWidthProp = serializedSpawner.FindProperty("laneWidth");
+            if (spawnerLaneWidthProp != null)
+            {
+                spawnerLaneWidthProp.floatValue = 2.0f;
+            }
+            serializedSpawner.ApplyModifiedProperties();
 
             var enemyPool = new ObjectPool<EnemyController>(
                 factory: () => Object.Instantiate(enemyTemplate, enemiesParent.transform).GetComponent<EnemyController>(),

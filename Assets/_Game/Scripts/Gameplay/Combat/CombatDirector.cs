@@ -10,24 +10,83 @@ namespace Game.Gameplay
         [SerializeField] private float victoryDistance = 120f;
         [SerializeField] private HordeSpawner spawner;
 
-        public SquadController Squad { get; private set; }
-        public TrackScroller Scroller { get; private set; }
+        private SquadController _squad;
+        private bool _squadExplicitlySet;
+        public SquadController Squad
+        {
+            get
+            {
+                if (!_squadExplicitlySet && _squad == null)
+                {
+                    _squad = squad != null ? squad : (GetComponent<SquadController>() ?? GetComponentInParent<SquadController>());
+                }
+                return _squad;
+            }
+            private set
+            {
+                _squad = value;
+                _squadExplicitlySet = true;
+            }
+        }
+
+        private TrackScroller _scroller;
+        private bool _scrollerExplicitlySet;
+        public TrackScroller Scroller
+        {
+            get
+            {
+                if (!_scrollerExplicitlySet && _scroller == null)
+                {
+                    _scroller = scroller != null ? scroller : (GetComponent<TrackScroller>() ?? GetComponentInParent<TrackScroller>());
+                }
+                return _scroller;
+            }
+            private set
+            {
+                _scroller = value;
+                _scrollerExplicitlySet = true;
+            }
+        }
+
         public IGameStateMachine StateMachine { get; private set; }
-        public float VictoryDistance { get; set; } = 120f;
-        public HordeSpawner Spawner { get; private set; }
+
+        public float VictoryDistance
+        {
+            get => victoryDistance;
+            set => victoryDistance = value;
+        }
+
+        private HordeSpawner _spawner;
+        private bool _spawnerExplicitlySet;
+        public HordeSpawner Spawner
+        {
+            get
+            {
+                if (!_spawnerExplicitlySet && _spawner == null)
+                {
+                    _spawner = spawner != null ? spawner : FindFirstObjectByType<HordeSpawner>();
+                }
+                return _spawner;
+            }
+            private set
+            {
+                _spawner = value;
+                _spawnerExplicitlySet = true;
+            }
+        }
+
         public bool IsResolved { get; private set; }
 
         public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null)
         {
-            Squad = squad;
             this.squad = squad;
-            Scroller = scroller;
+            Squad = squad;
             this.scroller = scroller;
+            Scroller = scroller;
             StateMachine = stateMachine;
             VictoryDistance = victoryDistance;
-            this.victoryDistance = victoryDistance;
-            Spawner = spawner;
             this.spawner = spawner;
+            Spawner = spawner;
             IsResolved = false;
         }
 
@@ -46,11 +105,6 @@ namespace Game.Gameplay
             if (Spawner == null && spawner != null)
             {
                 Spawner = spawner;
-            }
-
-            if (VictoryDistance <= 0f)
-            {
-                VictoryDistance = victoryDistance > 0f ? victoryDistance : 120f;
             }
         }
 
@@ -112,6 +166,7 @@ namespace Game.Gameplay
                 Scroller.IsPaused = true;
             }
 
+            StopCombat();
             StateMachine?.TryTransition(GameState.Defeat);
         }
 
@@ -145,9 +200,22 @@ namespace Game.Gameplay
                 Scroller.IsPaused = true;
             }
 
+            StopCombat();
             StateMachine?.TryTransition(GameState.Victory);
         }
 
+        private void StopCombat()
+        {
+            var weapon = GetComponent<WeaponController>() ?? GetComponentInParent<WeaponController>();
+            if (weapon != null)
+            {
+                weapon.IsFiring = false;
+            }
+
+            Spawner?.ClearActiveEnemies();
+        }
+
+        // Victory check runs on Update tick based on distance traveled by TrackScroller
         public void Tick(float deltaTime)
         {
             if (!IsResolved && StateMachine?.CurrentState == GameState.Run)
@@ -158,6 +226,7 @@ namespace Game.Gameplay
 
         private void Update() => Tick(Time.deltaTime);
 
+        // Physical zombie contacts are resolved asynchronously by the physics trigger cycle
         public void OnTriggerEnter(Collider other)
         {
             if (other == null)

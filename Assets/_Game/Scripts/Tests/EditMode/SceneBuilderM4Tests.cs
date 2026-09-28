@@ -3,6 +3,7 @@ using Game.Editor;
 using Game.Gameplay;
 using Game.Presentation;
 using NUnit.Framework;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Game.Tests.EditMode
@@ -27,6 +28,9 @@ namespace Game.Tests.EditMode
         public void BuildM4GreyboxScene_ContainsRequiredGameplayCombatAndEnemyComponents()
         {
             SceneBuilder.BuildM4GreyboxScene();
+
+            // Reload the scene cleanly from disk to validate cold startup without editor transient memory
+            EditorSceneManager.OpenScene(SceneBuilder.M4GreyboxScenePath, OpenSceneMode.Single);
 
             var mover = Object.FindAnyObjectByType<LaneMover>();
             Assert.IsNotNull(mover, "LaneMover must exist in M4 Greybox scene.");
@@ -71,6 +75,11 @@ namespace Game.Tests.EditMode
 
             var enemies = Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
             Assert.Greater(enemies.Length, 0, "Scene must contain pre-spawned enemy waves.");
+            foreach (var enemy in enemies)
+            {
+                Assert.IsTrue(enemy.IsActiveInPool, "Pre-spawned enemy must be active in pool.");
+                Assert.IsTrue(enemy.IsAlive, "Pre-spawned enemy must be alive.");
+            }
 
             var hud = Object.FindAnyObjectByType<SquadCountHud>();
             Assert.IsNotNull(hud, "SquadCountHud must exist in M4 Greybox scene.");

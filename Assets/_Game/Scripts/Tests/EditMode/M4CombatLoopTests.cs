@@ -256,6 +256,50 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void TriggerVictory_StopsWeaponFiring_AndClearsSpawnerActiveEnemies()
+        {
+            var weapon = directorObject.AddComponent<WeaponController>();
+            weapon.IsFiring = true;
+
+            var pool = new ObjectPool<EnemyController>(() =>
+            {
+                var go = new GameObject("PooledEnemy");
+                spawnedObjects.Add(go);
+                return go.AddComponent<EnemyController>();
+            });
+            spawner.Initialize(new LaneLayout(2, 2.0f), pool);
+            spawner.SpawnWave(0, 2, 10f);
+            Assert.AreEqual(2, spawner.ActiveEnemies.Count);
+
+            director.TriggerVictory();
+
+            Assert.IsFalse(weapon.IsFiring);
+            Assert.AreEqual(0, spawner.ActiveEnemies.Count);
+        }
+
+        [Test]
+        public void TriggerDefeat_StopsWeaponFiring_AndClearsSpawnerActiveEnemies()
+        {
+            var weapon = directorObject.AddComponent<WeaponController>();
+            weapon.IsFiring = true;
+
+            var pool = new ObjectPool<EnemyController>(() =>
+            {
+                var go = new GameObject("PooledEnemy");
+                spawnedObjects.Add(go);
+                return go.AddComponent<EnemyController>();
+            });
+            spawner.Initialize(new LaneLayout(2, 2.0f), pool);
+            spawner.SpawnWave(0, 2, 10f);
+            Assert.AreEqual(2, spawner.ActiveEnemies.Count);
+
+            director.TriggerDefeat();
+
+            Assert.IsFalse(weapon.IsFiring);
+            Assert.AreEqual(0, spawner.ActiveEnemies.Count);
+        }
+
+        [Test]
         public void OnTriggerEnter_WithEnemyController_ResolvesContact()
         {
             var enemyGo = new GameObject("EnemyColliderGo");
