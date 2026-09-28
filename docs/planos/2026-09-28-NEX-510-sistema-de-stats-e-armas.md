@@ -343,7 +343,7 @@ namespace Game.Editor
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-567]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-567]
   - **Ação**: Criar stubs dos contratos da seção 4 (corpo `throw new NotImplementedException()`) e os testes Red em `Tests/EditMode/`.
   - **Lógica de Negócios / Responsabilidade**: o asmdef `Game.Tests.EditMode` é um só; teste que referencia tipo inexistente derruba a compilação de **todos** os testes. Por isso os stubs vêm neste Marco e só os cenários novos ficam Red. Cenários obrigatórios:
     - `StatCollection`: base 10, Flat +2, PercentAdd +0.5 e +0.5, PercentMultiply +1 → `(10+2)×(1+1)×2 = 48`; mesma coleção sem o PercentMultiply → 24 (prova a ordem).
