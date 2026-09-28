@@ -1,0 +1,7 @@
+{
+  "id": "weapon_shotgun",
+  "displayName": "Escopeta",
+  "effects": [
+    { "type": "weapon", "weaponId": "shotgun" }
+  ]
+}

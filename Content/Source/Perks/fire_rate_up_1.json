@@ -1,0 +1,7 @@
+{
+  "id": "fire_rate_up_1",
+  "displayName": "+1 Cadência",
+  "effects": [
+    { "type": "stat", "stat": "FireRate", "kind": "Flat", "value": 1 }
+  ]
+}

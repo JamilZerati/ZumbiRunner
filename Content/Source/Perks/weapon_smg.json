@@ -1,0 +1,7 @@
+{
+  "id": "weapon_smg",
+  "displayName": "Submetralhadora",
+  "effects": [
+    { "type": "weapon", "weaponId": "smg" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "damage_up_25",
+  "displayName": "+25% Dano",
+  "effects": [
+    { "type": "stat", "stat": "Damage", "kind": "PercentAdd", "value": 0.25 }
+  ]
+}
