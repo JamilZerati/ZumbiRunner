@@ -360,7 +360,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 0 + `NEX-567`
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Stats/{StatId,ModifierKind,StatModifier,StatCollection,WeaponProfile,WeaponStats}.cs` [NEX-568]
+- [x] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Stats/{StatId,ModifierKind,StatModifier,StatCollection,WeaponProfile,WeaponStats}.cs` [NEX-568]
   - **Ação**: Criar (substituir os stubs do Marco 0).
   - **Lógica de Negócios / Responsabilidade**: Decisões 1, 2, 4 e 5. `StatCollection` guarda base por `StatId` (dicionário, 0 quando ausente) e lista de modificadores; `GetValue` aplica a fórmula sem clamp e sem cache; toda mutação dispara `Changed(stat)`. `WeaponProfile.ApplyAsBase` chama `SetBase` nos cinco stats. `WeaponStats.Resolve` aplica arredondamento `AwayFromZero` e pisos. Armadilhas: `Game.Core` sem UnityEngine; ordem da fórmula; banker's rounding.
   - **Dependências / Pré-requisitos**: Passo 0.
