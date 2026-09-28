@@ -22,14 +22,21 @@ namespace Game.Editor
 
         public static void ImportContent()
         {
-            int count = PerkImporter.ImportAll();
-            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {count} perks imported.");
-            EditorApplication.Exit(0);
+            var errors = new List<string>();
+            // Armas antes de perks: a validação de perk de arma lê o catálogo recém-gerado.
+            int weaponCount = WeaponImporter.ImportAll(errors: errors);
+            int perkCount = PerkImporter.ImportAll(errors: errors);
+            for (int i = 0; i < errors.Count; i++)
+            {
+                Debug.LogError($"[Game.Editor.Cli] ImportContent error: {errors[i]}");
+            }
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {perkCount} perks imported, {errors.Count} errors.");
+            EditorApplication.Exit(ComputeImportExitCode(errors));
         }
 
         public static int ComputeImportExitCode(IReadOnlyCollection<string> errors)
         {
-            throw new System.NotImplementedException();
+            return errors != null && errors.Count > 0 ? 1 : 0;
         }
 
         public static void ValidateContent()
