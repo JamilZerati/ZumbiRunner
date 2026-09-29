@@ -240,7 +240,7 @@ namespace Game.Tests.EditMode
             for (int i = 0; i < 2; i++) aCtrl.Apply(new StatusApplication(StatusKind.Poison, 1, this));
 
             // Kill origin -> explodes 20 on A -> kills A -> A explodes 8 on B
-            originCtrl.ResolveHit(new DamageInfo(40, DamageType.Physical, this), null);
+            origin.ReceiveHit(new DamageInfo(40, DamageType.Physical, this), null);
 
             Assert.IsFalse(neighborA.IsAlive, "NeighborA must die from origin's explosion.");
             Assert.AreEqual(1, neighborB.ReceivedDamage.Count, "NeighborB receives cascaded explosion from A.");
