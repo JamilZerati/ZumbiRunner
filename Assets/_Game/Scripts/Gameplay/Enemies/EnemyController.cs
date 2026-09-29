@@ -1,11 +1,17 @@
 using System;
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Status;
 using UnityEngine;
 
 namespace Game.Gameplay
 {
-    public class EnemyController : MonoBehaviour, IDamageable
+    public class EnemyController : MonoBehaviour, IDamageable, IStatusReceiver
     {
+        public StatusEffectController Status => throw new NotImplementedException();
+        public int ReceiveHit(DamageInfo hit, IReadOnlyList<StatusApplication> onHit) => throw new NotImplementedException();
+        public void AttachStatusDirector(StatusEffectDirector director) => throw new NotImplementedException();
+
         public int LaneIndex { get; set; }
         public float MoveSpeed { get; set; } = 2f;
         private HealthComponent _health;
