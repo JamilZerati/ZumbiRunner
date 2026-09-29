@@ -307,7 +307,7 @@ public void TriggerDefeat();
   - **Marco de PR**: Marco 0 + `NEX-665`
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Combat/PlatoonSolver.cs` e `PlatoonEmitter.cs` [NEX-666]
+- [x] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Combat/PlatoonSolver.cs` e `PlatoonEmitter.cs` [NEX-666]
   - **Ação**: Implementar `PlatoonEmitter` e `PlatoonSolver` em `Game.Core`.
   - **Lógica de Negócios / Responsabilidade**:
     1. Criar struct imutável `PlatoonEmitter(int index, int soldierCount, FormationPosition position)`;

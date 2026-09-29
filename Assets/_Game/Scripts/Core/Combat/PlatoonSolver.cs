@@ -12,7 +12,26 @@ namespace Game.Core
             float spacing = FormationSolver.DefaultSpacing,
             int maxPerRow = FormationSolver.DefaultMaxPerRow)
         {
-            throw new NotImplementedException("PlatoonSolver will be implemented in Marco 1 [NEX-666].");
+            if (squadCount <= 0)
+            {
+                return Array.Empty<PlatoonEmitter>();
+            }
+
+            int emitterCount = Math.Min((squadCount + SoldiersPerEmitterThreshold - 1) / SoldiersPerEmitterThreshold, MaxEmitters);
+            FormationPosition[] positions = FormationSolver.CalculatePositions(emitterCount, spacing, maxPerRow);
+
+            int baseSoldiers = squadCount / emitterCount;
+            int remainder = squadCount % emitterCount;
+
+            var emitters = new PlatoonEmitter[emitterCount];
+
+            for (int i = 0; i < emitterCount; i++)
+            {
+                int soldierCount = baseSoldiers + (i < remainder ? 1 : 0);
+                emitters[i] = new PlatoonEmitter(i, soldierCount, positions[i]);
+            }
+
+            return emitters;
         }
     }
 }
