@@ -503,7 +503,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 1 + `NEX-582`
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Core/Status/Effects/{FreezeStatus,FrozenStatus,ShockStatus,PoisonStatus}.cs`, ajustes em `StatusEffectController` [NEX-583]
+- [x] **Passo 2 (Marco 2)**: `Core/Status/Effects/{FreezeStatus,FrozenStatus,ShockStatus,PoisonStatus}.cs`, ajustes em `StatusEffectController` [NEX-583]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: Decisões 5, 7 e 8. `FreezeStatus.OnApply`: se `host.Has(Frozen)` ignora (e o controller não deixa o estado vazio pendurado); senão soma pilhas, renova `Remaining`; ao atingir `Threshold` remove `Freeze` e aplica `Frozen` (fonte: o próprio efeito). `FrozenStatus`: multiplicador 0, expira após `Duration`. `ShockStatus` (`IsPersistent = false`): `host.Neighborhood?.FindNearby(host.Owner, ChainRadius, ChainCount)` e `ReceiveHit(new DamageInfo(ChainDamage, Lightning, this), null)` em cada um (lista já copiada). `PoisonStatus`: pilhas com teto, tick como a queimadura com `DamagePerTickPerStack × Stacks` (`DamageType.Poison`); `OnHostDied` com pilhas > 0 entrega `ExplosionDamagePerStack × pilhas` a todos os vizinhos no raio (`maxCount = int.MaxValue`). O controller garante que `OnHostDied` roda sobre a cópia dos estados capturada antes de limpar. Armadilhas: recursão do choque; reentrância; cascata termina.
   - **Dependências / Pré-requisitos**: Passo 1.

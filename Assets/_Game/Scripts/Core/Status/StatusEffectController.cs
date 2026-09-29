@@ -61,6 +61,7 @@ namespace Game.Core.Status
         public void Tick(float deltaTime)
         {
             if (states.Count == 0) return;
+            if (!health.IsAlive || (owner != null && !owner.IsAlive)) return;
 
             var copy = new StatusState[states.Count];
             states.Values.CopyTo(copy, 0);
@@ -76,6 +77,11 @@ namespace Game.Core.Status
                 if (state.Remaining <= 0f)
                 {
                     states.Remove(state.Kind);
+                }
+
+                if (!health.IsAlive || (owner != null && !owner.IsAlive))
+                {
+                    break;
                 }
             }
         }
@@ -142,6 +148,11 @@ namespace Game.Core.Status
                 }
 
                 effect.OnApply(this, state, application.Stacks);
+
+                if (state.Stacks <= 0)
+                {
+                    states.Remove(application.Kind);
+                }
             }
             else
             {
