@@ -1,0 +1,8 @@
+{
+  "id": "ammo_cryo",
+  "displayName": "Munição Criogênica",
+  "effects": [
+    { "type": "status", "status": "Freeze", "stacks": 1 },
+    { "type": "status", "status": "Slow", "stacks": 1 }
+  ]
+}

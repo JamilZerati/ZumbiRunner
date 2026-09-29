@@ -1,0 +1,7 @@
+{
+  "id": "ammo_fire",
+  "displayName": "Munição de Fogo",
+  "effects": [
+    { "type": "status", "status": "Burn", "stacks": 1 }
+  ]
+}

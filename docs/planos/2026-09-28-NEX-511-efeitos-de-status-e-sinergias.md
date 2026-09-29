@@ -530,7 +530,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 4 + `NEX-585`
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Core/Status/OnHitStatusSet.cs`, `Core/Stats/IWeaponLoadout.cs`, `Core/Perks/Effects/ApplyStatusOnHitEffect.cs`, `Gameplay/Combat/{WeaponController,Projectile}.cs`, `Editor/PerkImporter.cs`, `Content/Source/Perks/ammo_*.json` [NEX-586]
+- [x] **Passo 5 (Marco 5)**: `Core/Status/OnHitStatusSet.cs`, `Core/Stats/IWeaponLoadout.cs`, `Core/Perks/Effects/ApplyStatusOnHitEffect.cs`, `Gameplay/Combat/{WeaponController,Projectile}.cs`, `Editor/PerkImporter.cs`, `Content/Source/Perks/ammo_*.json` [NEX-586]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: Decisões 11 e 12. `OnHitStatusSet` espelha `StatCollection` (fonte por `object.Equals`, `Changed` após mutação). `WeaponController` cria o conjunto no inicializador de campo (mesmo motivo do `stats`), expõe via `IWeaponLoadout`, `TryEquip` não toca nele; `FireVolley` tira **um** `Snapshot()` por rajada e passa `onHit:` por nome. `Projectile.Initialize` guarda o payload (null → vazio); `HandleTrigger` procura `IStatusReceiver` no alvo ou no pai e chama `ReceiveHit`; sem receptor, mantém `TakeDamage`. `ApplyStatusOnHitEffect` segue `ModifyStatEffect` (fonte = `context.SourceId`, fallback a instância). `PerkImporter.CreateEffect` aceita `"status"`: `JsonEnumNames.TryParse<StatusKind>`, `stacks ≥ 1`, `Frozen` rejeitado, kind presente em `StatusContentImporter.LoadStatusCatalog()` (sem catálogo → erro "importe os status antes"). Criar os quatro JSON de perk da seção 1 e reimportar. Armadilhas: parâmetro posicional em `Initialize`; pool; ordem do `ImportContent`.
   - **Dependências / Pré-requisitos**: Passo 4 (catálogo para validar perks) e Passo 1 (tipos).
