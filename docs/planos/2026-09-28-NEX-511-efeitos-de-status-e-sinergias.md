@@ -538,7 +538,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 5 + `NEX-586`
   - **Runtime**: hard
 
-- [ ] **Passo 6 (Marco 6)**: `Gameplay/Enemies/{EnemyController,StatusEffectDirector}.cs` [NEX-587]
+- [x] **Passo 6 (Marco 6)**: `Gameplay/Enemies/{EnemyController,StatusEffectDirector}.cs` [NEX-587]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: Decisões 6 e 13. `StatusEffectDirector`: `Initialize` para testes, referências serializadas para a cena; registro em lista (ordem de inserção) sem duplicar; `FindNearby` itera cópia do registro, ignora origem, `!IsActiveInPool`, `!IsAlive` e fora do raio (distância 3D entre `transform.position`), ordena por distância com desempate estável pela ordem de registro. `EnemyController`: `Status` lazy criado com `Health` (o `HealthComponent`), `this`, e catálogo/tabela/vizinhança/bus do director (null sem director — M4/M5 continuam iguais); `Awake` e `Initialize` registram no director; `Initialize` chama `Status.Clear()`; `TakeDamage(d)` → `ReceiveHit(d, null)`; `ReceiveHit`: guarda de ativo/vivo, `Status.ResolveHit`, `Die()` se morreu; `Tick`: `Status.Tick(dt)`, `Die()` se morreu, deslocamento `MoveSpeed × Status.MoveSpeedMultiplier × dt`; `Recycle`: `Status.Clear()` e `Unregister` antes de desativar. Armadilhas: recursão `TakeDamage` ↔ controller; cadáver não reciclado; explosão depois do `Recycle`; `MoveSpeed` reescrito; lista do spawner vazia; `Awake` em EditMode; pool.
   - **Dependências / Pré-requisitos**: Passos 2 e 3 (controller completo). Independe dos Marcos 4 e 5 (testes usam catálogo em memória), mas mergeia depois deles para o `Projectile` já entregar o payload.
