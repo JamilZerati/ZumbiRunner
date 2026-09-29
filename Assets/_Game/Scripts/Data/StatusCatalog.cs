@@ -7,8 +7,33 @@ namespace Game.Data
 {
     public class StatusCatalog : ScriptableObject, IStatusCatalog
     {
-        public IReadOnlyList<IStatusEffect> Effects => throw new NotImplementedException();
-        public bool TryGet(StatusKind kind, out IStatusEffect effect) => throw new NotImplementedException();
-        public void SetEffects(IEnumerable<IStatusEffect> effects) => throw new NotImplementedException();
+        [SerializeReference]
+        private List<IStatusEffect> effects = new List<IStatusEffect>();
+
+        public IReadOnlyList<IStatusEffect> Effects => effects;
+
+        public bool TryGet(StatusKind kind, out IStatusEffect effect)
+        {
+            for (int i = 0; i < effects.Count; i++)
+            {
+                if (effects[i] != null && effects[i].Kind == kind)
+                {
+                    effect = effects[i];
+                    return true;
+                }
+            }
+
+            effect = null;
+            return false;
+        }
+
+        public void SetEffects(IEnumerable<IStatusEffect> newEffects)
+        {
+            effects.Clear();
+            if (newEffects != null)
+            {
+                effects.AddRange(newEffects);
+            }
+        }
     }
 }

@@ -1,0 +1,6 @@
+{
+  "kind": "Burn",
+  "duration": 3,
+  "tickInterval": 0.5,
+  "damagePerTick": 3
+}

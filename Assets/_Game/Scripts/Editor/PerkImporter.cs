@@ -222,12 +222,12 @@ namespace Game.Editor
         {
             int errorCountBefore = errors.Count;
 
-            if (!TryParseEnumName(dto.stat, out StatId stat))
+            if (!JsonEnumNames.TryParse(dto.stat, out StatId stat))
             {
                 errors.Add($"{location}.stat '{dto.stat}' inválido");
             }
 
-            if (!TryParseEnumName(dto.kind, out ModifierKind kind))
+            if (!JsonEnumNames.TryParse(dto.kind, out ModifierKind kind))
             {
                 errors.Add($"{location}.kind '{dto.kind}' inválido");
             }
@@ -239,16 +239,6 @@ namespace Game.Editor
             }
 
             return errors.Count == errorCountBefore ? new ModifyStatEffect(stat, kind, dto.value) : null;
-        }
-
-        // TryParse aceita número ("7", "1") e lista de flags ("Damage, FireRate"); só o nome exato passa.
-        private static bool TryParseEnumName<T>(string text, out T value) where T : struct, Enum
-        {
-            value = default;
-            return !string.IsNullOrEmpty(text)
-                && Enum.TryParse(text, true, out value)
-                && Enum.IsDefined(typeof(T), value)
-                && string.Equals(value.ToString(), text, StringComparison.OrdinalIgnoreCase);
         }
 
         // Sem lista do chamador ninguém mais veria o erro; com lista, quem agrega (Cli) decide como reportar.

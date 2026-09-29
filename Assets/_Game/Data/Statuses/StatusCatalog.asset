@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76e4ac3a3d5c415daa4ad35e6c582a87, type: 3}
+  m_Name: StatusCatalog
+  m_EditorClassIdentifier: Game.Data::Game.Data.StatusCatalog
+  effects:
+  - rid: 5800860180349714432
+  - rid: 5800860180349714433
+  - rid: 5800860180349714434
+  - rid: 5800860180349714435
+  - rid: 5800860180349714436
+  - rid: 5800860180349714437
+  references:
+    version: 2
+    RefIds:
+    - rid: 5800860180349714432
+      type: {class: BurnStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        Duration: 3
+        TickInterval: 0.5
+        DamagePerTick: 3
+    - rid: 5800860180349714433
+      type: {class: FreezeStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        Duration: 3
+        Threshold: 2
+    - rid: 5800860180349714434
+      type: {class: FrozenStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        Duration: 1.5
+    - rid: 5800860180349714435
+      type: {class: PoisonStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        Duration: 4
+        TickInterval: 1
+        DamagePerTickPerStack: 1
+        MaxStacks: 5
+        ExplosionDamagePerStack: 4
+        ExplosionRadius: 2.5
+    - rid: 5800860180349714436
+      type: {class: ShockStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        ChainCount: 2
+        ChainRadius: 4
+        ChainDamage: 6
+    - rid: 5800860180349714437
+      type: {class: SlowStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        Duration: 2
+        SlowPercent: 0.4

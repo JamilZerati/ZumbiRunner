@@ -1,0 +1,7 @@
+{
+  "id": "shatter",
+  "requires": "Frozen",
+  "trigger": "HeavyHit",
+  "minHitDamage": 12,
+  "damageMultiplier": 2
+}

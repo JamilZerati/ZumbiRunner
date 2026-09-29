@@ -1,0 +1,9 @@
+{
+  "kind": "Poison",
+  "duration": 4,
+  "tickInterval": 1,
+  "damagePerTickPerStack": 1,
+  "maxStacks": 5,
+  "explosionDamagePerStack": 4,
+  "explosionRadius": 2.5
+}
