@@ -79,6 +79,8 @@ namespace Game.Gameplay
 
         public int LaneIndex { get; set; }
         public float MoveSpeed { get; set; } = 2f;
+        public int ContactCost { get; set; } = 1;
+        public string ArchetypeId { get; set; } = "walker";
         private HealthComponent _health;
         public HealthComponent Health
         {

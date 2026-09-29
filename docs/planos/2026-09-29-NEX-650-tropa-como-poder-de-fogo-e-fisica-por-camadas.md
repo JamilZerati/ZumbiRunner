@@ -1,7 +1,7 @@
 # Plano de Implementação: M15 · Tropa como poder de fogo e física por camadas
 > Data: 2026-09-29
 > Issue: NEX-650
-> Status: Pronto para Execução via /executar
+> Status: Cenários validados — Suíte Red comprovada em 2026-09-29
 
 ## 1. Contexto & Arquitetura
 
@@ -296,7 +296,7 @@ public void TriggerDefeat();
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs (tropa e física por camadas)` [NEX-665]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs (tropa e física por camadas)` [NEX-665]
   - **Ação**: Criar cenários de teste Red para EditMode e PlayMode com stubs dos novos contratos.
   - **Lógica de Negócios / Responsabilidade**: Declarar testes comportamentais caixa-preta para:
     1. `PlatoonSolver`: cálculo de emissores ($\min(\lceil N / 5 \rceil, 40)$), soma total de soldados idêntica ao squad, distribuição de sobra nos primeiros emissores, teto de 40 emissores e posições via `FormationSolver`;
