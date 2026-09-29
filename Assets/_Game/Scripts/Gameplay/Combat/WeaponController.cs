@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Events;
 using Game.Core.Stats;
+using Game.Core.Status;
 using Game.Data;
 using Game.Infrastructure;
 using UnityEngine;
@@ -11,6 +12,8 @@ namespace Game.Gameplay
 {
     public class WeaponController : MonoBehaviour, IWeaponLoadout
     {
+        public OnHitStatusSet OnHitStatuses => throw new NotImplementedException();
+
         // Iguais à pistol: a cena M4, montada sem catálogo, mantém o tiro que tinha antes dos stats.
         private static readonly WeaponProfile DefaultBaseProfile =
             new WeaponProfile(string.Empty, 2f, 10, 15f, 40f, 1, 0f);

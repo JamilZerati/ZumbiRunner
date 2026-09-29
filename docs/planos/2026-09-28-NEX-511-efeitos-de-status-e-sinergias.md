@@ -1,7 +1,7 @@
 # Plano de Implementação: M6 · Efeitos de status e sinergias
 > Data: 2026-09-28
 > Issue: NEX-511
-> Status: Pronto para Execução via /executar
+> Status: Cenários validados — Suíte Red comprovada em 2026-09-28
 
 ## 1. Contexto & Arquitetura
 
@@ -477,7 +477,7 @@ namespace Game.Editor
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-581]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-581]
   - **Ação**: Criar stubs dos contratos da seção 4 (corpo `throw new NotImplementedException()`; campos públicos dos efeitos e SOs podem existir) e os testes Red em `Tests/EditMode/`.
   - **Lógica de Negócios / Responsabilidade**: o asmdef `Game.Tests.EditMode` é um só; teste que referencia tipo inexistente derruba a compilação de **todos** os testes. Por isso os stubs vêm neste Marco e só os cenários novos ficam Red. `IWeaponLoadout.OnHitStatuses` entra como stub no `WeaponController` (getter lançando) sem quebrar os testes da M5 que não o leem. `StatusTestDoubles.cs`: `FakeReceiver` (vida inteira, `ReceiveHit` delegando a um `StatusEffectController` próprio, registro de golpes recebidos), `FakeNeighborhood` (posições 1D, mais próximo primeiro, empate por ordem de inserção), `InMemoryStatusCatalog`, `InMemoryInteractionTable`. Cenários obrigatórios (números = placeholders da seção 1, salvo indicação):
     - **Queimadura**: alvo com 40 de vida; aplicar `Burn`; 6 × `Tick(0.5)` → 18 de dano e `Burn` removido; outro alvo com um único `Tick(3)` → 18; `Tick(10)` → 18 (não passa da duração). Reaplicar a cada `Tick(0.25)` durante 2 s → 4 ticks = 12 (fase preservada; com a fase zerada seriam 0). Primeiro tick só depois de 0,5 s (`Tick(0.49)` → 0 de dano). `BurnStatus` montado à mão com `TickInterval = 0` não trava e não causa dano.

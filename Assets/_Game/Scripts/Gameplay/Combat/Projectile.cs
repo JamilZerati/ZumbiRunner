@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Status;
 using UnityEngine;
 
 namespace Game.Gameplay
@@ -12,12 +14,17 @@ namespace Game.Gameplay
         public float MaxDistance { get; private set; }
         public float TraveledDistance { get; private set; }
         public bool IsActiveInPool { get; private set; }
+        public IReadOnlyList<StatusApplication> OnHit => throw new NotImplementedException();
 
         private Action<Projectile> _onRecycle;
         private bool _hasHit;
 
-        public void Initialize(int damage, float speed, float maxDistance, Action<Projectile> onRecycle, int laneIndex = 0)
+        public void Initialize(int damage, float speed, float maxDistance, Action<Projectile> onRecycle, int laneIndex = 0, IReadOnlyList<StatusApplication> onHit = null)
         {
+            if (onHit != null)
+            {
+                throw new NotImplementedException();
+            }
             Damage = damage;
             Speed = speed;
             MaxDistance = maxDistance;
