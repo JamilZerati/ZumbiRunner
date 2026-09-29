@@ -2,7 +2,7 @@
   "id": "shotgun",
   "displayName": "Escopeta",
   "fireRate": 1.2,
-  "damage": 8,
+  "damage": 2,
   "projectileSpeed": 14,
   "range": 22,
   "projectilesPerShot": 3,

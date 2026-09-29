@@ -11,7 +11,7 @@ namespace Game.Tests.EditMode
         {
             var stats = new StatCollection();
             stats.SetBase(StatId.FireRate, 2f);
-            stats.SetBase(StatId.Damage, 10f);
+            stats.SetBase(StatId.Damage, 2f);
             stats.SetBase(StatId.ProjectileSpeed, 15f);
             stats.SetBase(StatId.Range, 40f);
             stats.SetBase(StatId.ProjectileCount, 1f);
@@ -24,7 +24,7 @@ namespace Game.Tests.EditMode
             var resolved = WeaponStats.Resolve(PistolBases(), 0f);
 
             Assert.AreEqual(2f, resolved.FireRate, Tolerance);
-            Assert.AreEqual(10, resolved.Damage);
+            Assert.AreEqual(2, resolved.Damage);
             Assert.AreEqual(15f, resolved.ProjectileSpeed, Tolerance);
             Assert.AreEqual(40f, resolved.Range, Tolerance);
             Assert.AreEqual(1, resolved.ProjectileCount);
@@ -35,6 +35,7 @@ namespace Game.Tests.EditMode
         public void Resolve_DamageTwelveAndAHalf_RoundsAwayFromZeroTo13()
         {
             var stats = PistolBases();
+            stats.SetBase(StatId.Damage, 10f);
             stats.AddModifier(new StatModifier(StatId.Damage, ModifierKind.PercentAdd, 0.25f, "damage_up_25"));
 
             Assert.AreEqual(13, WeaponStats.Resolve(stats, 0f).Damage);

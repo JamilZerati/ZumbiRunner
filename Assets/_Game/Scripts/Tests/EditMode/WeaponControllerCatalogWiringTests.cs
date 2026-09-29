@@ -77,7 +77,7 @@ namespace Game.Tests.EditMode
             Assert.IsNotNull(weapon.Stats);
             Assert.AreEqual(string.Empty, weapon.EquippedWeaponId);
             Assert.AreEqual(2f, weapon.CurrentStats.FireRate, Tolerance);
-            Assert.AreEqual(10, weapon.CurrentStats.Damage);
+            Assert.AreEqual(2, weapon.CurrentStats.Damage);
             Assert.AreEqual(15f, weapon.CurrentStats.ProjectileSpeed, Tolerance);
             Assert.AreEqual(40f, weapon.CurrentStats.Range, Tolerance);
             Assert.AreEqual(1, weapon.CurrentStats.ProjectileCount);

@@ -323,7 +323,7 @@ public void TriggerDefeat();
   - **Marco de PR**: Marco 1 + `NEX-666`
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Content/Source/Weapons/*.json` e `DefaultBaseProfile` [NEX-667]
+- [x] **Passo 2 (Marco 2)**: `Content/Source/Weapons/*.json` e `DefaultBaseProfile` [NEX-667]
   - **Ação**: Atualizar catálogo de armas com valores por soldado e reimportar ScriptableObjects.
   - **Lógica de Negócios / Responsabilidade**:
     1. Atualizar `pistol.json` para `damage = 2`;

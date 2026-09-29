@@ -17,7 +17,7 @@ namespace Game.Gameplay
 
         // Iguais à pistol: a cena M4, montada sem catálogo, mantém o tiro que tinha antes dos stats.
         private static readonly WeaponProfile DefaultBaseProfile =
-            new WeaponProfile(string.Empty, 2f, 10, 15f, 40f, 1, 0f);
+            new WeaponProfile(string.Empty, 2f, 2, 15f, 40f, 1, 0f);
 
         [SerializeField] private Projectile projectilePrefab;
         [SerializeField] private WeaponCatalog catalog;

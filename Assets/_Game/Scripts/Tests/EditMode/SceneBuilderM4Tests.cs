@@ -57,7 +57,7 @@ namespace Game.Tests.EditMode
             var weapon = Object.FindAnyObjectByType<WeaponController>();
             Assert.IsNotNull(weapon, "WeaponController must exist in M4 Greybox scene.");
             Assert.AreEqual(2.0f, weapon.FireRate, "WeaponController fire rate should be 2.");
-            Assert.AreEqual(10, weapon.DamagePerShot, "WeaponController damage should be 10.");
+            Assert.AreEqual(2, weapon.DamagePerShot, "WeaponController damage should be 2.");
             Assert.IsNotNull(weapon.Pool, "WeaponController must have a projectile pool initialized.");
 
             var director = Object.FindAnyObjectByType<CombatDirector>();
