@@ -511,7 +511,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 2 + `NEX-583`
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Core/Status/{EffectInteraction,IEffectInteractionTable}.cs`, `Core/Events/SynergyTriggeredEvent.cs`, `StatusEffectController.ResolveHit` [NEX-584]
+- [x] **Passo 3 (Marco 3)**: `Core/Status/{EffectInteraction,IEffectInteractionTable}.cs`, `Core/Events/SynergyTriggeredEvent.cs`, `StatusEffectController.ResolveHit` [NEX-584]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**: Decisão 9 — o critério de pronto da história. Etapa (b) do `ResolveHit`: percorre `Interactions` em ordem; primeira com `Has(RequiredStatus)` e `hit.Amount ≥ MinHitDamage` → dano = `AwayFromZero(hit.Amount × DamageMultiplier)`, `Remove(RequiredStatus)`, publica `SynergyTriggeredEvent` se houver bus, **para**. O `DamageInfo` repassado à vida mantém `Type` e `Source` com o `Amount` novo. `EffectInteraction` valida no construtor (id vazio, `MinHitDamage < 1`, multiplicador ≤ 1 ou não finito → `ArgumentException`). Armadilhas: Estilhaço no mesmo golpe que congela; duas sinergias compondo; banker's rounding.
   - **Dependências / Pré-requisitos**: Passos 1 e 2.
