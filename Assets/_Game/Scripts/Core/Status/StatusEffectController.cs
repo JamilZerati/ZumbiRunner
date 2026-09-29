@@ -95,6 +95,27 @@ namespace Game.Core.Status
 
             int finalDamage = hit.Amount;
 
+            if (interactions != null && interactions.Interactions != null)
+            {
+                var list = interactions.Interactions;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var interaction = list[i];
+                    if (interaction.Trigger == InteractionTrigger.HeavyHit &&
+                        Has(interaction.RequiredStatus) &&
+                        hit.Amount >= interaction.MinHitDamage)
+                    {
+                        finalDamage = (int)Math.Round((double)hit.Amount * interaction.DamageMultiplier, MidpointRounding.AwayFromZero);
+                        Remove(interaction.RequiredStatus);
+                        if (eventBus != null)
+                        {
+                            eventBus.Publish(new SynergyTriggeredEvent(interaction.Id, owner, hit.Amount, finalDamage));
+                        }
+                        break;
+                    }
+                }
+            }
+
             health.TakeDamage(new DamageInfo(finalDamage, hit.Type, hit.Source));
 
             if (!health.IsAlive || (owner != null && !owner.IsAlive))
