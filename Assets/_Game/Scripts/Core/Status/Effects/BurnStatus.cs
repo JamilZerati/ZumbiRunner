@@ -11,9 +11,39 @@ namespace Game.Core.Status
 
         public StatusKind Kind => StatusKind.Burn;
         public bool IsPersistent => true;
-        public void OnApply(IStatusHost host, StatusState state, int stacks) => throw new NotImplementedException();
-        public void OnTick(IStatusHost host, StatusState state, float deltaTime) => throw new NotImplementedException();
-        public void OnHostDied(IStatusHost host, StatusState state) => throw new NotImplementedException();
-        public float MoveSpeedMultiplier(StatusState state) => throw new NotImplementedException();
+
+        public void OnApply(IStatusHost host, StatusState state, int stacks)
+        {
+            if (state == null) return;
+            state.Remaining = Duration;
+            state.Stacks = 1;
+        }
+
+        public void OnTick(IStatusHost host, StatusState state, float deltaTime)
+        {
+            if (state == null) return;
+
+            if (TickInterval <= 0f)
+            {
+                state.Remaining -= deltaTime;
+                return;
+            }
+
+            float step = Math.Min(deltaTime, state.Remaining);
+            state.TickTimer += step;
+            state.Remaining -= deltaTime;
+
+            while (state.TickTimer >= TickInterval - 1e-4f)
+            {
+                state.TickTimer -= TickInterval;
+                host.DealDamage(DamagePerTick, DamageType.Fire, this);
+            }
+        }
+
+        public void OnHostDied(IStatusHost host, StatusState state)
+        {
+        }
+
+        public float MoveSpeedMultiplier(StatusState state) => 1f;
     }
 }
