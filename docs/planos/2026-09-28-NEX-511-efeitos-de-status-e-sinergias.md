@@ -519,7 +519,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 3 + `NEX-584`
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Editor/JsonEnumNames.cs`, `Editor/PerkImporter.cs` (refactor), `Data/{StatusCatalog,EffectInteractionTable}.cs`, `Editor/StatusContentImporter.cs`, `Editor/Cli.cs`, `Content/Source/Statuses/*.json`, `Content/Source/Interactions/shatter.json` [NEX-585]
+- [x] **Passo 4 (Marco 4)**: `Editor/JsonEnumNames.cs`, `Editor/PerkImporter.cs` (refactor), `Data/{StatusCatalog,EffectInteractionTable}.cs`, `Editor/StatusContentImporter.cs`, `Editor/Cli.cs`, `Content/Source/Statuses/*.json`, `Content/Source/Interactions/shatter.json` [NEX-585]
   - **Ação**: Criar / Modificar.
   - **Lógica de Negócios / Responsabilidade**:
     1. **Commit de refactor puro, separado:** mover `TryParseEnumName` do `PerkImporter` para `JsonEnumNames.TryParse` (mesma lógica, mesmo comentário); `PerkImporterTests` passam iguais antes e depois. Declarar no PR.
