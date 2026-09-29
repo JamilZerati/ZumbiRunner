@@ -29,8 +29,13 @@ namespace Game.Gameplay
 
         public void AttachStatusDirector(StatusEffectDirector director)
         {
+            if (statusDirector != null && statusDirector != director)
+            {
+                statusDirector.Unregister(this);
+            }
             statusDirector = director;
             _status = null;
+            statusDirector?.Register(this);
         }
 
         public int ReceiveHit(DamageInfo hit, IReadOnlyList<StatusApplication> onHit)
@@ -126,6 +131,8 @@ namespace Game.Gameplay
                     col.enabled = true;
                 }
             }
+
+            statusDirector?.Register(this);
         }
 
         public void Initialize(int laneIndex, int maxHealth, float moveSpeed, Action<EnemyController> onDeath)
@@ -146,6 +153,9 @@ namespace Game.Gameplay
             {
                 col.enabled = true;
             }
+
+            Status.Clear();
+            statusDirector?.Register(this);
         }
 
         private void Update()
@@ -160,7 +170,15 @@ namespace Game.Gameplay
                 return;
             }
 
-            transform.position += Vector3.back * (MoveSpeed * deltaTime);
+            Status.Tick(deltaTime);
+
+            if (!IsAlive)
+            {
+                Die();
+                return;
+            }
+
+            transform.position += Vector3.back * (MoveSpeed * Status.MoveSpeedMultiplier * deltaTime);
         }
 
         public void TakeDamage(DamageInfo damage)
@@ -181,6 +199,8 @@ namespace Game.Gameplay
             }
 
             IsActiveInPool = false;
+            Status.Clear();
+            statusDirector?.Unregister(this);
 
             if (TryGetComponent<Collider>(out var col))
             {
