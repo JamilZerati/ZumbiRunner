@@ -501,7 +501,9 @@ namespace Game.Editor
             string sceneLabel,
             IReadOnlyList<GatePairSpec> gatePairs,
             string initialWeaponId,
-            System.Func<WeaponCatalog> loadCatalog)
+            System.Func<WeaponCatalog> loadCatalog,
+            int enemyHealth = 20,
+            System.Action<GameObject, EnemyController> setupEnemyStatus = null)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
@@ -659,17 +661,18 @@ namespace Game.Editor
             }
             var enemyView = enemyTemplate.AddComponent<EnemyView>();
             enemyView.SetupVisuals(new Color(0.85f, 0.2f, 0.2f));
-            var enemyHealth = enemyTemplate.AddComponent<HealthComponent>();
-            enemyHealth.Initialize(20);
-            var serializedEnemyHealth = new SerializedObject(enemyHealth);
+            var enemyHealthComp = enemyTemplate.AddComponent<HealthComponent>();
+            enemyHealthComp.Initialize(enemyHealth);
+            var serializedEnemyHealth = new SerializedObject(enemyHealthComp);
             var maxHpProp = serializedEnemyHealth.FindProperty("maxHealth");
             if (maxHpProp != null)
             {
-                maxHpProp.intValue = 20;
+                maxHpProp.intValue = enemyHealth;
                 serializedEnemyHealth.ApplyModifiedProperties();
             }
 
             var enemyCtrl = enemyTemplate.AddComponent<EnemyController>();
+            setupEnemyStatus?.Invoke(enemyTemplate, enemyCtrl);
             enemyTemplate.SetActive(false);
 
             var serializedSpawner = new SerializedObject(spawner);
@@ -697,6 +700,7 @@ namespace Game.Editor
                 initialCapacity: 15
             );
 
+            spawner.DefaultEnemyHealth = enemyHealth;
             var laneLayout = new LaneLayout(2, 2.0f);
             spawner.Initialize(laneLayout, enemyPool);
 
