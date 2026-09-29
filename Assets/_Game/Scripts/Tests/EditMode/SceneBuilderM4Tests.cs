@@ -94,5 +94,22 @@ namespace Game.Tests.EditMode
             var gates = Object.FindObjectsByType<Gate>(FindObjectsSortMode.None);
             Assert.AreEqual(6, gates.Length, "Scene should contain exactly 6 Gate instances (2 per pair).");
         }
+
+        [Test]
+        public void BuildM4GreyboxScene_ProjectilesLiveOutsideGeneralHierarchy()
+        {
+            SceneBuilder.BuildM4GreyboxScene();
+            EditorSceneManager.OpenScene(SceneBuilder.M4GreyboxScenePath, OpenSceneMode.Single);
+
+            var general = Object.FindAnyObjectByType<CombatDirector>().transform;
+            var projectiles = Object.FindObjectsByType<Projectile>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            Assert.Greater(projectiles.Length, 0, "Scene must contain the projectile template.");
+            foreach (var projectile in projectiles)
+            {
+                Assert.IsFalse(projectile.transform.IsChildOf(general),
+                    $"{projectile.name} must not be under the General, or its hits count as squad contact.");
+            }
+        }
     }
 }
