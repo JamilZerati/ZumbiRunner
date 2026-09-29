@@ -199,6 +199,10 @@ namespace Game.Editor
                             });
                         }
                         break;
+
+                    default:
+                        errorSink.Add($"{fileName}: kind '{kind}' sem importador implementado");
+                        break;
                 }
             }
 
