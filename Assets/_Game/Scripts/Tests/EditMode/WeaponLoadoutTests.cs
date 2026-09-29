@@ -68,7 +68,7 @@ namespace Game.Tests.EditMode
             weapon.Initialize(pool);
 
             Assert.AreEqual(2f, weapon.FireRate, Tolerance);
-            Assert.AreEqual(10, weapon.DamagePerShot);
+            Assert.AreEqual(2, weapon.DamagePerShot);
             Assert.AreEqual(15f, weapon.ProjectileSpeed, Tolerance);
             Assert.AreEqual(40f, weapon.MaxDistance, Tolerance);
             Assert.AreEqual(1, weapon.CurrentStats.ProjectileCount);

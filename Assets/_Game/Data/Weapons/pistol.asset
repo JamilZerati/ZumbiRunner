@@ -15,7 +15,7 @@ MonoBehaviour:
   id: pistol
   displayName: Pistola
   fireRate: 2
-  damage: 10
+  damage: 2
   projectileSpeed: 15
   range: 40
   projectilesPerShot: 1
