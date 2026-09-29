@@ -1,0 +1,7 @@
+{
+  "id": "ammo_toxic",
+  "displayName": "Munição Tóxica",
+  "effects": [
+    { "type": "status", "status": "Poison", "stacks": 1 }
+  ]
+}

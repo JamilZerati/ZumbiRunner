@@ -14,17 +14,16 @@ namespace Game.Gameplay
         public float MaxDistance { get; private set; }
         public float TraveledDistance { get; private set; }
         public bool IsActiveInPool { get; private set; }
-        public IReadOnlyList<StatusApplication> OnHit => throw new NotImplementedException();
+
+        private static readonly IReadOnlyList<StatusApplication> EmptyPayload = Array.Empty<StatusApplication>();
+        private IReadOnlyList<StatusApplication> _onHit = EmptyPayload;
+        public IReadOnlyList<StatusApplication> OnHit => _onHit;
 
         private Action<Projectile> _onRecycle;
         private bool _hasHit;
 
         public void Initialize(int damage, float speed, float maxDistance, Action<Projectile> onRecycle, int laneIndex = 0, IReadOnlyList<StatusApplication> onHit = null)
         {
-            if (onHit != null)
-            {
-                throw new NotImplementedException();
-            }
             Damage = damage;
             Speed = speed;
             MaxDistance = maxDistance;
@@ -33,6 +32,7 @@ namespace Game.Gameplay
             TraveledDistance = 0f;
             _hasHit = false;
             IsActiveInPool = true;
+            _onHit = onHit ?? EmptyPayload;
 
             if (TryGetComponent<Collider>(out var col))
             {
@@ -86,6 +86,20 @@ namespace Game.Gameplay
         {
             if (targetObject == null || !IsActiveInPool || _hasHit)
             {
+                return;
+            }
+
+            var receiver = targetObject.GetComponent<IStatusReceiver>() ?? targetObject.GetComponentInParent<IStatusReceiver>();
+            if (receiver != null && receiver.IsAlive)
+            {
+                _hasHit = true;
+                if (TryGetComponent<Collider>(out var col))
+                {
+                    col.enabled = false;
+                }
+
+                receiver.ReceiveHit(new DamageInfo(Damage, DamageType.Physical, this), _onHit);
+                Recycle();
                 return;
             }
 
