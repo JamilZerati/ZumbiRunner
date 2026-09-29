@@ -21,6 +21,16 @@ Par de escolhas, uma por lane, que aplica um Perk ao ser atravessado.
 Composição de `IPerkEffect` (tropa, arma, aliado, stat, clima).
 _Avoid_: power-up
 
+**Efeito de status**:
+Modificador ou condição temporal/instantânea aplicada a entidades (`StatusKind`).
+_Avoid_: debuff
+
+**Sinergia**:
+Interação combinada entre status e dano resolvida pela `EffectInteractionTable`.
+
+**Estilhaço**:
+Sinergia que consome o status Congelado sob golpe pesado, multiplicando o dano final.
+
 **Fase Boss**:
 Fase de dificuldade alta que, vencida, desbloqueia conteúdo.
 

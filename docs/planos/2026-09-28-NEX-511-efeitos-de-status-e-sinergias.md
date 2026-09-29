@@ -546,7 +546,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 6 + `NEX-587`
   - **Runtime**: hard
 
-- [ ] **Passo 7 (Marco 7)**: `Editor/SceneBuilder.cs`, `Editor/Cli.cs`, `Presentation/EnemyStatusTint.cs`, `CONTEXT.md`, `Assets/_Game/Scenes/M6_Greybox.unity` [NEX-588]
+- [x] **Passo 7 (Marco 7)**: `Editor/SceneBuilder.cs`, `Editor/Cli.cs`, `Presentation/EnemyStatusTint.cs`, `CONTEXT.md`, `Assets/_Game/Scenes/M6_Greybox.unity` [NEX-588]
   - **Ação**: Modificar [TELA].
   - **Lógica de Negócios / Responsabilidade**:
     1. **Commit de refactor puro, separado:** `BuildCombatGreyboxScene` ganha `enemyHealth` (default 20) e um callback opcional de setup de status (default nulo); M4 e M5 chamam sem os novos argumentos. `SceneBuilderM4Tests`, `SceneBuilderM5Tests` e `SceneBuilderM5StartupTests` passam iguais antes e depois. Declarar no PR.
