@@ -76,8 +76,9 @@ namespace Game.Gameplay
         }
 
         public bool IsResolved { get; private set; }
+        public IEventBus EventBus { get; set; }
 
-        public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null)
+        public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null, IEventBus eventBus = null)
         {
             this.squad = squad;
             Squad = squad;
@@ -87,6 +88,7 @@ namespace Game.Gameplay
             VictoryDistance = victoryDistance;
             this.spawner = spawner;
             Spawner = spawner;
+            EventBus = eventBus;
             IsResolved = false;
         }
 

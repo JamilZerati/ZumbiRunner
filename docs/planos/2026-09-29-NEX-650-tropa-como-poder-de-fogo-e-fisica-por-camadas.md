@@ -1,7 +1,7 @@
 # Plano de Implementação: M15 · Tropa como poder de fogo e física por camadas
 > Data: 2026-09-29
 > Issue: NEX-650
-> Status: Pronto para Execução via /executar
+> Status: Cenários validados — Suíte Red comprovada em 2026-09-29
 
 ## 1. Contexto & Arquitetura
 
