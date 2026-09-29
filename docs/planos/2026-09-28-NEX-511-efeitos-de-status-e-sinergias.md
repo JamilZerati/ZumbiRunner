@@ -495,7 +495,7 @@ namespace Game.Editor
   - **Marco de PR**: Marco 0 + `NEX-581`
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Core/Status/{StatusKind,StatusApplication,StatusState,IStatusEffect,IStatusHost,IStatusCatalog,IStatusReceiver,IStatusNeighborhood,StatusEffectController}.cs`, `Core/Status/Effects/{BurnStatus,SlowStatus}.cs` [NEX-582]
+- [x] **Passo 1 (Marco 1)**: `Core/Status/{StatusKind,StatusApplication,StatusState,IStatusEffect,IStatusHost,IStatusCatalog,IStatusReceiver,IStatusNeighborhood,StatusEffectController}.cs`, `Core/Status/Effects/{BurnStatus,SlowStatus}.cs` [NEX-582]
   - **Ação**: Criar (substituir os stubs do Marco 0).
   - **Lógica de Negócios / Responsabilidade**: Decisões 1, 3, 4, 5 (Burn/Slow), 6 e 10. `StatusEffectController` guarda `Dictionary<StatusKind, StatusState>`; `Apply` busca o efeito no catálogo (ausente → no-op), cria o estado se `IsPersistent` e chama `OnApply`; `Tick` itera uma cópia dos estados, chama `OnTick` e remove os com `Remaining ≤ 0`; `ResolveHit` segue a Decisão 3 com a etapa (b) chamando um ponto único que devolve o dano inalterado até o Marco 3; `DealDamage` bate na vida e, se ela zerar, dispara `OnHostDied` uma vez (`diedNotified`) e limpa; `Clear` rearma. `BurnStatus.OnTick`: passo = `min(dt, Remaining)`, `TickTimer += passo`, `while (TickTimer >= TickInterval - 1e-4)` causa `DamagePerTick` (`DamageType.Fire`), `Remaining -= dt`; `TickInterval ≤ 0` não tica. `SlowStatus.OnApply`: `Potency = max(Potency, SlowPercent)`, renova `Remaining`. Armadilhas: `Game.Core` sem UnityEngine; DoT truncado; refresh zerando fase; último tick perdido; reentrância.
   - **Dependências / Pré-requisitos**: Passo 0.
