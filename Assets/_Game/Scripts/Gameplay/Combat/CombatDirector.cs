@@ -1,5 +1,6 @@
 using UnityEngine;
 using Game.Core;
+using Game.Core.Events;
 
 namespace Game.Gameplay
 {
@@ -144,7 +145,10 @@ namespace Game.Gameplay
 
             if (Squad != null && Squad.SquadCount > 0)
             {
-                Squad.Remove(1);
+                int cost = enemy != null ? enemy.ContactCost : 1;
+                int lost = Mathf.Min(cost, Squad.SquadCount);
+                Squad.Remove(cost);
+                EventBus?.Publish(new EnemyConsumedEvent(enemy?.ArchetypeId ?? "walker", lost));
                 enemy.Recycle();
                 return true;
             }
