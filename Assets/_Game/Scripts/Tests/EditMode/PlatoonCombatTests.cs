@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Core;
 using Game.Core.Events;
 using Game.Core.Stats;
+using Game.Core.Status;
 using Game.Gameplay;
 using Game.Infrastructure;
 using NUnit.Framework;
@@ -228,6 +229,28 @@ namespace Game.Tests.EditMode
             foreach (var proj in volley)
             {
                 Assert.AreEqual(10, proj.Damage);
+            }
+        }
+
+        [Test]
+        public void FireVolley_ComStatusPayloadETropa_AplicaSnapshotEmTodosOsProjeteisDePelotao()
+        {
+            var squadGo = new GameObject("SquadStatus");
+            spawnedObjects.Add(squadGo);
+            var squad = squadGo.AddComponent<SquadController>();
+            squad.Initialize(10);
+
+            var weapon = CreateWeapon(squad, baseDamage: 2);
+            weapon.OnHitStatuses.Add(new StatusApplication(StatusKind.Freeze, 1, "ammo_cryo"));
+
+            var volley = weapon.FireVolley();
+
+            Assert.AreEqual(2, volley.Count);
+            foreach (var proj in volley)
+            {
+                Assert.IsNotNull(proj.OnHit);
+                Assert.AreEqual(1, proj.OnHit.Count);
+                Assert.AreEqual(StatusKind.Freeze, proj.OnHit[0].Kind);
             }
         }
 

@@ -26,7 +26,9 @@ resolve_unity_editor() {
         "$HOME/Unity/Hub/Editor/${UNITY_VERSION}/Editor/Unity"
         "/opt/unity/Editor/Unity"
         "/c/Program Files/Unity/Hub/Editor/${UNITY_VERSION}/Editor/Unity.exe"
-        "C:/Program Files/Unity/Hub/Editor/${UNITY_VERSION}/Editor/Unity.exe"
+        "C:/Program Files/Unity/Hub/Editor/${UNITY_VERSION}/Editor/Unity.exe",
+        "D:/Unity/Hub/Editor/${UNITY_VERSION}/Editor/Unity.exe",
+        "/d/Unity/Hub/Editor/${UNITY_VERSION}/Editor/Unity.exe"
     )
 
     for candidate in "${candidates[@]}"; do
