@@ -166,5 +166,153 @@ namespace Game.Tests.EditMode
 
             Assert.AreEqual(1, deathCount);
         }
+
+        [Test]
+        public void Engage_SetsProperties_AndUpdatesPositionImmediately()
+        {
+            var targetObject = new GameObject("Target");
+            try
+            {
+                targetObject.transform.position = new Vector3(1f, 0f, 5f);
+                enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 2f, onDeath: null);
+
+                enemy.Engage(targetObject.transform, new Vector3(0.5f, 0f, 1f));
+
+                Assert.IsTrue(enemy.IsEngaged);
+                Assert.AreSame(targetObject.transform, enemy.FollowTarget);
+                Assert.AreEqual(new Vector3(0.5f, 0f, 1f), enemy.EngagementOffset);
+                Assert.AreEqual(new Vector3(1.5f, 0f, 6f), enemyObject.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+            }
+        }
+
+        [Test]
+        public void Engage_WhenDeadOrInactive_DoesNotEngage()
+        {
+            var targetObject = new GameObject("Target");
+            try
+            {
+                targetObject.transform.position = new Vector3(1f, 0f, 5f);
+                enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 2f, onDeath: null);
+                enemy.Recycle();
+
+                enemy.Engage(targetObject.transform, new Vector3(0.5f, 0f, 1f));
+
+                Assert.IsFalse(enemy.IsEngaged);
+                Assert.IsNull(enemy.FollowTarget);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+            }
+        }
+
+        [Test]
+        public void Engage_WhenTargetNull_DoesNotEngage()
+        {
+            enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 2f, onDeath: null);
+            enemy.Engage(null, new Vector3(0.5f, 0f, 1f));
+
+            Assert.IsFalse(enemy.IsEngaged);
+            Assert.IsNull(enemy.FollowTarget);
+        }
+
+        [Test]
+        public void Tick_WhenEngaged_FollowsTargetWithOffset()
+        {
+            var targetObject = new GameObject("Target");
+            try
+            {
+                targetObject.transform.position = new Vector3(0f, 0f, 10f);
+                enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 4f, onDeath: null);
+                enemy.Engage(targetObject.transform, new Vector3(1f, 0f, -0.5f));
+
+                targetObject.transform.position = new Vector3(3f, 0f, 20f);
+                enemy.Tick(0.5f);
+
+                Assert.AreEqual(new Vector3(4f, 0f, 19.5f), enemyObject.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+            }
+        }
+
+        [Test]
+        public void Disengage_ResetsEngagedState_AndClearsFollowTarget()
+        {
+            var targetObject = new GameObject("Target");
+            try
+            {
+                targetObject.transform.position = new Vector3(1f, 0f, 5f);
+                enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 2f, onDeath: null);
+                enemy.Engage(targetObject.transform, new Vector3(1f, 0f, 2f));
+
+                enemy.Disengage();
+
+                Assert.IsFalse(enemy.IsEngaged);
+                Assert.IsNull(enemy.FollowTarget);
+                Assert.AreEqual(Vector3.zero, enemy.EngagementOffset);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+            }
+        }
+
+        [Test]
+        public void Recycle_WhenEngaged_CallsDisengage()
+        {
+            var targetObject = new GameObject("Target");
+            try
+            {
+                targetObject.transform.position = new Vector3(1f, 0f, 5f);
+                enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 2f, onDeath: null);
+                enemy.Engage(targetObject.transform, new Vector3(1f, 0f, 2f));
+
+                enemy.Recycle();
+
+                Assert.IsFalse(enemy.IsEngaged);
+                Assert.IsNull(enemy.FollowTarget);
+                Assert.AreEqual(Vector3.zero, enemy.EngagementOffset);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+            }
+        }
+
+        [Test]
+        public void Die_WhenEngaged_CallsDisengage()
+        {
+            var targetObject = new GameObject("Target");
+            try
+            {
+                targetObject.transform.position = new Vector3(1f, 0f, 5f);
+                enemy.Initialize(laneIndex: 0, maxHealth: 20, moveSpeed: 2f, onDeath: null);
+                enemy.Engage(targetObject.transform, new Vector3(1f, 0f, 2f));
+
+                enemy.Die();
+
+                Assert.IsFalse(enemy.IsEngaged);
+                Assert.IsNull(enemy.FollowTarget);
+                Assert.AreEqual(Vector3.zero, enemy.EngagementOffset);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+            }
+        }
+
+        [Test]
+        public void ContactDPS_DefaultsToFive()
+        {
+            Assert.AreEqual(5f, enemy.ContactDPS);
+            enemy.ContactDPS = 12.5f;
+            Assert.AreEqual(12.5f, enemy.ContactDPS);
+        }
     }
 }
