@@ -337,7 +337,7 @@ public void TriggerDefeat();
   - **Marco de PR**: Marco 2 + `NEX-667`
   - **Runtime**: low
 
-- [ ] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Gameplay/Combat/WeaponController.cs` [NEX-668]
+- [x] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Gameplay/Combat/WeaponController.cs` [NEX-668]
   - **Ação**: Implementar disparo por pelotões e escala de dano linear no `WeaponController`.
   - **Lógica de Negócios / Responsabilidade**:
     1. Em `FireVolley()`:
