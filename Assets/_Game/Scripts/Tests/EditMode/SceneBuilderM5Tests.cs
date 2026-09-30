@@ -119,5 +119,28 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(1, weapon.Stats.GetModifiers(StatId.Damage).Count);
             Assert.AreEqual("damage_up_25", weapon.Stats.GetModifiers(StatId.Damage)[0].Source);
         }
+
+        [Test]
+        public void BuildM5GreyboxScene_InitializesWithSquadCount10AndPhysicalLayers()
+        {
+            BuildAndReopenM5Scene();
+
+            var squad = Object.FindAnyObjectByType<SquadController>();
+            Assert.IsNotNull(squad);
+            Assert.AreEqual(10, squad.SquadCount);
+
+            var mover = Object.FindAnyObjectByType<LaneMover>();
+            Assert.AreEqual(CollisionLayers.SquadBodyLayer, mover.gameObject.layer);
+
+            var poolObj = GameObject.Find("ProjectilePool");
+            Assert.IsNotNull(poolObj);
+            Assert.IsNull(poolObj.transform.parent);
+            Assert.AreEqual(CollisionLayers.PlayerProjectileLayer, poolObj.layer);
+
+            var spawnerObj = GameObject.Find("HordeSpawner");
+            Assert.IsNotNull(spawnerObj);
+            Assert.IsNull(spawnerObj.transform.parent);
+            Assert.AreEqual(CollisionLayers.EnemyLayer, spawnerObj.layer);
+        }
     }
 }

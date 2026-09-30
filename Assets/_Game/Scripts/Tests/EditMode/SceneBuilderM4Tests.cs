@@ -49,7 +49,9 @@ namespace Game.Tests.EditMode
 
             var squad = Object.FindAnyObjectByType<SquadController>();
             Assert.IsNotNull(squad, "SquadController must exist in M4 Greybox scene.");
-            Assert.AreEqual(3, squad.SquadCount, "SquadController should be initialized with 3 soldiers.");
+            Assert.AreEqual(10, squad.SquadCount, "SquadController should be initialized with 10 soldiers.");
+
+            Assert.AreEqual(CollisionLayers.SquadBodyLayer, mover.gameObject.layer, "General must be in SquadBody layer.");
 
             var visual = Object.FindAnyObjectByType<SquadVisualController>();
             Assert.IsNotNull(visual, "SquadVisualController must exist in M4 Greybox scene.");
@@ -59,6 +61,11 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(2.0f, weapon.FireRate, "WeaponController fire rate should be 2.");
             Assert.AreEqual(2, weapon.DamagePerShot, "WeaponController damage should be 2.");
             Assert.IsNotNull(weapon.Pool, "WeaponController must have a projectile pool initialized.");
+
+            var poolObj = GameObject.Find("ProjectilePool");
+            Assert.IsNotNull(poolObj, "ProjectilePool GameObject must exist.");
+            Assert.IsNull(poolObj.transform.parent, "ProjectilePool must reside at scene root.");
+            Assert.AreEqual(CollisionLayers.PlayerProjectileLayer, poolObj.layer, "ProjectilePool must be in PlayerProjectile layer.");
 
             var director = Object.FindAnyObjectByType<CombatDirector>();
             Assert.IsNotNull(director, "CombatDirector must exist in M4 Greybox scene.");
@@ -73,12 +80,23 @@ namespace Game.Tests.EditMode
             Assert.IsNotNull(spawner.Pool, "HordeSpawner must have an enemy pool initialized.");
             Assert.IsNotNull(spawner.Layout, "HordeSpawner must have a lane layout initialized.");
 
+            var spawnerObj = GameObject.Find("HordeSpawner");
+            Assert.IsNotNull(spawnerObj, "HordeSpawner GameObject must exist.");
+            Assert.IsNull(spawnerObj.transform.parent, "HordeSpawner must reside at scene root.");
+            Assert.AreEqual(CollisionLayers.EnemyLayer, spawnerObj.layer, "HordeSpawner must be in Enemy layer.");
+
+            var enemiesObj = GameObject.Find("Enemies");
+            Assert.IsNotNull(enemiesObj, "Enemies GameObject must exist.");
+            Assert.IsNull(enemiesObj.transform.parent, "Enemies container must reside at scene root.");
+            Assert.AreEqual(CollisionLayers.EnemyLayer, enemiesObj.layer, "Enemies container must be in Enemy layer.");
+
             var enemies = Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
             Assert.Greater(enemies.Length, 0, "Scene must contain pre-spawned enemy waves.");
             foreach (var enemy in enemies)
             {
                 Assert.IsTrue(enemy.IsActiveInPool, "Pre-spawned enemy must be active in pool.");
                 Assert.IsTrue(enemy.IsAlive, "Pre-spawned enemy must be alive.");
+                Assert.AreEqual(CollisionLayers.EnemyLayer, enemy.gameObject.layer, "Enemy must be in Enemy layer.");
             }
 
             var hud = Object.FindAnyObjectByType<SquadCountHud>();
@@ -93,6 +111,10 @@ namespace Game.Tests.EditMode
 
             var gates = Object.FindObjectsByType<Gate>(FindObjectsSortMode.None);
             Assert.AreEqual(6, gates.Length, "Scene should contain exactly 6 Gate instances (2 per pair).");
+            foreach (var gate in gates)
+            {
+                Assert.AreEqual(CollisionLayers.PickupLayer, gate.gameObject.layer, "Gate must be in Pickup layer.");
+            }
         }
     }
 }

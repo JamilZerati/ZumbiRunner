@@ -396,7 +396,7 @@ public void TriggerDefeat();
   - **Marco de PR**: Marco 5 + `NEX-670`
   - **Runtime**: hard
 
-- [ ] **Passo 6 (Marco 6)**: `Assets/_Game/Scripts/Editor/SceneBuilder.cs` e Cenas Greybox [NEX-671]
+- [x] **Passo 6 (Marco 6)**: `Assets/_Game/Scripts/Editor/SceneBuilder.cs` e Cenas Greybox [NEX-671]
   - **Ação**: Recalibrar geração de cenas greybox via `SceneBuilder` com tropa 10 e camadas físicas.
   - **Lógica de Negócios / Responsabilidade**:
     1. Atualizar `SceneBuilder`:

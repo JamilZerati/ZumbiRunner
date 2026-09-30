@@ -543,6 +543,7 @@ namespace Game.Editor
 
             var generalGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             generalGo.name = "General";
+            generalGo.layer = CollisionLayers.SquadBodyLayer;
             generalGo.transform.position = new Vector3(-1f, 0.5f, 0f);
             generalGo.transform.localScale = Vector3.one;
             var generalRenderer = generalGo.GetComponent<Renderer>();
@@ -563,20 +564,22 @@ namespace Game.Editor
             scroller.ForwardSpeed = 8.0f;
 
             var squad = generalGo.AddComponent<SquadController>();
-            squad.Initialize(3);
+            squad.Initialize(10);
 
             var serializedSquad = new SerializedObject(squad);
             var initialCountProp = serializedSquad.FindProperty("initialCount");
             if (initialCountProp != null)
             {
-                initialCountProp.intValue = 3;
+                initialCountProp.intValue = 10;
                 serializedSquad.ApplyModifiedProperties();
             }
 
             var soldierTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             soldierTemplate.name = "Soldier_Template";
+            soldierTemplate.layer = CollisionLayers.SquadBodyLayer;
             soldierTemplate.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
             var soldierView = soldierTemplate.AddComponent<SoldierView>();
+            soldierView.EnsurePhysicsSetup();
             var soldierRenderer = soldierTemplate.GetComponent<Renderer>();
             if (soldierRenderer != null && litShader != null)
             {
@@ -585,6 +588,7 @@ namespace Game.Editor
             soldierTemplate.SetActive(false);
 
             var visualGo = new GameObject("SquadVisualController");
+            visualGo.layer = CollisionLayers.SquadBodyLayer;
             visualGo.transform.SetParent(generalGo.transform, false);
             var squadVisual = visualGo.AddComponent<SquadVisualController>();
             var serializedVisual = new SerializedObject(squadVisual);
@@ -597,7 +601,7 @@ namespace Game.Editor
                 factory: () => Object.Instantiate(soldierTemplate, visualGo.transform).GetComponent<SoldierView>(),
                 onRent: s => s.gameObject.SetActive(true),
                 onReturn: s => s.gameObject.SetActive(false),
-                initialCapacity: 5
+                initialCapacity: 10
             );
             squadVisual.Initialize(generalGo.transform, pool, null, 0.5f, 5);
             squadVisual.SynchronizeSquad(squad.SquadCount);
@@ -605,15 +609,16 @@ namespace Game.Editor
             // Weapon and Projectile Pool
             var weapon = generalGo.AddComponent<WeaponController>();
             weapon.FireRate = 2.0f;
-            weapon.DamagePerShot = 10;
+            weapon.DamagePerShot = 2;
             weapon.ProjectileSpeed = 15.0f;
             weapon.MaxDistance = 40.0f;
 
             var projectilePoolGo = new GameObject("ProjectilePool");
-            projectilePoolGo.transform.SetParent(generalGo.transform, false);
+            projectilePoolGo.layer = CollisionLayers.PlayerProjectileLayer;
 
             var projectileTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             projectileTemplate.name = "Projectile_Template";
+            projectileTemplate.layer = CollisionLayers.PlayerProjectileLayer;
             projectileTemplate.transform.SetParent(projectilePoolGo.transform, false);
             projectileTemplate.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
             var projCollider = projectileTemplate.GetComponent<SphereCollider>();
@@ -621,8 +626,16 @@ namespace Game.Editor
             {
                 projCollider.isTrigger = true;
             }
+            var projRb = projectileTemplate.GetComponent<Rigidbody>();
+            if (projRb == null)
+            {
+                projRb = projectileTemplate.AddComponent<Rigidbody>();
+            }
+            projRb.isKinematic = true;
+            projRb.useGravity = false;
             var projView = projectileTemplate.AddComponent<ProjectileView>();
             var projectileComp = projectileTemplate.AddComponent<Projectile>();
+            projectileComp.EnsurePhysicsSetup();
             projectileTemplate.SetActive(false);
 
             var serializedWeapon = new SerializedObject(weapon);
@@ -647,12 +660,15 @@ namespace Game.Editor
 
             // Enemies and HordeSpawner
             var spawnerGo = new GameObject("HordeSpawner");
+            spawnerGo.layer = CollisionLayers.EnemyLayer;
             var spawner = spawnerGo.AddComponent<HordeSpawner>();
 
             var enemiesParent = new GameObject("Enemies");
+            enemiesParent.layer = CollisionLayers.EnemyLayer;
 
             var enemyTemplate = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemyTemplate.name = "Enemy_Template";
+            enemyTemplate.layer = CollisionLayers.EnemyLayer;
             enemyTemplate.transform.SetParent(enemiesParent.transform, false);
             enemyTemplate.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
             var enemyCollider = enemyTemplate.GetComponent<CapsuleCollider>();
@@ -660,6 +676,13 @@ namespace Game.Editor
             {
                 enemyCollider.isTrigger = true;
             }
+            var enemyRb = enemyTemplate.GetComponent<Rigidbody>();
+            if (enemyRb == null)
+            {
+                enemyRb = enemyTemplate.AddComponent<Rigidbody>();
+            }
+            enemyRb.isKinematic = true;
+            enemyRb.useGravity = false;
             var enemyView = enemyTemplate.AddComponent<EnemyView>();
             enemyView.SetupVisuals(new Color(0.85f, 0.2f, 0.2f));
             var enemyHealthComp = enemyTemplate.AddComponent<HealthComponent>();
@@ -673,6 +696,7 @@ namespace Game.Editor
             }
 
             var enemyCtrl = enemyTemplate.AddComponent<EnemyController>();
+            enemyCtrl.EnsurePhysicsSetup();
             setupEnemyStatus?.Invoke(enemyTemplate, enemyCtrl);
             enemyTemplate.SetActive(false);
 
@@ -757,7 +781,7 @@ namespace Game.Editor
             tmp.fontStyle = TMPro.FontStyles.Bold;
             tmp.alignment = TMPro.TextAlignmentOptions.Center;
             tmp.color = Color.white;
-            tmp.text = "Tropa: 3";
+            tmp.text = "Tropa: 10";
 
             var serializedHud = new SerializedObject(hud);
             serializedHud.FindProperty("countText").objectReferenceValue = tmp;
@@ -780,6 +804,7 @@ namespace Game.Editor
 
             // Gates
             var gatesRoot = new GameObject("Gates");
+            gatesRoot.layer = CollisionLayers.PickupLayer;
             for (int i = 0; i < gatePairs.Count; i++)
             {
                 var spec = gatePairs[i];
@@ -955,6 +980,7 @@ namespace Game.Editor
             Shader shader)
         {
             var pairGo = new GameObject($"GatePair_{pairIndex}");
+            pairGo.layer = CollisionLayers.PickupLayer;
             pairGo.transform.SetParent(parent, false);
             pairGo.transform.position = new Vector3(0f, 0f, zPosition);
             var pair = pairGo.AddComponent<GatePair>();
@@ -989,12 +1015,17 @@ namespace Game.Editor
             Shader shader)
         {
             var gateGo = new GameObject($"Gate_Lane_{laneIndex}");
+            gateGo.layer = CollisionLayers.PickupLayer;
             gateGo.transform.SetParent(parent, false);
             gateGo.transform.localPosition = new Vector3(xPosition, 1.25f, 0f);
 
             var collider = gateGo.AddComponent<BoxCollider>();
             collider.isTrigger = true;
             collider.size = new Vector3(1.8f, 2.5f, 0.4f);
+
+            var rb = gateGo.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
 
             var gate = gateGo.AddComponent<Gate>();
             gate.Initialize(laneIndex, perk, parentPair);
