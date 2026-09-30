@@ -69,3 +69,4 @@ Toda tarefa fecha com os portões do bloco `dispatch.verify`, via `tools/unity <
 8. Tarefas that an agent implements start with a `dispatch` block (`global/DISPATCH.md`). Histórias do not.
 9. Invariante Pai-Filho: Linear tem auto-close, mas não tem auto-start de pai. Ao mover sub-issue para `In Progress`, promova a história-pai para `In Progress` no mesmo passo. Sub-issues nunca nascem em `In Progress`.
 10. Ciclo: In Progress só empilhado na história (ou irmão anterior merged nela). `/review` não marca Done. Done = merge.
+11. Em descrições e comentários, cite issue ou PR do GitHub pela URL completa: o Linear converte `GH #N` e `#N` em link para outro repositório do workspace. No título, o prefixo `(GH #N)` é seguro.
