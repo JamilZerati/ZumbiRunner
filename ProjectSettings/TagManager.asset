@@ -13,11 +13,11 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - SquadBody
+  - PlayerProjectile
+  - Enemy
+  - EnemyProjectile
+  - Pickup
   - 
   - 
   - 
