@@ -357,7 +357,7 @@ public void TriggerDefeat();
   - **Marco de PR**: Marco 3 + `NEX-668`
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Gameplay/Combat/CombatDirector.cs` e `EnemyController.cs` [NEX-669]
+- [x] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Gameplay/Combat/CombatDirector.cs` e `EnemyController.cs` [NEX-669]
   - **Ação**: Implementar lógica de consumo de zumbis por contato, evento `EnemyConsumedEvent` e derrota do General sozinho.
   - **Lógica de Negócios / Responsabilidade**:
     1. Criar struct `EnemyConsumedEvent(string archetypeId, int soldiersLost)` em `Game.Core.Events`;
