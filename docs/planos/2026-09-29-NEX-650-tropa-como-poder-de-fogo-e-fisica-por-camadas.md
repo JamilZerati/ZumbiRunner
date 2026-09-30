@@ -380,7 +380,7 @@ public void TriggerDefeat();
   - **Marco de PR**: Marco 4 + `NEX-669`
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `ProjectSettings/TagManager.asset`, `DynamicsManager.asset` e `CollisionLayers.cs` [NEX-670]
+- [x] **Passo 5 (Marco 5)**: `ProjectSettings/TagManager.asset`, `DynamicsManager.asset` e `CollisionLayers.cs` [NEX-670]
   - **Ação**: Configurar camadas de física 3D, matriz estrita de colisão e teste PlayMode.
   - **Lógica de Negócios / Responsabilidade**:
     1. Adicionar camadas 8 (`SquadBody`), 9 (`PlayerProjectile`), 10 (`Enemy`), 11 (`EnemyProjectile`), 12 (`Pickup`) em `TagManager.asset`;

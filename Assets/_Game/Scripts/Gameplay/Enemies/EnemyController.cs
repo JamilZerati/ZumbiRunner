@@ -118,8 +118,21 @@ namespace Game.Gameplay
         public int MaxHealth => Health != null ? Health.MaxHealth : 0;
         public bool IsAlive => Health != null && Health.IsAlive;
 
+        public void EnsurePhysicsSetup()
+        {
+            gameObject.layer = CollisionLayers.EnemyLayer;
+            if (!TryGetComponent<Rigidbody>(out var rb))
+            {
+                rb = gameObject.AddComponent<Rigidbody>();
+            }
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
         private void Awake()
         {
+            EnsurePhysicsSetup();
+
             if (Health == null)
             {
                 Health = GetComponent<HealthComponent>();
@@ -139,6 +152,7 @@ namespace Game.Gameplay
 
         public void Initialize(int laneIndex, int maxHealth, float moveSpeed, Action<EnemyController> onDeath)
         {
+            EnsurePhysicsSetup();
             Health = GetComponent<HealthComponent>();
             if (Health == null)
             {
