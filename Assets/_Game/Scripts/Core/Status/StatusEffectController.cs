@@ -34,6 +34,7 @@ namespace Game.Core.Status
         public IStatusCatalog Catalog => catalog;
 
         public bool IsStunned => Has(StatusKind.Frozen);
+        public bool IsFrozen => Has(StatusKind.Frozen);
 
         public float MoveSpeedMultiplier
         {

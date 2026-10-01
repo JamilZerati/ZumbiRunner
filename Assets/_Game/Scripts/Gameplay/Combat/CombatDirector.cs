@@ -10,6 +10,10 @@ namespace Game.Gameplay
         [SerializeField] private TrackScroller scroller;
         [SerializeField] private float victoryDistance = 120f;
         [SerializeField] private HordeSpawner spawner;
+        [SerializeField] private MeleeEngagementManager meleeManager;
+
+        public MeleeEngagementManager MeleeManager => meleeManager;
+        public void SetMeleeManager(MeleeEngagementManager manager) => meleeManager = manager;
 
         private SquadController _squad;
         private bool _squadExplicitlySet;
@@ -128,6 +132,11 @@ namespace Game.Gameplay
                 Spawner = FindFirstObjectByType<HordeSpawner>();
             }
 
+            if (meleeManager == null)
+            {
+                meleeManager = GetComponent<MeleeEngagementManager>() ?? GetComponentInChildren<MeleeEngagementManager>();
+            }
+
             if (StateMachine == null)
             {
                 var sm = new GameStateMachine(null, GameState.Boot);
@@ -141,6 +150,16 @@ namespace Game.Gameplay
             if (IsResolved || enemy == null || !enemy.IsActiveInPool)
             {
                 return false;
+            }
+
+            if (enemy.IsEngaged)
+            {
+                return false;
+            }
+
+            if (meleeManager != null)
+            {
+                return meleeManager.Engage(enemy);
             }
 
             if (Squad != null && Squad.SquadCount > 0)
@@ -219,6 +238,7 @@ namespace Game.Gameplay
             }
 
             Spawner?.ClearActiveEnemies();
+            meleeManager?.ClearAll();
         }
 
         // Victory check runs on Update tick based on distance traveled by TrackScroller
