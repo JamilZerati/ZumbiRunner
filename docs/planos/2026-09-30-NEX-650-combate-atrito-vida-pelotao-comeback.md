@@ -744,7 +744,7 @@ namespace Game.Gameplay
 - Consumes: Todo o pipeline de combate (Squad, WeaponController, Projectile, EnemyController, MeleeEngagementManager)
 - Produces: Validação PlayMode de física e jogabilidade de comeback
 
-- [ ] **Passo 4.1: Escrever teste PlayMode CombatEngagementPlayModeTests.cs**
+- [x] **Passo 4.1: Escrever teste PlayMode CombatEngagementPlayModeTests.cs**
 
 ```csharp
 // Assets/_Game/Scripts/Tests/PlayMode/CombatEngagementPlayModeTests.cs
@@ -840,13 +840,13 @@ namespace Game.Tests.PlayMode
 }
 ```
 
-- [ ] **Passo 4.2: Executar testes PlayMode via tools/unity**
+- [x] **Passo 4.2: Executar testes PlayMode via tools/unity**
   - Comando: `./tools/unity test-play`
   - Esperado: `SUCCESS: n/n passed`
 
-- [ ] **Passo 4.3: Executar a suíte completa de verificação**
+- [x] **Passo 4.3: Executar a suíte completa de verificação**
   - Comando: `./tools/unity compile && ./tools/unity test-edit && ./tools/unity test-play`
   - Esperado: 0 erros, todos os testes EditMode e PlayMode verdes.
 
-- [ ] **Passo 4.4: Commit final do plano**
+- [x] **Passo 4.4: Commit final do plano**
   - Commit: `test(gameplay): adicionar testes PlayMode de combate de atrito e virada de batalha [NEX-677]`
