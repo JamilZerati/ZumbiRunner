@@ -31,6 +31,20 @@ namespace Game.Gameplay
             {
                 col.enabled = true;
             }
+
+            EnsureKinematicBody();
+        }
+
+        // Trigger só detecta outro trigger se um dos lados tiver Rigidbody; zumbis não têm, então o projétil precisa do próprio corpo.
+        private void EnsureKinematicBody()
+        {
+            if (!TryGetComponent<Rigidbody>(out var body))
+            {
+                body = gameObject.AddComponent<Rigidbody>();
+            }
+
+            body.isKinematic = true;
+            body.useGravity = false;
         }
 
         private void Update()
