@@ -5,6 +5,7 @@ using System.IO;
 using Game.Core.Perks;
 using Game.Core.Perks.Effects;
 using Game.Core.Stats;
+using Game.Core.Status;
 using Game.Data;
 using UnityEditor;
 using UnityEngine;
@@ -35,6 +36,8 @@ namespace Game.Editor
             public string stat;
             public string kind;
             public float value;
+            public string status;
+            public int stacks;
         }
 
         [MenuItem("Horde Runner/Content/Import Perks")]
@@ -193,10 +196,47 @@ namespace Game.Editor
                     return CreateWeaponEffect(dto, location, catalog, errors);
                 case "stat":
                     return CreateStatEffect(dto, location, errors);
+                case "status":
+                    return CreateStatusEffect(dto, location, errors);
                 default:
                     errors.Add($"{location}.type '{dto.type}' inválido");
                     return null;
             }
+        }
+
+        private static IPerkEffect CreateStatusEffect(EffectJsonDto dto, string location, List<string> errors)
+        {
+            var statusCatalog = StatusContentImporter.LoadStatusCatalog();
+            if (statusCatalog == null)
+            {
+                errors.Add($"{location}.status '{dto.status}' sem catálogo de status (importe os status antes)");
+                return null;
+            }
+
+            int errorCountBefore = errors.Count;
+
+            if (!JsonEnumNames.TryParse<StatusKind>(dto.status, out var kind))
+            {
+                errors.Add($"{location}.status '{dto.status}' inválido");
+                return null;
+            }
+
+            if (kind == StatusKind.Frozen)
+            {
+                errors.Add($"{location}.status não pode ser Frozen direto (use Freeze)");
+            }
+
+            if (!statusCatalog.TryGet(kind, out _))
+            {
+                errors.Add($"{location}.status '{dto.status}' fora do catálogo");
+            }
+
+            if (dto.stacks < 1)
+            {
+                errors.Add($"{location}.stacks deve ser >= 1");
+            }
+
+            return errors.Count == errorCountBefore ? new ApplyStatusOnHitEffect(kind, dto.stacks) : null;
         }
 
         private static IPerkEffect CreateWeaponEffect(EffectJsonDto dto, string location, IWeaponCatalog catalog,
@@ -222,12 +262,12 @@ namespace Game.Editor
         {
             int errorCountBefore = errors.Count;
 
-            if (!TryParseEnumName(dto.stat, out StatId stat))
+            if (!JsonEnumNames.TryParse(dto.stat, out StatId stat))
             {
                 errors.Add($"{location}.stat '{dto.stat}' inválido");
             }
 
-            if (!TryParseEnumName(dto.kind, out ModifierKind kind))
+            if (!JsonEnumNames.TryParse(dto.kind, out ModifierKind kind))
             {
                 errors.Add($"{location}.kind '{dto.kind}' inválido");
             }
@@ -239,16 +279,6 @@ namespace Game.Editor
             }
 
             return errors.Count == errorCountBefore ? new ModifyStatEffect(stat, kind, dto.value) : null;
-        }
-
-        // TryParse aceita número ("7", "1") e lista de flags ("Damage, FireRate"); só o nome exato passa.
-        private static bool TryParseEnumName<T>(string text, out T value) where T : struct, Enum
-        {
-            value = default;
-            return !string.IsNullOrEmpty(text)
-                && Enum.TryParse(text, true, out value)
-                && Enum.IsDefined(typeof(T), value)
-                && string.Equals(value.ToString(), text, StringComparison.OrdinalIgnoreCase);
         }
 
         // Sem lista do chamador ninguém mais veria o erro; com lista, quem agrega (Cli) decide como reportar.

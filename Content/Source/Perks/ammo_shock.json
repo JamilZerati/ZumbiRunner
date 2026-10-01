@@ -1,0 +1,7 @@
+{
+  "id": "ammo_shock",
+  "displayName": "Munição Elétrica",
+  "effects": [
+    { "type": "status", "status": "Shock", "stacks": 1 }
+  ]
+}

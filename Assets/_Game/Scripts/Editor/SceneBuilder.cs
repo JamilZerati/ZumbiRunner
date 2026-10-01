@@ -22,6 +22,7 @@ namespace Game.Editor
         public const string M3GreyboxScenePath = "Assets/_Game/Scenes/M3_Greybox.unity";
         public const string M4GreyboxScenePath = "Assets/_Game/Scenes/M4_Greybox.unity";
         public const string M5GreyboxScenePath = "Assets/_Game/Scenes/M5_Greybox.unity";
+        public const string M6GreyboxScenePath = "Assets/_Game/Scenes/M6_Greybox.unity";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -501,7 +502,9 @@ namespace Game.Editor
             string sceneLabel,
             IReadOnlyList<GatePairSpec> gatePairs,
             string initialWeaponId,
-            System.Func<WeaponCatalog> loadCatalog)
+            System.Func<WeaponCatalog> loadCatalog,
+            int enemyHealth = 20,
+            System.Action<GameObject, EnemyController> setupEnemyStatus = null)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
@@ -659,17 +662,18 @@ namespace Game.Editor
             }
             var enemyView = enemyTemplate.AddComponent<EnemyView>();
             enemyView.SetupVisuals(new Color(0.85f, 0.2f, 0.2f));
-            var enemyHealth = enemyTemplate.AddComponent<HealthComponent>();
-            enemyHealth.Initialize(20);
-            var serializedEnemyHealth = new SerializedObject(enemyHealth);
+            var enemyHealthComp = enemyTemplate.AddComponent<HealthComponent>();
+            enemyHealthComp.Initialize(enemyHealth);
+            var serializedEnemyHealth = new SerializedObject(enemyHealthComp);
             var maxHpProp = serializedEnemyHealth.FindProperty("maxHealth");
             if (maxHpProp != null)
             {
-                maxHpProp.intValue = 20;
+                maxHpProp.intValue = enemyHealth;
                 serializedEnemyHealth.ApplyModifiedProperties();
             }
 
             var enemyCtrl = enemyTemplate.AddComponent<EnemyController>();
+            setupEnemyStatus?.Invoke(enemyTemplate, enemyCtrl);
             enemyTemplate.SetActive(false);
 
             var serializedSpawner = new SerializedObject(spawner);
@@ -697,6 +701,7 @@ namespace Game.Editor
                 initialCapacity: 15
             );
 
+            spawner.DefaultEnemyHealth = enemyHealth;
             var laneLayout = new LaneLayout(2, 2.0f);
             spawner.Initialize(laneLayout, enemyPool);
 
@@ -819,6 +824,94 @@ namespace Game.Editor
             {
                 EditorApplication.Exit(0);
             }
+        }
+
+        [MenuItem("Horde Runner/Scenes/Build M6 Greybox Scene")]
+        public static void BuildM6GreyboxScene()
+        {
+            BuildCombatGreyboxScene(
+                M6GreyboxScenePath,
+                "M6",
+                new[]
+                {
+                    new GatePairSpec(25f, "ammo_cryo", "ammo_fire"),
+                    new GatePairSpec(60f, "damage_up_25", "ammo_toxic"),
+                    new GatePairSpec(95f, "ammo_shock", "multiply_2"),
+                },
+                initialWeaponId: "pistol",
+                loadCatalog: LoadWeaponCatalog,
+                enemyHealth: 40,
+                setupEnemyStatus: (template, ctrl) =>
+                {
+                    var catalog = LoadStatusCatalog();
+                    var interactions = LoadInteractionTable();
+
+                    var directorGo = new GameObject("StatusEffectDirector");
+                    var director = directorGo.AddComponent<StatusEffectDirector>();
+                    director.Initialize(catalog, interactions);
+
+                    var serializedDirector = new SerializedObject(director);
+                    serializedDirector.FindProperty("catalog").objectReferenceValue = catalog;
+                    serializedDirector.FindProperty("interactions").objectReferenceValue = interactions;
+                    serializedDirector.ApplyModifiedProperties();
+
+                    var serializedCtrl = new SerializedObject(ctrl);
+                    serializedCtrl.FindProperty("statusDirector").objectReferenceValue = director;
+                    serializedCtrl.ApplyModifiedProperties();
+
+                    ctrl.AttachStatusDirector(director);
+
+                    var tint = template.AddComponent<EnemyStatusTint>();
+                    var serializedTint = new SerializedObject(tint);
+                    serializedTint.FindProperty("enemy").objectReferenceValue = ctrl;
+                    serializedTint.FindProperty("targetRenderer").objectReferenceValue = template.GetComponent<Renderer>();
+                    serializedTint.ApplyModifiedProperties();
+                });
+        }
+
+        public static void BuildM6GreyboxSceneCli()
+        {
+            BuildM6GreyboxScene();
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        private static StatusCatalog LoadStatusCatalog()
+        {
+            var catalog = StatusContentImporter.LoadStatusCatalog();
+            if (catalog == null)
+            {
+                StatusContentImporter.ImportStatuses();
+                catalog = StatusContentImporter.LoadStatusCatalog();
+            }
+
+            if (catalog == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"[Game.Editor.SceneBuilder] StatusCatalog not found under {StatusContentImporter.DefaultTargetPath}; run tools/unity import-content.");
+            }
+
+            return catalog;
+        }
+
+        private static EffectInteractionTable LoadInteractionTable()
+        {
+            var table = StatusContentImporter.LoadInteractionTable();
+            if (table == null)
+            {
+                StatusContentImporter.ImportInteractions();
+                table = StatusContentImporter.LoadInteractionTable();
+            }
+
+            if (table == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"[Game.Editor.SceneBuilder] EffectInteractionTable not found under {StatusContentImporter.DefaultTargetPath}; run tools/unity import-content.");
+            }
+
+            return table;
         }
 
         // Sem catálogo o WeaponController não equipa nada e todo portão de arma vira no-op silencioso.

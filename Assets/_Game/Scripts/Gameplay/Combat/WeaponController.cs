@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Events;
 using Game.Core.Stats;
+using Game.Core.Status;
 using Game.Data;
 using Game.Infrastructure;
 using UnityEngine;
@@ -11,6 +12,9 @@ namespace Game.Gameplay
 {
     public class WeaponController : MonoBehaviour, IWeaponLoadout
     {
+        private readonly OnHitStatusSet onHitStatuses = new OnHitStatusSet();
+        public OnHitStatusSet OnHitStatuses => onHitStatuses;
+
         // Iguais à pistol: a cena M4, montada sem catálogo, mantém o tiro que tinha antes dos stats.
         private static readonly WeaponProfile DefaultBaseProfile =
             new WeaponProfile(string.Empty, 2f, 10, 15f, 40f, 1, 0f);
@@ -140,6 +144,7 @@ namespace Game.Gameplay
             var volley = new List<Projectile>(count);
             Vector3 origin = transform.position + Vector3.forward * 0.5f;
             var onRecycle = _onProjectileRecycle ?? (p => Pool.Return(p));
+            var onHitSnapshot = onHitStatuses.Snapshot();
 
             for (int i = 0; i < count; i++)
             {
@@ -151,7 +156,7 @@ namespace Game.Gameplay
 
                 proj.transform.position = origin + Vector3.right * LateralOffset(i, count, current.SpreadWidth);
                 proj.gameObject.SetActive(true);
-                proj.Initialize(current.Damage, current.ProjectileSpeed, current.Range, onRecycle);
+                proj.Initialize(current.Damage, current.ProjectileSpeed, current.Range, onRecycle, onHit: onHitSnapshot);
                 volley.Add(proj);
             }
 

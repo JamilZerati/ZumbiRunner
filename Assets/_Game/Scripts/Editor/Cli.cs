@@ -10,7 +10,7 @@ namespace Game.Editor
 {
     public static class Cli
     {
-        public const string DefaultAndroidScenePath = "Assets/_Game/Scenes/M5_Greybox.unity";
+        public const string DefaultAndroidScenePath = "Assets/_Game/Scenes/M6_Greybox.unity";
         public const string DefaultAndroidOutputPath = "Builds/Android/HordeRunner.apk";
         public const string AndroidPackageName = "com.jamilzerati.horderunner";
 
@@ -23,14 +23,16 @@ namespace Game.Editor
         public static void ImportContent()
         {
             var errors = new List<string>();
-            // Armas antes de perks: a validação de perk de arma lê o catálogo recém-gerado.
+            // Armas antes de status -> sinergias -> perks: a validação de perk de arma lê o catálogo recém-gerado.
             int weaponCount = WeaponImporter.ImportAll(errors: errors);
+            int statusCount = StatusContentImporter.ImportStatuses(errors: errors);
+            int interactionCount = StatusContentImporter.ImportInteractions(errors: errors);
             int perkCount = PerkImporter.ImportAll(errors: errors);
             for (int i = 0; i < errors.Count; i++)
             {
                 Debug.LogError($"[Game.Editor.Cli] ImportContent error: {errors[i]}");
             }
-            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {perkCount} perks imported, {errors.Count} errors.");
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {perkCount} perks imported, {errors.Count} errors.");
             EditorApplication.Exit(ComputeImportExitCode(errors));
         }
 
