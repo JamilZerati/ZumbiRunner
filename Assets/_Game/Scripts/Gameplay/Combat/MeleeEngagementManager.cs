@@ -150,7 +150,7 @@ namespace Game.Gameplay
             for (int i = _engagedEnemies.Count - 1; i >= 0; i--)
             {
                 var enemy = _engagedEnemies[i];
-                if (enemy == null || !enemy.IsActiveInPool || !enemy.IsAlive)
+                if (enemy == null || !enemy.IsActiveInPool || !enemy.IsAlive || !enemy.IsEngaged)
                 {
                     _engagedEnemies.RemoveAt(i);
                     if (enemy != null)
