@@ -14,7 +14,21 @@ namespace Game.Gameplay
 
         public event Action<SquadSizeChangedEvent> SquadSizeChanged;
 
-        public int SquadCount { get; private set; }
+        private int _squadCount;
+        public int SquadCount
+        {
+            get
+            {
+                if (!isInitialized)
+                {
+                    _squadCount = Mathf.Max(0, initialCount);
+                    isInitialized = true;
+                }
+                return _squadCount;
+            }
+            private set => _squadCount = value;
+        }
+
         public bool IsAlive => SquadCount > 0;
 
         private void Awake()

@@ -3,7 +3,8 @@
     "rootNamespace": "Game.Gameplay",
     "references": [
         "Game.Core",
-        "Game.Data"
+        "Game.Data",
+        "Game.Infrastructure"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
