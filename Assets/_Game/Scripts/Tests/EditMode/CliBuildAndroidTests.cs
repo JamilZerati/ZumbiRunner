@@ -59,7 +59,7 @@ namespace Game.Tests.EditMode
         [Test]
         public void DefaultAndroidScenePath_FileExistsOnDisk()
         {
-            Assert.AreEqual("Assets/_Game/Scenes/M4_Greybox.unity", Cli.DefaultAndroidScenePath);
+            Assert.AreEqual("Assets/_Game/Scenes/M5_Greybox.unity", Cli.DefaultAndroidScenePath);
             Assert.IsTrue(File.Exists(Cli.DefaultAndroidScenePath), $"Scene file not found at {Cli.DefaultAndroidScenePath}");
         }
 

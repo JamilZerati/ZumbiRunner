@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Core.Stats;
 using Game.Data;
 using UnityEngine;
 
@@ -49,7 +50,8 @@ namespace Game.Gameplay
             var squad = other.GetComponentInParent<ISquad>() ?? other.GetComponent<ISquad>();
             if (squad != null)
             {
-                parentPair.TryTrigger(laneIndex, squad);
+                var loadout = other.GetComponentInParent<IWeaponLoadout>() ?? other.GetComponent<IWeaponLoadout>();
+                parentPair.TryTrigger(laneIndex, squad, loadout: loadout);
             }
         }
     }

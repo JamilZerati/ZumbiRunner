@@ -1,18 +1,55 @@
 using System;
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Events;
+using Game.Core.Stats;
+using Game.Data;
 using Game.Infrastructure;
 using UnityEngine;
 
 namespace Game.Gameplay
 {
-    public class WeaponController : MonoBehaviour
+    public class WeaponController : MonoBehaviour, IWeaponLoadout
     {
-        [SerializeField] private Projectile projectilePrefab;
+        // Iguais à pistol: a cena M4, montada sem catálogo, mantém o tiro que tinha antes dos stats.
+        private static readonly WeaponProfile DefaultBaseProfile =
+            new WeaponProfile(string.Empty, 2f, 10, 15f, 40f, 1, 0f);
 
-        public float FireRate { get; set; } = 2f;
-        public int DamagePerShot { get; set; } = 10;
-        public float ProjectileSpeed { get; set; } = 15f;
-        public float MaxDistance { get; set; } = 40f;
+        [SerializeField] private Projectile projectilePrefab;
+        [SerializeField] private WeaponCatalog catalog;
+        [SerializeField] private string initialWeaponId;
+
+        // Criada no inicializador, não em Awake: cena reaberta em EditMode e testes usam o controller sem Awake.
+        private readonly StatCollection stats = CreateDefaultStats();
+        private float spreadWidth = DefaultBaseProfile.SpreadWidth;
+        private string equippedWeaponId = string.Empty;
+        private IWeaponCatalog injectedCatalog;
+        private IEventBus eventBus;
+
+        public float FireRate
+        {
+            get => CurrentStats.FireRate;
+            set => stats.SetBase(StatId.FireRate, value);
+        }
+
+        public int DamagePerShot
+        {
+            get => CurrentStats.Damage;
+            set => stats.SetBase(StatId.Damage, value);
+        }
+
+        public float ProjectileSpeed
+        {
+            get => CurrentStats.ProjectileSpeed;
+            set => stats.SetBase(StatId.ProjectileSpeed, value);
+        }
+
+        public float MaxDistance
+        {
+            get => CurrentStats.Range;
+            set => stats.SetBase(StatId.Range, value);
+        }
+
         public bool IsFiring { get; set; } = true;
         public ISquad Squad { get; private set; }
 
@@ -46,12 +83,106 @@ namespace Game.Gameplay
 
         private Action<Projectile> _onProjectileRecycle;
 
-        public void Initialize(IObjectPool<Projectile> pool, ISquad squad = null)
+        public StatCollection Stats => stats;
+        public string EquippedWeaponId => equippedWeaponId;
+        public WeaponStats CurrentStats => WeaponStats.Resolve(stats, spreadWidth);
+
+        private IWeaponCatalog EffectiveCatalog
+        {
+            get
+            {
+                if (injectedCatalog != null)
+                {
+                    return injectedCatalog;
+                }
+
+                return catalog != null ? catalog : null;
+            }
+        }
+
+        public void Initialize(IObjectPool<Projectile> pool, ISquad squad = null,
+                               IWeaponCatalog catalog = null, IEventBus eventBus = null)
         {
             Pool = pool;
             Squad = squad;
             FireTimer = 0f;
             _onProjectileRecycle = p => Pool?.Return(p);
+            injectedCatalog = catalog;
+            this.eventBus = eventBus;
+        }
+
+        public bool TryEquip(string weaponId)
+        {
+            var weaponCatalog = EffectiveCatalog;
+            if (weaponCatalog == null || !weaponCatalog.TryGet(weaponId, out WeaponProfile profile))
+            {
+                return false;
+            }
+
+            string previousWeaponId = equippedWeaponId;
+            profile.ApplyAsBase(stats);
+            spreadWidth = profile.SpreadWidth;
+            equippedWeaponId = profile.Id;
+            ClampFireTimerToTwoIntervals(CurrentStats.FireRate);
+            eventBus?.Publish(new WeaponEquippedEvent(equippedWeaponId, previousWeaponId));
+            return true;
+        }
+
+        public IReadOnlyList<Projectile> FireVolley()
+        {
+            if (Pool == null)
+            {
+                return Array.Empty<Projectile>();
+            }
+
+            var current = CurrentStats;
+            int count = current.ProjectileCount;
+            var volley = new List<Projectile>(count);
+            Vector3 origin = transform.position + Vector3.forward * 0.5f;
+            var onRecycle = _onProjectileRecycle ?? (p => Pool.Return(p));
+
+            for (int i = 0; i < count; i++)
+            {
+                var proj = Pool.Rent();
+                if (proj == null)
+                {
+                    continue;
+                }
+
+                proj.transform.position = origin + Vector3.right * LateralOffset(i, count, current.SpreadWidth);
+                proj.gameObject.SetActive(true);
+                proj.Initialize(current.Damage, current.ProjectileSpeed, current.Range, onRecycle);
+                volley.Add(proj);
+            }
+
+            return volley;
+        }
+
+        // Com um projétil só, w/(N-1) divide por zero e a posição vira NaN sem erro.
+        private static float LateralOffset(int index, int count, float width)
+        {
+            return count > 1 ? -width / 2f + index * width / (count - 1) : 0f;
+        }
+
+        private void ClampFireTimerToTwoIntervals(float fireRate)
+        {
+            if (fireRate <= 0f)
+            {
+                return;
+            }
+
+            float maxTimer = 2f / fireRate;
+            if (FireTimer > maxTimer)
+            {
+                FireTimer = maxTimer;
+            }
+        }
+
+        private static StatCollection CreateDefaultStats()
+        {
+            var defaultStats = new StatCollection();
+            DefaultBaseProfile.ApplyAsBase(defaultStats);
+            return defaultStats;
         }
 
         private void Start()
@@ -59,6 +190,11 @@ namespace Game.Gameplay
             if (Pool == null)
             {
                 EnsurePoolInitialized();
+            }
+
+            if (!string.IsNullOrEmpty(initialWeaponId) && string.IsNullOrEmpty(equippedWeaponId))
+            {
+                TryEquip(initialWeaponId);
             }
         }
 
@@ -90,7 +226,8 @@ namespace Game.Gameplay
                 initialCapacity: 10
             );
 
-            Initialize(pool, Squad ?? GetComponent<SquadController>() ?? GetComponentInParent<SquadController>());
+            Initialize(pool, Squad ?? GetComponent<SquadController>() ?? GetComponentInParent<SquadController>(),
+                       injectedCatalog, eventBus);
         }
 
         private void Update()
@@ -100,13 +237,14 @@ namespace Game.Gameplay
 
         public void Tick(float deltaTime)
         {
-            if (!IsFiring || Pool == null || FireRate <= 0f)
+            float fireRate = CurrentStats.FireRate;
+            if (!IsFiring || Pool == null || fireRate <= 0f)
             {
                 return;
             }
 
             FireTimer += deltaTime;
-            float interval = 1f / FireRate;
+            float interval = 1f / fireRate;
             if (FireTimer > interval * 2f)
             {
                 FireTimer = interval * 2f;
@@ -121,21 +259,8 @@ namespace Game.Gameplay
 
         public Projectile Fire()
         {
-            if (Pool == null)
-            {
-                return null;
-            }
-
-            var proj = Pool.Rent();
-            if (proj == null)
-            {
-                return null;
-            }
-
-            proj.transform.position = transform.position + Vector3.forward * 0.5f;
-            proj.gameObject.SetActive(true);
-            proj.Initialize(DamagePerShot, ProjectileSpeed, MaxDistance, _onProjectileRecycle ?? (p => Pool.Return(p)));
-            return proj;
+            var volley = FireVolley();
+            return volley.Count > 0 ? volley[0] : null;
         }
     }
 }
