@@ -101,7 +101,7 @@ namespace Game.Core.State
   - **Marco de PR**: Marco 2
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Gameplay: Pista de Multiplicador` [NEX-746]
+- [x] **Passo 3 (Marco 3)**: `Gameplay: Pista de Multiplicador` [NEX-746]
   - **Ação**: Criar componente de pista
   - **Lógica de Negócios / Responsabilidade**: A cada 15m, marcos x1 a x5 exigem e consomem soldados.
   - **Seam Público**: `MultiplierLane`
