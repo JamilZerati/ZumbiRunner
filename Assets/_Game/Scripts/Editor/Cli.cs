@@ -28,11 +28,12 @@ namespace Game.Editor
             int statusCount = StatusContentImporter.ImportStatuses(errors: errors);
             int interactionCount = StatusContentImporter.ImportInteractions(errors: errors);
             int perkCount = PerkImporter.ImportAll(errors: errors);
+            int levelCount = LevelImporter.ImportAll(errors: errors);
             for (int i = 0; i < errors.Count; i++)
             {
                 Debug.LogError($"[Game.Editor.Cli] ImportContent error: {errors[i]}");
             }
-            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {perkCount} perks imported, {errors.Count} errors.");
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {perkCount} perks, {levelCount} levels imported, {errors.Count} errors.");
             EditorApplication.Exit(ComputeImportExitCode(errors));
         }
 
@@ -43,14 +44,14 @@ namespace Game.Editor
 
         public static void ValidateContent()
         {
-            Debug.Log("[Game.Editor.Cli] ValidateContent stub.");
-            EditorApplication.Exit(0);
+            int exitCode = Tools.ValidateCommand.Run();
+            EditorApplication.Exit(exitCode);
         }
 
         public static void SimulateLevel()
         {
-            Debug.Log("[Game.Editor.Cli] SimulateLevel stub.");
-            EditorApplication.Exit(0);
+            int exitCode = Tools.SimulateCommand.ExecuteFromCommandLine();
+            EditorApplication.Exit(exitCode);
         }
 
         public static BuildPlayerOptions CreateAndroidBuildPlayerOptions(

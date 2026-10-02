@@ -225,7 +225,11 @@ switch ($Command.ToLower()) {
     "simulate" {
         $artifactsDir = Ensure-ArtifactsDirectory
         $logPath = Join-Path $artifactsDir "simulate.log"
-        $code = Invoke-UnityBatchmode @("-quit", "-executeMethod", "Game.Editor.Cli.SimulateLevel", "-logFile", $logPath)
+        $batchArgs = @("-quit", "-executeMethod", "Game.Editor.Cli.SimulateLevel", "-logFile", $logPath)
+        if ($ExtraArgs -and $ExtraArgs.Count -gt 0) {
+            $batchArgs += $ExtraArgs
+        }
+        $code = Invoke-UnityBatchmode $batchArgs
         exit $code
     }
     "build-android" {

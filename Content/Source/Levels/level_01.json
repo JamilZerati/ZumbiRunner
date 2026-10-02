@@ -1,0 +1,52 @@
+{
+  "LevelId": "level_01",
+  "TotalDistance": 720.0,
+  "Speed": 8.0,
+  "TargetDurationSeconds": 90.0,
+  "InitialTroops": 5,
+  "Segments": [
+    {
+      "SegmentType": 0,
+      "StartDistance": 0.0,
+      "Length": 40.0,
+      "Events": []
+    },
+    {
+      "SegmentType": 1,
+      "StartDistance": 40.0,
+      "Length": 20.0,
+      "Events": [
+        {
+          "DistanceOffset": 10.0,
+          "Type": "GateSpawn",
+          "Data": "fireRate+5"
+        }
+      ]
+    },
+    {
+      "SegmentType": 2,
+      "StartDistance": 60.0,
+      "Length": 560.0,
+      "Events": [
+        {
+          "DistanceOffset": 10.0,
+          "Type": "HordeSpawn",
+          "Data": "lane=0;count=5",
+          "Lane": 0
+        },
+        {
+          "DistanceOffset": 10.0,
+          "Type": "HordeSpawn",
+          "Data": "lane=1;count=5",
+          "Lane": 1
+        }
+      ]
+    },
+    {
+      "SegmentType": 3,
+      "StartDistance": 620.0,
+      "Length": 100.0,
+      "Events": []
+    }
+  ]
+}
