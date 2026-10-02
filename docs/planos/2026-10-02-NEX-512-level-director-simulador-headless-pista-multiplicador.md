@@ -80,7 +80,7 @@ namespace Game.Core.State
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos` [NEX-743]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos` [NEX-743]
   - **Ação**: Criar cenários de teste Red (EditMode).
   - **Lógica de Negócios / Responsabilidade**: Definir contratos de Seams públicos. Criar as estruturas vazias e testes cobrindo o validador de lane, bots de simulador, pista de multiplicador e LevelDirector.
   - **Seam Público**: Testes na assembly Game.Editor e Game.Gameplay.
