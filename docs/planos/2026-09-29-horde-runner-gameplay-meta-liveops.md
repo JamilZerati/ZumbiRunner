@@ -13,6 +13,8 @@ Complementa o plano-mãe (`2026-09-26-horde-runner-gdd-arquitetura.md`). O plano
 | 11 | Meta por **núcleo genérico**: sinal → objetivo → trilha → recompensa, reaproveitado por passe, evento, login diário e missões |
 | 12 | Ganchos de gameplay: **portões vivos**, **resgate de sobreviventes**, **mutações** e **quartel** |
 | 13 | Sem energia/vidas: o jogador joga quantas fases quiser (retenção > fricção no gênero) |
+| 14 | (2026-10-01) **Derrota única: o General morre.** Zumbi que escapa não derrota; custa moedas e estrelas. Quem impede a fuga é o desenho da fase (seção 2.8), garantido por `validate` e `simulate` |
+| 15 | (2026-10-01) **Runner com trechos de Barricada**: o avanço continua sendo o núcleo; trechos de defesa parada dão a fantasia de proteger e eliminam a fuga (seção 3.5) |
 
 **Critério de sucesso da arquitetura:**
 
@@ -62,10 +64,12 @@ Gameplay e meta se tocam em dois pontos, e só neles:
 
 Tropa inicial base: **10** (quartel aumenta). Com pistola, 10 soldados = 40 DPS.
 
-### 2.2 Contato e derrota
+### 2.2 Contato, derrota e escape
 
-- Zumbi que toca `SquadBody` (General ou soldado) remove `contactCost` soldados e é **consumido** (sinal `EnemyConsumedEvent`, não conta como abate).
-- Tropa zerada: o General fica sozinho; o próximo contato ou acerto encerra a fase em derrota (regra do plano-mãe mantida).
+- **Corpo a corpo de atrito (M15):** zumbi que alcança `SquadBody` engaja na vanguarda, acompanha a tropa e causa `contactDps` contínuo. Cada soldado tem um buffer de vida (10); soldados caem quando o buffer esgota; com a tropa zerada o dano vai ao General (10 de vida). Zumbi congelado não causa dano. Tiro à queima-roupa e portão atravessado durante o engajamento permitem a virada. Detalhes: `2026-09-30-NEX-650-combate-atrito-vida-pelotao-comeback-design.md`.
+- **Derrota única:** a fase termina em derrota quando o General morre. Nenhuma outra condição derrota.
+- **Escape:** zumbi que fica 5 m atrás do General sem ter engajado é reciclado e publica `EnemyEscapedEvent`. Ele não fere ninguém, mas custa recompensa: o `coinValue` dele não é ganho e o escape pesa nas estrelas.
+- **Estrelas da fase:** ★ vitória; ★★ vitória com ≥ 70% dos zumbis eliminados; ★★★ vitória com ≥ 95% eliminados e nenhuma barricada caída. Estrelas marcam o mapa de fases (M12) e alimentam objetivos.
 - Dano recebido tem **pisca de 0,15 s** por soldado perdido (game feel na M14).
 
 ### 2.3 Física por camadas
@@ -74,17 +78,17 @@ Camadas `SquadBody`, `PlayerProjectile`, `Enemy`, `EnemyProjectile`, `Pickup` (p
 
 ### 2.4 Inimigos como dados
 
-`EnemyDefinition` (JSON → SO): `id`, `hp`, `speed`, `contactCost`, `coinValue`, `behaviors: IEnemyBehavior[]` via `[SerializeReference]`. Comportamentos: `MoveStraight`, `ChaseLane(delay)`, `StopAt(distance)`, `RangedSpit`, `HealAura`, `Resurrect`, `FrontShield`, `ExplodeOnContact`, `ExplodeOnDeath`.
+`EnemyDefinition` (JSON → SO): `id`, `hp`, `speed`, `contactDps` (dano por segundo engajado; soldado tem 10 de vida), `coinValue`, `behaviors: IEnemyBehavior[]` via `[SerializeReference]`. Comportamentos: `MoveStraight`, `ChaseLane(delay)`, `StopAt(distance)`, `RangedSpit`, `HealAura`, `Resurrect`, `FrontShield`, `ExplodeOnContact`, `ExplodeOnDeath`.
 
-| Arquétipo | HP | Vel. (m/s) | Contato | Comportamentos | Entra em |
+| Arquétipo | HP | Vel. (m/s) | `contactDps` | Comportamentos | Entra em |
 |---|---|---|---|---|---|
-| Andarilho | 20 | 2 | 1 | `MoveStraight` | fase 1 |
-| Corredor | 12 | 5 | 1 | `MoveStraight` | fase 3 |
-| Brutamontes | 300 | 1,2 | 5 | `MoveStraight` | fase 5 |
-| Explosivo | 30 | 2,5 | 3 | `ExplodeOnContact(raio 2 m)`, `ExplodeOnDeath(50 dano em zumbis, raio 3 m)` | fase 7 |
-| Cuspidor | 40 | 1 | 1 | `StopAt(25 m)`, `RangedSpit(a cada 3 s, aviso 1,0 s, mata 3)` | fase 9 |
-| Escudeiro | 80 | 1,5 | 2 | `FrontShield(bloqueia projétil reto até receber qualquer status ou dano de área)` | fase 11 |
-| Xamã | 60 | 1 | 1 | `StopAt(8 m atrás da horda)`, `HealAura(5 HP/s, raio 4 m)`, `Resurrect(1 Andarilho a cada 6 s)` | fase 13 |
+| Andarilho | 20 | 2 | 5 | `MoveStraight` | fase 1 |
+| Corredor | 12 | 5 | 4 | `MoveStraight`, `ChaseLane(1 s)` (troca para a lane do General) | fase 3 |
+| Brutamontes | 300 | 1,2 | 25 | `MoveStraight` | fase 5 |
+| Explosivo | 30 | 2,5 | — | `ExplodeOnContact(30 de dano, raio 2 m)`, `ExplodeOnDeath(50 dano em zumbis, raio 3 m)` | fase 7 |
+| Cuspidor | 40 | 1 | 5 | `StopAt(25 m)`, `RangedSpit(a cada 3 s, aviso 1,0 s, 30 de dano)` | fase 9 |
+| Escudeiro | 80 | 1,5 | 10 | `FrontShield(bloqueia projétil reto até receber qualquer status ou dano de área)` | fase 11 |
+| Xamã | 60 | 1 | 5 | `StopAt(8 m atrás da horda)`, `HealAura(5 HP/s, raio 4 m)`, `Resurrect(1 Andarilho a cada 6 s)` | fase 13 |
 | Chefe | M11 | — | — | padrões por lane | fase Boss |
 
 Escala por fase: `hp × (1 + 0,08 × (fase − 1))`, definida no `LevelDefinition`.
@@ -101,15 +105,28 @@ Escala por fase: `hp × (1 + 0,08 × (fase − 1))`, definida no `LevelDefinitio
 
 Fase de 60–120 s a 8 m/s (480–960 m), autorada em `LevelDefinition` → `SegmentDefinition` (M7):
 
-aquecimento (0–60 m) → portões → horda → portões/jaula → evento de clima → horda grande → portões finais → chefe (fase Boss) → **pista de multiplicador**.
+aquecimento (0–60 m) → portões → horda → portões/jaula → **barricada** → evento de clima → horda grande → portões finais → **parede final** ou chefe (fase Boss) → **pista de multiplicador**.
+
+A barricada (seção 3.5) entra a partir da fase 4; fases curtas podem não ter.
 
 **Pista de multiplicador:** marcos `x1`…`x5` a cada 15 m; cada marco exige N soldados (a tropa "paga" para avançar); o marco alcançado multiplica as moedas da fase. Transforma a tropa restante em recompensa e é a âncora do "dobrar recompensa".
 
 ### 2.7 Sinais publicados pelo gameplay
 
-`RunStartedEvent(levelId, runConfig)`, `EnemyKilledEvent(archetypeId, lane, statusesAtDeath, byAbility)`, `EnemyConsumedEvent(archetypeId, soldiersLost)`, `SoldiersLostEvent(count, cause)`, `GatePassedEvent(gateId, perkId, variant)`, `SurvivorsRescuedEvent(count)`, `SurvivorsLostEvent(count)`, `AbilityUsedEvent(abilityId)`, `SynergyTriggeredEvent` (já existe), `RunEndedEvent(RunResult)`.
+`RunStartedEvent(levelId, runConfig)`, `EnemyKilledEvent(archetypeId, lane, statusesAtDeath, byAbility)`, `EnemyEngagedEvent` / `EnemyDisengagedEvent` e `SoldierDamagedEvent` (M15), `EnemyEscapedEvent(archetypeId, lane)`, `SoldiersLostEvent(count, cause)`, `GatePassedEvent(gateId, perkId, variant)`, `SurvivorsRescuedEvent(count)`, `SurvivorsLostEvent(count)`, `HoldoutStartedEvent(segmentId)`, `HoldoutEndedEvent(segmentId, barricadeHealthLeft, survivorsSaved)`, `AbilityUsedEvent(abilityId)`, `SynergyTriggeredEvent` (já existe), `RunEndedEvent(RunResult)`.
 
-`RunResult`: `levelId`, `victory`, `distance`, `squadAtEnd`, `multiplierReached`, `killsByArchetype`, `rescued`, `coinsEarned`, `mutationIds`, `durationSeconds`.
+`RunResult`: `levelId`, `victory`, `stars`, `distance`, `squadAtEnd`, `multiplierReached`, `killsByArchetype`, `escaped`, `rescued`, `holdoutsHeld`, `coinsEarned`, `mutationIds`, `durationSeconds`.
+
+### 2.8 Anti-fuga: o desenho da fase decide
+
+Com derrota única e escape barato, desviar de tudo ainda venceria a fase. O que impede isso é estrutura, verificada por máquina:
+
+1. **Horda sem lane vazia.** Num segmento de horda, toda lane tem zumbis, com densidades diferentes; trocar de lane é escolher qual horda enfrentar. `validate` rejeita lane livre dentro de um segmento de horda, com sobreposição mínima de 8 m entre as janelas das lanes (margem do item 5).
+2. **Perseguidores.** Arquétipos com `ChaseLane` (Corredor) trocam para a lane do General; desviar só adia o encontro.
+3. **Portão guardado.** No par de portões, o de maior valor fica atrás da horda (`Guarded`); quem foge leva o fraco.
+4. **Parede final.** Antes da pista de multiplicador (ou do chefe), uma horda cobre todas as lanes; só passa quem cresceu lutando pelos portões bons.
+5. **Onda nasce em cima da hora.** O Level Director cria cada onda quando o General chega a ~40 m dela (≈ 4 s antes do contato, com aproximação de ~10 m/s). Isso limita o desvio entre lanes causado por slow e frozen a ~3 m (slow) e ~8 m (horda inteira congelada). Congelar a própria lane e atravessar zumbis inofensivos é jogada conquistada pela build, não fuga.
+6. **Bot fujão no `simulate`.** Ao lado do bot guloso, um bot que sempre escolhe a lane com menos zumbis. Meta: fujão vence ≤ 20% das fases comuns (guloso ~70%). Fase que deixa o fujão vencer reprova.
 
 ## 3. Ganchos de gameplay
 
@@ -156,6 +173,19 @@ Meta idle diegética que substitui a "tela de upgrades" da M12:
 - Construções são o único poder permanente do jogo e custam só recursos ganhos jogando (moedas e recrutas); dinheiro real acelera, nunca compra nível direto.
 - Construções têm tempo de obra (minutos a horas). Rewarded acelera 30 min (limite diário); medalhas pulam.
 - Coleta offline pode ser dobrada por rewarded.
+
+### 3.5 Barricada (trechos de defesa)
+
+`SegmentDefinition` do tipo `holdout`: a corrida para e a tropa defende uma barricada.
+
+- **Entrada:** a pista pausa com o General diante da barricada (HP, ex.: 100), atrás da qual ficam sobreviventes ou um comboio (ex.: 8).
+- **Duração:** N segundos (ex.: 20) ou K ondas, por dados.
+- **Pressão:** as ondas descem todas as lanes ao mesmo tempo. Na lane do General os zumbis engajam a tropa (corpo a corpo da 2.2); nas outras eles chegam à barricada e causam `contactDps` nela.
+- **Decisão:** trocar de lane para cobrir a lane mais pressionada. Desviar é abandonar a defesa: aqui não existe fuga.
+- **Fim:** acabou o tempo, a corrida retoma e os sobreviventes salvos (proporcionais à vida restante da barricada) entram como soldados e recrutas.
+- **Barricada caída:** os sobreviventes morrem (`SurvivorsLostEvent`) e a corrida retoma; a fase não é derrotada (decisão 14), mas perde a 3ª estrela.
+- O desvio de status entre lanes não importa aqui: o que conta é quanto dano chega à barricada.
+- Eventos ganham um formato natural: "Defenda o comboio" (barricadas mais longas, ficha = sobrevivente salvo).
 
 ## 4. Núcleo de meta (`Game.Meta`)
 
@@ -298,7 +328,7 @@ Skins do General, uniforme da tropa, rastro de projétil, bandeira do quartel. `
 | Evento | 5–7 dias, regras próprias | `event` + mutações forçadas + inimigos em destaque + fichas + trilha + oferta |
 | Jornada de estreia | trilha dos primeiros 7 dias | `TrackDefinition` fixa, fora do calendário |
 
-Ideias de evento que só usam dados: *Noite dos Cuspidores* (neblina forçada, cuspidores ×3), *Resgate em massa* (jaulas dobradas, ficha = sobrevivente), *Era do Gelo* (nevasca, objetivos de Estilhaço), *Horda Blindada* (Blindados forçada, recompensa ×1,5).
+Ideias de evento que só usam dados: *Noite dos Cuspidores* (neblina forçada, cuspidores ×3), *Resgate em massa* (jaulas dobradas, ficha = sobrevivente), *Era do Gelo* (nevasca, objetivos de Estilhaço), *Horda Blindada* (Blindados forçada, recompensa ×1,5), *Defenda o comboio* (barricadas longas, ficha = sobrevivente salvo).
 
 ### 6.3 Validação
 
@@ -311,11 +341,12 @@ Histórias existentes reescopadas (**R**) ou novas (**N**). A ordem é o caminho
 | Ordem | História | Épico | | Pronto quando (resumo) |
 |---|---|---|---|---|
 | 1 | `NEX-650` M15 · Tropa como poder de fogo e física por camadas | E2 | N | Dano escala com a tropa via pelotões; camadas e matriz de colisão; armas reinterpretadas por soldado; tropa inicial 10 |
-| 2 | `NEX-512` M7 · Level Director, simulador e pista de multiplicador | E2 | R | Fase só por dados; `simulate`; pista `x1`–`x5`; `RunConfig`/`RunResult` e sinais da seção 2.7 |
-| 3 | `NEX-515` M10 · Inimigos por dados | E3→E2 | R | `EnemyDefinition` + `IEnemyBehavior`; 7 arquétipos; cuspe com aviso na lane; Xamã |
+| 2 | `NEX-512` M7 · Level Director, simulador e pista de multiplicador | E2 | R | Fase só por dados; onda criada a ~40 m do General; `validate` com a regra de lane coberta e `simulate` com bot guloso e bot fujão (seção 2.8); pista `x1`–`x5`; escape, estrelas, `RunConfig`/`RunResult` e sinais da seção 2.7 |
+| 3 | `NEX-515` M10 · Inimigos por dados | E3→E2 | R | `EnemyDefinition` + `IEnemyBehavior`; 7 arquétipos; Corredor persegue (`ChaseLane`); cuspe com aviso na lane; Xamã |
 | 4 | `NEX-651` M16 · Poder do General | E2 | N | Granada carregada por abates; auto/manual |
 | 5 | `NEX-652` M17 · Portões vivos | E2 | N | `ShootToUpgrade`, `Cursed`, `Guarded` por dados |
 | 6 | `NEX-653` M18 · Resgate de sobreviventes | E2 | N | Jaulas com HP; perda vira Andarilhos; recrutas no `RunResult` |
+| 6b | `NEX-742` M30 · Trechos de Barricada | E2 | N | Segmento `holdout`: pista pausa, ondas em todas as lanes, barricada com HP protege sobreviventes (seção 3.5) |
 | 7 | `NEX-513` M8 · Heróis e pets | E2 | R | Como hoje; heróis e pets só por portão, nunca vendidos |
 | 8 | `NEX-514` M9 · Clima e tempo | E2 | — | Sem mudança |
 | 9 | `NEX-517` M12 · Núcleo de meta e save | E3 | R | `Game.Meta`: carteira, recompensas, objetivos, trilhas, entitlements, `RunConfigBuilder`, `RewardCalculator`, save versionado, `ITimeProvider`; mapa de fases |
