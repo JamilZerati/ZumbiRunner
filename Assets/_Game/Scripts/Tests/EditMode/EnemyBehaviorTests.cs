@@ -71,6 +71,92 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void MoveStraight_DoesNotAdvance_WhenStopped()
+        {
+            var behavior = new MoveStraightBehavior();
+            var context = new EnemyBehaviorContext
+            {
+                Position = new Vector3(0, 0, 10f),
+                Speed = 2f,
+                IsStopped = true
+            };
+
+            behavior.UpdateBehavior(context, 1f);
+
+            Assert.AreEqual(10f, context.Position.z, 0.001f);
+        }
+
+        [Test]
+        public void MoveStraight_DoesNotAdvance_WhenEngaged()
+        {
+            var behavior = new MoveStraightBehavior();
+            var context = new EnemyBehaviorContext
+            {
+                Position = new Vector3(0, 0, 10f),
+                Speed = 2f,
+                IsEngaged = true
+            };
+
+            behavior.UpdateBehavior(context, 1f);
+
+            Assert.AreEqual(10f, context.Position.z, 0.001f);
+        }
+
+        [Test]
+        public void ChaseLane_DoesNotSwitch_BeforeDelay()
+        {
+            var behavior = new ChaseLaneBehavior { Delay = 1f };
+            var context = new EnemyBehaviorContext
+            {
+                LaneIndex = 0,
+                GeneralLane = 2
+            };
+
+            behavior.UpdateBehavior(context, 0.5f);
+
+            Assert.AreEqual(0, context.LaneIndex);
+        }
+
+        [Test]
+        public void ChaseLane_ResetsTimer_WhenLanesMatch()
+        {
+            var behavior = new ChaseLaneBehavior { Delay = 1f };
+            var context = new EnemyBehaviorContext
+            {
+                LaneIndex = 0,
+                GeneralLane = 2
+            };
+
+            behavior.UpdateBehavior(context, 0.8f);
+            Assert.AreEqual(0, context.LaneIndex);
+
+            context.GeneralLane = 0;
+            behavior.UpdateBehavior(context, 0.1f);
+
+            context.GeneralLane = 1;
+            behavior.UpdateBehavior(context, 0.5f);
+            Assert.AreEqual(0, context.LaneIndex);
+
+            behavior.UpdateBehavior(context, 0.6f);
+            Assert.AreEqual(1, context.LaneIndex);
+        }
+
+        [Test]
+        public void StopAt_ResumesMovement_WhenTargetIsBeyondDistance()
+        {
+            var behavior = new StopAtBehavior { Distance = 25f };
+            var context = new EnemyBehaviorContext
+            {
+                DistanceToTarget = 30f,
+                IsStopped = true
+            };
+
+            behavior.UpdateBehavior(context, 0.1f);
+
+            Assert.IsFalse(context.IsStopped);
+        }
+
+        [Test]
         public void FrontShield_BlocksStraightProjectiles_UntilStatusOrAoe()
         {
             var behavior = new FrontShieldBehavior();
