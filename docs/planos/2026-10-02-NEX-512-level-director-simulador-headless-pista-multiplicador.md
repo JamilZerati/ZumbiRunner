@@ -115,7 +115,7 @@ namespace Game.Core.State
   - **Marco de PR**: Marco 4
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Editor: Simulador headless` [NEX-748]
+- [x] **Passo 5 (Marco 5)**: `Editor: Simulador headless` [NEX-748]
   - **Ação**: Modificar shell e criar `SimulateCommand`.
   - **Lógica de Negócios / Responsabilidade**: Roda com `-level <id> -seed <n>`. Roda "bot guloso" e "bot fujão" e cospe `.artifacts/simulation.json`. Regra: bot fujão vence <= 20% das fases comuns.
   - **Seam Público**: `SimulateCommand` (CLI entry point)

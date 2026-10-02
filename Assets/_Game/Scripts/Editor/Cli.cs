@@ -50,8 +50,8 @@ namespace Game.Editor
 
         public static void SimulateLevel()
         {
-            Debug.Log("[Game.Editor.Cli] SimulateLevel stub.");
-            EditorApplication.Exit(0);
+            int exitCode = Tools.SimulateCommand.ExecuteFromCommandLine();
+            EditorApplication.Exit(exitCode);
         }
 
         public static BuildPlayerOptions CreateAndroidBuildPlayerOptions(
