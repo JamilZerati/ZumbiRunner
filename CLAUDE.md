@@ -1,14 +1,11 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-As regras do repositório valem para todos os agentes e vivem em `AGENTS.md`:
-
 @AGENTS.md
 
 ## Específico do Claude Code
 
-- Os comandos `/atuar`, `/planejar`, `/executar`, `/review`, `/conduzir` e `/homologar` seguem o fluxo descrito em `AGENTS.md` (Fluxo Linear + Git). Agentes sem slash commands seguem o mesmo fluxo lendo `AGENTS.md` e `docs/LINEAR.md`.
-- `.scratch/NOW.md` (gitignored) guarda o ponteiro da sessão (história, plano, passo, runtime). Se divergir do Linear ou do plano, Linear e plano ganham.
-- Rode Unity em background quando a importação for longa e espere pelo exit code; não use `sleep` para aguardar.
-- Outra sessão pode estar trabalhando no mesmo checkout: para uma tarefa paralela, use `git worktree` em vez de trocar a branch da pasta principal.
+- **Fluxo por slash commands**: `/atuar` é a porta de entrada (resolve o card e roteia); `/planejar`, `/cenarios`, `/executar`, `/review`, `/conduzir`, `/homologar` e `/bug` seguem o Fluxo Linear + Git do `AGENTS.md`.
+- **Ponteiro da sessão**: `.scratch/NOW.md` (fora do git) guarda história, plano, passo e runtime. Em divergência, Linear e plano ganham.
+- **Unity em background**: rode `tools/unity` com `run_in_background` e espere a notificação de término; o exit code e o resumo final são o resultado.
+- **Worktrees**: tarefa paralela em `D:/Projects/worktrees/ZumbiRunner/nex-<n>` (`git worktree add -b <gitBranchName da tarefa> <pasta> origin/<branch da história>`).
+- **Git Bash**: `git show "<ref>:<caminho>"` precisa de `MSYS_NO_PATHCONV=1`, senão o caminho é convertido e o comando falha.

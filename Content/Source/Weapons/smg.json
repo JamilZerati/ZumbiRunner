@@ -2,7 +2,7 @@
   "id": "smg",
   "displayName": "Submetralhadora",
   "fireRate": 6,
-  "damage": 4,
+  "damage": 1,
   "projectileSpeed": 20,
   "range": 35,
   "projectilesPerShot": 1,

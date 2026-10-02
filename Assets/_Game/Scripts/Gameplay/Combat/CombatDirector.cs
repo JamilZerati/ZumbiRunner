@@ -1,5 +1,6 @@
 using UnityEngine;
 using Game.Core;
+using Game.Core.Events;
 
 namespace Game.Gameplay
 {
@@ -9,6 +10,10 @@ namespace Game.Gameplay
         [SerializeField] private TrackScroller scroller;
         [SerializeField] private float victoryDistance = 120f;
         [SerializeField] private HordeSpawner spawner;
+        [SerializeField] private MeleeEngagementManager meleeManager;
+
+        public MeleeEngagementManager MeleeManager => meleeManager;
+        public void SetMeleeManager(MeleeEngagementManager manager) => meleeManager = manager;
 
         private SquadController _squad;
         private bool _squadExplicitlySet;
@@ -76,8 +81,9 @@ namespace Game.Gameplay
         }
 
         public bool IsResolved { get; private set; }
+        public IEventBus EventBus { get; set; }
 
-        public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null)
+        public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null, IEventBus eventBus = null)
         {
             this.squad = squad;
             Squad = squad;
@@ -87,6 +93,7 @@ namespace Game.Gameplay
             VictoryDistance = victoryDistance;
             this.spawner = spawner;
             Spawner = spawner;
+            EventBus = eventBus;
             IsResolved = false;
         }
 
@@ -125,6 +132,11 @@ namespace Game.Gameplay
                 Spawner = FindFirstObjectByType<HordeSpawner>();
             }
 
+            if (meleeManager == null)
+            {
+                meleeManager = GetComponent<MeleeEngagementManager>() ?? GetComponentInChildren<MeleeEngagementManager>();
+            }
+
             if (StateMachine == null)
             {
                 var sm = new GameStateMachine(null, GameState.Boot);
@@ -140,9 +152,22 @@ namespace Game.Gameplay
                 return false;
             }
 
+            if (enemy.IsEngaged)
+            {
+                return false;
+            }
+
+            if (meleeManager != null)
+            {
+                return meleeManager.Engage(enemy);
+            }
+
             if (Squad != null && Squad.SquadCount > 0)
             {
-                Squad.Remove(1);
+                int cost = enemy != null ? enemy.ContactCost : 1;
+                int lost = Mathf.Min(cost, Squad.SquadCount);
+                Squad.Remove(cost);
+                EventBus?.Publish(new EnemyConsumedEvent(enemy?.ArchetypeId ?? "walker", lost));
                 enemy.Recycle();
                 return true;
             }
@@ -213,6 +238,7 @@ namespace Game.Gameplay
             }
 
             Spawner?.ClearActiveEnemies();
+            meleeManager?.ClearAll();
         }
 
         // Victory check runs on Update tick based on distance traveled by TrackScroller

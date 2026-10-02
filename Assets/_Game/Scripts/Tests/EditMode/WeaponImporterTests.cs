@@ -221,9 +221,9 @@ namespace Game.Tests.EditMode
             var catalog = WeaponImporter.LoadCatalog();
             Assert.IsNotNull(catalog);
 
-            AssertProfile(catalog, "pistol", 2f, 10, 15f, 40f, 1, 0f);
-            AssertProfile(catalog, "shotgun", 1.2f, 8, 14f, 22f, 3, 1.2f);
-            AssertProfile(catalog, "smg", 6f, 4, 20f, 35f, 1, 0f);
+            AssertProfile(catalog, "pistol", 2f, 2, 15f, 40f, 1, 0f);
+            AssertProfile(catalog, "shotgun", 1.2f, 2, 14f, 22f, 3, 1.2f);
+            AssertProfile(catalog, "smg", 6f, 1, 20f, 35f, 1, 0f);
         }
 
         private static void AssertProfile(WeaponCatalog catalog, string id, float fireRate, int damage,

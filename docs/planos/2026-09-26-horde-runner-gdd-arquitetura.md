@@ -43,6 +43,8 @@ Princípios: dados em ScriptableObjects · lógica em C# puro · apresentação 
 
 ## 4. Roadmap (épicos → histórias)
 
+> A partir da M7 o roadmap foi redefinido em `2026-09-29-horde-runner-gameplay-meta-liveops.md` (seção 7), que também fixa regras de combate, meta, monetização e live-ops.
+
 | Épico | História | Critério de pronto |
 |---|---|---|
 | E1 Protótipo | M0 Fundação + harness CLI | Projeto abre, compila e roda testes **via CLI** |

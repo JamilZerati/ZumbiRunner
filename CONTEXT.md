@@ -8,7 +8,7 @@ Runner mobile (retrato) em Unity: o General lidera uma tropa por lanes discretas
 Avatar do jogador; ser atingido com a tropa zerada encerra a fase em derrota.
 
 **Tropa**:
-Soldados que seguem o General em formação; a contagem é o HP.
+Soldados que seguem o General em formação; a contagem é o HP e o poder de fogo.
 _Avoid_: vida, esquadrão
 
 **Lane**:
@@ -33,6 +33,47 @@ Sinergia que consome o status Congelado sob golpe pesado, multiplicando o dano f
 
 **Fase Boss**:
 Fase de dificuldade alta que, vencida, desbloqueia conteúdo.
+
+**Pelotão**:
+Grupo de até ~5 soldados representado por um único emissor de tiro; dano do emissor = dano da arma × soldados do pelotão.
+_Avoid_: esquadra, fireteam
+
+**Contato**:
+Zumbi que toca a tropa remove `contactCost` soldados e é consumido (não conta como abate).
+
+**Poder do General**:
+Habilidade ativa carregada por abates (ex.: Granada); disparo automático ou manual por opção.
+_Avoid_: ultimate
+
+**Portão vivo**:
+Portão com variante: evolui com tiros, amaldiçoado (bônus + desvantagem) ou guardado por horda.
+
+**Jaula**:
+Obstáculo com HP que, aberto a tiros, libera sobreviventes como soldados; ignorado, eles voltam como zumbis.
+
+**Recruta**:
+Sobrevivente resgatado que vira recurso da meta, gasto no Quartel.
+
+**Mutação**:
+Modificador opcional (ou forçado por evento) que muda as regras da fase em troca de bônus de recompensa.
+
+**Pista de multiplicador**:
+Trecho final da fase em que a tropa restante paga marcos `x1`–`x5` que multiplicam as moedas.
+
+**Quartel**:
+Meta idle: construções com nível e tempo de obra; única fonte de poder permanente.
+
+**Moedas / Medalhas**:
+Moeda soft (ganha jogando) e moeda hard (compra, passe, eventos).
+
+**Trilha**:
+Sequência de marcos com recompensa grátis e premium; base do passe, dos eventos e do login diário.
+
+**Temporada**:
+Janela de 28 dias com passe próprio.
+
+**Evento**:
+Janela curta com regras próprias (mutações forçadas, inimigos em destaque), fichas e trilha.
 
 ## Mapa
 

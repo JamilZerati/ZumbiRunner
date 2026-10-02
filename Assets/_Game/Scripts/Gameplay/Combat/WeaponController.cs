@@ -17,7 +17,12 @@ namespace Game.Gameplay
 
         // Iguais à pistol: a cena M4, montada sem catálogo, mantém o tiro que tinha antes dos stats.
         private static readonly WeaponProfile DefaultBaseProfile =
-            new WeaponProfile(string.Empty, 2f, 10, 15f, 40f, 1, 0f);
+            new WeaponProfile(string.Empty, 2f, 2, 15f, 40f, 1, 0f);
+
+        private static readonly PlatoonEmitter[] FallbackEmitters =
+        {
+            new PlatoonEmitter(0, 1, new FormationPosition(0f, 0f))
+        };
 
         [SerializeField] private Projectile projectilePrefab;
         [SerializeField] private WeaponCatalog catalog;
@@ -141,23 +146,34 @@ namespace Game.Gameplay
 
             var current = CurrentStats;
             int count = current.ProjectileCount;
-            var volley = new List<Projectile>(count);
-            Vector3 origin = transform.position + Vector3.forward * 0.5f;
+            var platoons = (Squad != null && Squad.SquadCount > 0)
+                ? PlatoonSolver.CalculatePlatoons(Squad.SquadCount)
+                : FallbackEmitters;
+
+            var volley = new List<Projectile>(platoons.Length * count);
+            Vector3 baseOrigin = transform.position + Vector3.forward * 0.5f;
             var onRecycle = _onProjectileRecycle ?? (p => Pool.Return(p));
             var onHitSnapshot = onHitStatuses.Snapshot();
 
-            for (int i = 0; i < count; i++)
+            for (int e = 0; e < platoons.Length; e++)
             {
-                var proj = Pool.Rent();
-                if (proj == null)
-                {
-                    continue;
-                }
+                var emitter = platoons[e];
+                Vector3 emitterOrigin = baseOrigin + new Vector3(emitter.Position.X, 0f, emitter.Position.Z);
+                int damage = current.Damage * emitter.SoldierCount;
 
-                proj.transform.position = origin + Vector3.right * LateralOffset(i, count, current.SpreadWidth);
-                proj.gameObject.SetActive(true);
-                proj.Initialize(current.Damage, current.ProjectileSpeed, current.Range, onRecycle, onHit: onHitSnapshot);
-                volley.Add(proj);
+                for (int i = 0; i < count; i++)
+                {
+                    var proj = Pool.Rent();
+                    if (proj == null)
+                    {
+                        continue;
+                    }
+
+                    proj.transform.position = emitterOrigin + Vector3.right * LateralOffset(i, count, current.SpreadWidth);
+                    proj.gameObject.SetActive(true);
+                    proj.Initialize(damage, current.ProjectileSpeed, current.Range, onRecycle, onHit: onHitSnapshot);
+                    volley.Add(proj);
+                }
             }
 
             return volley;

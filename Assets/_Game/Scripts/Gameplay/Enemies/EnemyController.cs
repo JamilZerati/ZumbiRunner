@@ -79,6 +79,12 @@ namespace Game.Gameplay
 
         public int LaneIndex { get; set; }
         public float MoveSpeed { get; set; } = 2f;
+        public int ContactCost { get; set; } = 1;
+        public float ContactDPS { get; set; } = 5f;
+        public string ArchetypeId { get; set; } = "walker";
+        public bool IsEngaged { get; private set; }
+        public Transform FollowTarget { get; private set; }
+        public Vector3 EngagementOffset { get; private set; }
         private HealthComponent _health;
         public HealthComponent Health
         {
@@ -116,8 +122,21 @@ namespace Game.Gameplay
         public int MaxHealth => Health != null ? Health.MaxHealth : 0;
         public bool IsAlive => Health != null && Health.IsAlive;
 
+        public void EnsurePhysicsSetup()
+        {
+            gameObject.layer = CollisionLayers.EnemyLayer;
+            if (!TryGetComponent<Rigidbody>(out var rb))
+            {
+                rb = gameObject.AddComponent<Rigidbody>();
+            }
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
         private void Awake()
         {
+            EnsurePhysicsSetup();
+
             if (Health == null)
             {
                 Health = GetComponent<HealthComponent>();
@@ -137,6 +156,7 @@ namespace Game.Gameplay
 
         public void Initialize(int laneIndex, int maxHealth, float moveSpeed, Action<EnemyController> onDeath)
         {
+            EnsurePhysicsSetup();
             Health = GetComponent<HealthComponent>();
             if (Health == null)
             {
@@ -163,6 +183,25 @@ namespace Game.Gameplay
             Tick(Time.deltaTime);
         }
 
+        public void Engage(Transform target, Vector3 offset)
+        {
+            if (target == null || !IsActiveInPool || !IsAlive)
+            {
+                return;
+            }
+            IsEngaged = true;
+            FollowTarget = target;
+            EngagementOffset = offset;
+            transform.position = target.position + offset;
+        }
+
+        public void Disengage()
+        {
+            IsEngaged = false;
+            FollowTarget = null;
+            EngagementOffset = Vector3.zero;
+        }
+
         public void Tick(float deltaTime)
         {
             if (!IsActiveInPool || !gameObject.activeSelf || !IsAlive)
@@ -178,7 +217,17 @@ namespace Game.Gameplay
                 return;
             }
 
-            transform.position += Vector3.back * (MoveSpeed * Status.MoveSpeedMultiplier * deltaTime);
+            if (IsEngaged)
+            {
+                if (FollowTarget != null)
+                {
+                    transform.position = FollowTarget.position + EngagementOffset;
+                }
+            }
+            else
+            {
+                transform.position += Vector3.back * (MoveSpeed * Status.MoveSpeedMultiplier * deltaTime);
+            }
         }
 
         public void TakeDamage(DamageInfo damage)
@@ -188,6 +237,7 @@ namespace Game.Gameplay
 
         public void Die()
         {
+            Disengage();
             Recycle();
         }
 
@@ -198,6 +248,7 @@ namespace Game.Gameplay
                 return;
             }
 
+            Disengage();
             IsActiveInPool = false;
             Status.Clear();
             statusDirector?.Unregister(this);

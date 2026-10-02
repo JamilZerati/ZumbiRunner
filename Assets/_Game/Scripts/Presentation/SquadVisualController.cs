@@ -67,6 +67,7 @@ namespace Game.Presentation
             {
                 var soldier = soldierPool.Rent();
                 soldier.gameObject.SetActive(true);
+                soldier.EnsurePhysicsSetup();
                 soldier.SetTargetOffset(Vector3.zero);
                 soldier.SnapToTarget(anchorPos);
                 activeSoldiers.Add(soldier);
@@ -155,9 +156,15 @@ namespace Game.Presentation
                                 rend.sharedMaterial = new Material(shader) { color = new Color(0.2f, 0.85f, 0.45f) };
                             }
                         }
-                        return sphere.AddComponent<SoldierView>();
+                        var soldier = sphere.AddComponent<SoldierView>();
+                        soldier.EnsurePhysicsSetup();
+                        return soldier;
                     },
-                    onRent: s => s.gameObject.SetActive(true),
+                    onRent: s =>
+                    {
+                        s.gameObject.SetActive(true);
+                        s.EnsurePhysicsSetup();
+                    },
                     onReturn: s => s.gameObject.SetActive(false),
                     initialCapacity: 5
                 );

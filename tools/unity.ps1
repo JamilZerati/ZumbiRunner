@@ -37,7 +37,9 @@ function Resolve-UnityEditor {
     $version = Get-ExpectedUnityVersion
     $candidatePaths = @(
         "C:\Program Files\Unity\Hub\Editor\$version\Editor\Unity.exe",
-        "C:\Program Files\Unity\$version\Editor\Unity.exe"
+        "C:\Program Files\Unity\$version\Editor\Unity.exe",
+        "D:\Unity\Hub\Editor\$version\Editor\Unity.exe",
+        "D:\Unity\$version\Editor\Unity.exe"
     )
 
     foreach ($candidate in $candidatePaths) {

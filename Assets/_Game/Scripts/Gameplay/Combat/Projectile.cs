@@ -22,8 +22,31 @@ namespace Game.Gameplay
         private Action<Projectile> _onRecycle;
         private bool _hasHit;
 
+        private void Awake()
+        {
+            EnsurePhysicsSetup();
+        }
+
+        public void EnsurePhysicsSetup()
+        {
+            gameObject.layer = CollisionLayers.PlayerProjectileLayer;
+            if (!TryGetComponent<Rigidbody>(out var rb))
+            {
+                rb = gameObject.AddComponent<Rigidbody>();
+            }
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
+            if (TryGetComponent<Collider>(out var col))
+            {
+                col.isTrigger = true;
+                col.enabled = true;
+            }
+        }
+
         public void Initialize(int damage, float speed, float maxDistance, Action<Projectile> onRecycle, int laneIndex = 0, IReadOnlyList<StatusApplication> onHit = null)
         {
+            EnsurePhysicsSetup();
             Damage = damage;
             Speed = speed;
             MaxDistance = maxDistance;

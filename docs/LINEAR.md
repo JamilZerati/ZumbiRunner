@@ -30,6 +30,7 @@ Project → Milestone (Épico) → História (issue-pai raiz, Story) → Tarefa 
 | E2 · Profundidade de combate (Next) | `543515eb-3e2d-406a-b7a9-2611b4e7d72a` |
 | E3 · Progressão e fases Boss (Later) | `9cd5a812-344d-476e-912b-d83587d75505` |
 | E4 · Monetização e polimento (Later) | `43fb2c96-90d0-4df1-8683-ea54aa6d666d` |
+| E5 · Live-ops e economia (Later) | `6f42bd2e-2612-49a9-a157-c420191f42bd` |
 
 ## Current horizon
 
@@ -42,8 +43,15 @@ Project → Milestone (Épico) → História (issue-pai raiz, Story) → Tarefa 
 | `NEX-508` M3 · Portões aritméticos | E1 | — |
 | `NEX-509` M4 · Tiro e hordas | E1 | — |
 | `NEX-510`…`NEX-514` M5–M9 | E2 | — |
-| `NEX-515`…`NEX-517` M10–M12 | E3 | — |
-| `NEX-518`, `NEX-519` M13–M14 | E4 | — |
+| `NEX-515` M10 · Inimigos por dados | E2 | Spec gameplay/meta/live-ops |
+| `NEX-516`, `NEX-517` M11–M12 | E3 | Spec gameplay/meta/live-ops |
+| `NEX-518`, `NEX-519` M13–M14 | E4 | Spec gameplay/meta/live-ops |
+| `NEX-650`…`NEX-653` M15–M18 (tropa como poder, poder do General, portões vivos, resgate) | E2 | Spec gameplay/meta/live-ops |
+| `NEX-654`…`NEX-656` M19–M21 (telas e estreia, mutações, quartel) | E3 | Spec gameplay/meta/live-ops |
+| `NEX-657`…`NEX-659` M22–M24 (analytics, compras, cosméticos) | E4 | Spec gameplay/meta/live-ops |
+| `NEX-660`…`NEX-664` M25–M29 (calendário, missões, passe, eventos, conteúdo remoto) | E5 | Spec gameplay/meta/live-ops |
+
+Ordem e dependências: seção 7 de `docs/planos/2026-09-29-horde-runner-gameplay-meta-liveops.md` e relações `blocked by` no Linear.
 
 ## Verificação (harness CLI)
 
@@ -61,3 +69,4 @@ Toda tarefa fecha com os portões do bloco `dispatch.verify`, via `tools/unity <
 8. Tarefas that an agent implements start with a `dispatch` block (`global/DISPATCH.md`). Histórias do not.
 9. Invariante Pai-Filho: Linear tem auto-close, mas não tem auto-start de pai. Ao mover sub-issue para `In Progress`, promova a história-pai para `In Progress` no mesmo passo. Sub-issues nunca nascem em `In Progress`.
 10. Ciclo: In Progress só empilhado na história (ou irmão anterior merged nela). `/review` não marca Done. Done = merge.
+11. Em descrições e comentários, cite issue ou PR do GitHub pela URL completa: o Linear converte `GH #N` e `#N` em link para outro repositório do workspace. No título, o prefixo `(GH #N)` é seguro.

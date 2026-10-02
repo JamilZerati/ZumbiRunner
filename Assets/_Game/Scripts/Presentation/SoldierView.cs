@@ -1,3 +1,4 @@
+using Game.Gameplay;
 using UnityEngine;
 
 namespace Game.Presentation
@@ -5,6 +6,25 @@ namespace Game.Presentation
     public class SoldierView : MonoBehaviour
     {
         public Vector3 TargetOffset { get; private set; }
+
+        private void Awake()
+        {
+            EnsurePhysicsSetup();
+        }
+
+        public void EnsurePhysicsSetup()
+        {
+            gameObject.layer = CollisionLayers.SquadBodyLayer;
+            if (!TryGetComponent<Collider>(out var col))
+            {
+                var sphere = gameObject.AddComponent<SphereCollider>();
+                sphere.isTrigger = true;
+            }
+            else
+            {
+                col.isTrigger = true;
+            }
+        }
 
         public void SetTargetOffset(Vector3 offset)
         {
