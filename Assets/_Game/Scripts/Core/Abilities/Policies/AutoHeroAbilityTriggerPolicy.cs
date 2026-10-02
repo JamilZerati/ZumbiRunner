@@ -8,7 +8,7 @@ namespace Game.Core.Abilities.Policies
 
         public bool ShouldTrigger(in AbilityTriggerContext context)
         {
-            throw new NotImplementedException();
+            return context.CurrentCharges > 0 && context.HasTargetsInLane;
         }
     }
 }
