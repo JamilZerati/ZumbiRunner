@@ -78,7 +78,7 @@ namespace Game.Data
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Inimigos por Dados` [NEX-751]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Inimigos por Dados` [NEX-751]
   - **Ação**: Criar stubs de contratos (`EnemyDefinition`, `IEnemyBehavior`, comportamentos) e testes EditMode Red.
   - **Seam Público**: `Game.Data.EnemyDefinition`, `Game.Data.IEnemyBehavior`.
   - **Marco de PR**: Marco 0
