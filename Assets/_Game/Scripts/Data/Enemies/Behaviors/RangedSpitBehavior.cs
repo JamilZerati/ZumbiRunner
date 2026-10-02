@@ -32,6 +32,11 @@ namespace Game.Data
 
             if (_timer >= Interval)
             {
+                if (!context.SpitWarningActive)
+                {
+                    context.SpitWarningLane = context.GeneralLane;
+                }
+
                 context.DidSpit = true;
 
                 if (context.GeneralLane == context.SpitWarningLane)

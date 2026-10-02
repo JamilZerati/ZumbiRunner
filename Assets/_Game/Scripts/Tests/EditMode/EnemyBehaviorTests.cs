@@ -345,6 +345,28 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void HealAura_ClampsToMaxHealth()
+        {
+            var behavior = new HealAuraBehavior { HealPerSecond = 5, Radius = 4f };
+            var zombie = new EnemyBehaviorContext
+            {
+                Position = Vector3.zero,
+                CurrentHealth = 18,
+                MaxHealth = 20
+            };
+
+            var context = new EnemyBehaviorContext
+            {
+                Position = Vector3.zero,
+                NearbyZombies = new List<EnemyBehaviorContext> { zombie }
+            };
+
+            behavior.UpdateBehavior(context, 1f);
+
+            Assert.AreEqual(20, zombie.CurrentHealth);
+        }
+
+        [Test]
         public void Resurrect_RevivesWalker_Periodically()
         {
             var behavior = new ResurrectBehavior { Interval = 6f, ArchetypeId = "walker" };
