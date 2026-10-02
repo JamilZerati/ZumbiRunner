@@ -5,7 +5,7 @@ Runner mobile (retrato) em Unity: o General lidera uma tropa por lanes discretas
 ## Linguagem
 
 **General**:
-Avatar do jogador; ser atingido com a tropa zerada encerra a fase em derrota.
+Avatar do jogador; tem vida própria, que só recebe dano com a tropa zerada. A morte do General é a única derrota da fase.
 
 **Tropa**:
 Soldados que seguem o General em formação; a contagem é o HP e o poder de fogo.
@@ -38,8 +38,19 @@ Fase de dificuldade alta que, vencida, desbloqueia conteúdo.
 Grupo de até ~5 soldados representado por um único emissor de tiro; dano do emissor = dano da arma × soldados do pelotão.
 _Avoid_: esquadra, fireteam
 
-**Contato**:
-Zumbi que toca a tropa remove `contactCost` soldados e é consumido (não conta como abate).
+**Engajamento**:
+Zumbi que alcança a tropa gruda na vanguarda e causa dano contínuo até morrer; soldados caem quando o buffer de vida deles esgota.
+_Avoid_: contato, atropelamento
+
+**Escape**:
+Zumbi que passa pelo General sem engajar; não fere ninguém, mas custa as moedas do abate e pesa nas estrelas.
+
+**Estrelas**:
+Nota da fase vencida (1 a 3) pela fração de zumbis eliminados e pelas barricadas mantidas.
+
+**Barricada**:
+Trecho em que a corrida para e a tropa defende uma barricada com sobreviventes atrás; zumbis das outras lanes ferem a barricada.
+_Avoid_: holdout (no texto de produto)
 
 **Poder do General**:
 Habilidade ativa carregada por abates (ex.: Granada); disparo automático ou manual por opção.
