@@ -1,0 +1,10 @@
+{
+  "id": "brute",
+  "baseHp": 300,
+  "speed": 1.2,
+  "contactDps": 25.0,
+  "coinValue": 5,
+  "behaviors": [
+    { "type": "MoveStraight" }
+  ]
+}

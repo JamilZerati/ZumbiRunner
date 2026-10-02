@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81c19a338f9f4a78a818cada1fd888e4, type: 3}
+  m_Name: exploder
+  m_EditorClassIdentifier: Game.Data::Game.Data.EnemyDefinition
+  Id: exploder
+  BaseHp: 30
+  Speed: 2.5
+  ContactDps: 0
+  CoinValue: 2
+  Behaviors:
+  - rid: 6580925696437649419
+  - rid: 6580925696437649420
+  - rid: 6580925696437649421
+  references:
+    version: 2
+    RefIds:
+    - rid: 6580925696437649419
+      type: {class: MoveStraightBehavior, ns: Game.Data, asm: Game.Data}
+      data: 
+    - rid: 6580925696437649420
+      type: {class: ExplodeOnContactBehavior, ns: Game.Data, asm: Game.Data}
+      data:
+        Damage: 30
+        Radius: 2
+    - rid: 6580925696437649421
+      type: {class: ExplodeOnDeathBehavior, ns: Game.Data, asm: Game.Data}
+      data:
+        Damage: 50
+        Radius: 3

@@ -1,0 +1,11 @@
+{
+  "id": "spitter",
+  "baseHp": 40,
+  "speed": 1.0,
+  "contactDps": 5.0,
+  "coinValue": 2,
+  "behaviors": [
+    { "type": "StopAt", "distance": 25.0 },
+    { "type": "RangedSpit", "interval": 3.0, "warningDuration": 1.0, "damage": 30 }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "shaman",
+  "baseHp": 60,
+  "speed": 1.0,
+  "contactDps": 5.0,
+  "coinValue": 4,
+  "behaviors": [
+    { "type": "StopAt", "distance": 8.0 },
+    { "type": "HealAura", "healPerSecond": 5, "radius": 4.0 },
+    { "type": "Resurrect", "interval": 6.0, "archetypeId": "walker" }
+  ]
+}
