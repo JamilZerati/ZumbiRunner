@@ -47,10 +47,32 @@ namespace Game.Tests.EditMode
             }
         }
 
+        private List<UnityEngine.GameObject> _spawnedObjects = new List<UnityEngine.GameObject>();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var go in _spawnedObjects)
+            {
+                if (go != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(go);
+                }
+            }
+            _spawnedObjects.Clear();
+        }
+
+        private MultiplierLane CreateLane()
+        {
+            var go = new UnityEngine.GameObject("Test_MultiplierLane");
+            _spawnedObjects.Add(go);
+            return go.AddComponent<MultiplierLane>();
+        }
+
         [Test]
         public void ReachMultiplier_PayTroops_Every15m_ShouldSucceed()
         {
-            var lane = new UnityEngine.GameObject().AddComponent<MultiplierLane>();
+            var lane = CreateLane();
             var bus = new MockEventBus();
             lane.Initialize(bus);
 
@@ -79,7 +101,7 @@ namespace Game.Tests.EditMode
         [Test]
         public void ReachMultiplier_InsufficientTroops_ShouldFail()
         {
-            var lane = new UnityEngine.GameObject().AddComponent<MultiplierLane>();
+            var lane = CreateLane();
             var bus = new MockEventBus();
             lane.Initialize(bus);
 
@@ -90,6 +112,30 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0, lane.CurrentMultiplier);
             Assert.AreEqual(3, squad.SquadCount); // No troops consumed
             Assert.AreEqual(0, bus.Events.Count);
+        }
+
+        [Test]
+        public void ReachMultiplier_BeyondMaxMilestones_ShouldReturnFalseAndNotConsumeTroops()
+        {
+            var lane = CreateLane();
+            var bus = new MockEventBus();
+            lane.Initialize(bus);
+
+            // 5 + 10 + 15 + 20 + 25 = 75 tropas para atingir x5
+            var squad = new MockSquad(100);
+
+            for (int i = 0; i < 5; i++)
+            {
+                Assert.IsTrue(lane.TryAdvance(squad));
+            }
+            Assert.AreEqual(5, lane.CurrentMultiplier);
+            Assert.AreEqual(25, squad.SquadCount); // 100 - 75 = 25
+
+            // Tentativa além do máximo (x5)
+            bool advBeyond = lane.TryAdvance(squad);
+            Assert.IsFalse(advBeyond);
+            Assert.AreEqual(5, lane.CurrentMultiplier);
+            Assert.AreEqual(25, squad.SquadCount); // nenhuma tropa adicional consumida
         }
     }
 }

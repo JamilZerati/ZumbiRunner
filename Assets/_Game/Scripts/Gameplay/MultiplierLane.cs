@@ -21,7 +21,7 @@ namespace Game.Gameplay
 
         public bool TryAdvance(ISquad squad)
         {
-            if (CurrentMultiplier >= CostsPerStep.Length)
+            if (squad == null || CurrentMultiplier >= CostsPerStep.Length)
             {
                 return false;
             }
