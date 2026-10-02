@@ -13,6 +13,8 @@ Horde Runner: runner mobile (retrato, Android) em Unity. O General lidera uma tr
 
 **CLI-first**: agentes trabalham sem o Editor GUI. Build, teste e validação rodam em batchmode pelo harness `tools/unity` e são julgados por exit code e pelos artefatos em `.artifacts/`.
 
+**Editor vivo**: o CLI `unity` (pacote `com.unity.pipeline`) dirige um Editor residente, e é assim que se simula o jogo de verdade: Play mode, C# por `eval`, estado e memória em runtime, input simulado, captura de tela. Ao investigar comportamento jogando, medir memória ou capturar evidência visual: `docs/agentes/editor-vivo.md`.
+
 ## Portão de verificação
 
 Tarefa pronta = o `verify` do bloco `dispatch` passou **e** você leu o resultado. Sequência padrão:
@@ -31,7 +33,7 @@ Tarefa pronta = o `verify` do bloco `dispatch` passou **e** você leu o resultad
 - **Gerado se regenera.** Assets em `Assets/_Game/Data/` vêm de `Content/Source/*.json` (`import-content`); cenas `Assets/_Game/Scenes/*.unity` vêm do `SceneBuilder`. Mude a fonte e regenere.
 - **Commit = intenção.** Testes e importação reescrevem assets gerados com IDs novos (`rid`, `fileID`) sem mudança real, e o Unity reescreve `Packages/` e `ProjectSettings/` ao abrir. Restaure com `git checkout -- <arquivo>` tudo que a tarefa não pretendia mudar; regeneração legítima vai num commit `chore` separado, declarado no PR.
 - **`.meta` junto** de todo asset novo; binários por Git LFS.
-- **Um Unity por pasta.** Tarefa paralela ganha `git worktree` próprio; a pasta principal pode estar em uso por outra sessão.
+- **Um Unity por pasta**, Editor vivo incluído. Tarefa paralela ganha `git worktree` próprio; a pasta principal pode estar em uso por outra sessão.
 - **Evidência antes de afirmar**: bug começa com um teste que você viu falhar; "funciona" só depois do comando verde lido.
 
 O porquê de cada regra, como reconhecer ruído de regeneração e como regenerar cada tipo de asset: `docs/agentes/guardrails-build.md`.
