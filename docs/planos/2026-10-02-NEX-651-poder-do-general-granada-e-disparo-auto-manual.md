@@ -159,7 +159,7 @@ namespace Game.Core.Events
   - **Marco de PR**: Marco 0 + `NEX-760`
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Modelo Puro de Carga, Políticas de Disparo e Efeito Granada` [NEX-761]
+- [x] **Passo 1 (Marco 1)**: `Modelo Puro de Carga, Políticas de Disparo e Efeito Granada` [NEX-761]
   - **Ação**: Implementar `AbilityChargeTracker` (25 abates por carga, suporte a carga bônus/rewarded, ignora abates de habilidade), `AutoHeroAbilityTriggerPolicy`, `ManualHeroAbilityTriggerPolicy` e `GrenadeAbilityEffect` (150 dano, raio 4 m, lane atual) em `Game.Core.Abilities`.
   - **Lógica de Negócios / Responsabilidade**: Gerenciar contadores de abates de forma determinística e encapsulada; calcular condições de disparo nos modos Auto e Manual; executar o efeito da granada chamando `IAbilityDamageSink.ApplyAreaDamage`. Implementar a armadilha de recarga infinita (ignorar `byAbility == true`).
   - **Dependências / Pré-requisitos**: Passo 0 (`NEX-760`).
