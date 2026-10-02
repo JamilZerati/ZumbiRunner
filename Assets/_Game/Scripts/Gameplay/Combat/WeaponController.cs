@@ -237,6 +237,7 @@ namespace Game.Gameplay
                 return;
             }
 
+            // Na raiz da cena: sob o General, o collider do projétil entra no corpo composto do Rigidbody dele e o CombatDirector recebe cada acerto como contato com a tropa.
             var poolGo = new GameObject("ProjectilePool");
 
             var pool = new ObjectPool<Projectile>(

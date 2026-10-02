@@ -613,6 +613,7 @@ namespace Game.Editor
             weapon.ProjectileSpeed = 15.0f;
             weapon.MaxDistance = 40.0f;
 
+            // Fora do General pelo mesmo motivo do WeaponController.EnsurePoolInitialized: filho do Rigidbody dele, o acerto vira contato.
             var projectilePoolGo = new GameObject("ProjectilePool");
             projectilePoolGo.layer = CollisionLayers.PlayerProjectileLayer;
 

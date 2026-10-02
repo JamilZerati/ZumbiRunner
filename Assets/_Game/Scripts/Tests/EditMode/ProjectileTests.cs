@@ -29,6 +29,18 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void Initialize_EnsuresOwnKinematicRigidbody_WithoutGravity()
+        {
+            projectile.Initialize(damage: 10, speed: 15f, maxDistance: 40f, onRecycle: null);
+
+            var body = projectileObject.GetComponent<Rigidbody>();
+
+            Assert.IsNotNull(body, "Trigger-vs-trigger hits need a Rigidbody on one side; enemies have none.");
+            Assert.IsTrue(body.isKinematic);
+            Assert.IsFalse(body.useGravity);
+        }
+
+        [Test]
         public void Initialize_SetsProperties_ResetsTraveledDistanceAndSetsActiveInPool()
         {
             projectile.Initialize(damage: 15, speed: 20f, maxDistance: 50f, onRecycle: null, laneIndex: 2);

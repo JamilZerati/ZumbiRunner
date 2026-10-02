@@ -57,6 +57,22 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void EnsurePoolInitialized_RentedProjectiles_AreOutsideWeaponHierarchy()
+        {
+            var template = new GameObject("ProjectileTemplate");
+            spawnedObjects.Add(template);
+            weapon.ProjectilePrefab = template.AddComponent<Projectile>();
+            template.SetActive(false);
+
+            weapon.EnsurePoolInitialized();
+            var proj = weapon.Fire();
+            spawnedObjects.Add(proj.transform.root.gameObject);
+
+            Assert.IsFalse(proj.transform.IsChildOf(weaponObject.transform),
+                "Projectiles parented to the General join its Rigidbody compound and report hits as squad contact.");
+        }
+
+        [Test]
         public void Fire_WhenPoolIsNull_ReturnsNull()
         {
             weapon.Initialize(null);

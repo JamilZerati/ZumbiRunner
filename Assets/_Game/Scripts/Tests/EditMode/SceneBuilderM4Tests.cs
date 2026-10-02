@@ -116,5 +116,22 @@ namespace Game.Tests.EditMode
                 Assert.AreEqual(CollisionLayers.PickupLayer, gate.gameObject.layer, "Gate must be in Pickup layer.");
             }
         }
+
+        [Test]
+        public void BuildM4GreyboxScene_ProjectilesLiveOutsideGeneralHierarchy()
+        {
+            SceneBuilder.BuildM4GreyboxScene();
+            EditorSceneManager.OpenScene(SceneBuilder.M4GreyboxScenePath, OpenSceneMode.Single);
+
+            var general = Object.FindAnyObjectByType<CombatDirector>().transform;
+            var projectiles = Object.FindObjectsByType<Projectile>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            Assert.Greater(projectiles.Length, 0, "Scene must contain the projectile template.");
+            foreach (var projectile in projectiles)
+            {
+                Assert.IsFalse(projectile.transform.IsChildOf(general),
+                    $"{projectile.name} must not be under the General, or its hits count as squad contact.");
+            }
+        }
     }
 }
