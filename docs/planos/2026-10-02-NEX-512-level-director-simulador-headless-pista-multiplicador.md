@@ -87,7 +87,7 @@ namespace Game.Core.State
   - **Marco de PR**: Marco 0
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Core: Config, Result e Sinais` [NEX-744]
+- [x] **Passo 1 (Marco 1)**: `Core: Config, Result e Sinais` [NEX-744]
   - **Ação**: Criar/Modificar classes em Game.Core
   - **Lógica de Negócios / Responsabilidade**: Implementar `RunConfig`, `RunResult` e os eventos necessários (RunStartedEvent, RunEndedEvent, EnemyEscapedEvent, etc).
   - **Seam Público**: `IEventBus`
