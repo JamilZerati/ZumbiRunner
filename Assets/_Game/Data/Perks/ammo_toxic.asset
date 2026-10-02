@@ -15,11 +15,11 @@ MonoBehaviour:
   id: ammo_toxic
   displayName: "Muni\xE7\xE3o T\xF3xica"
   effects:
-  - rid: 5800860180657209352
+  - rid: 6580925693209346106
   references:
     version: 2
     RefIds:
-    - rid: 5800860180657209352
+    - rid: 6580925693209346106
       type: {class: ApplyStatusOnHitEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Status: 5
