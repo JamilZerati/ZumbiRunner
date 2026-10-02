@@ -84,7 +84,7 @@ namespace Game.Data
   - **Marco de PR**: Marco 0
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Data & Importer: Definições e Arquivos JSON dos 7 Arquétipos` [NEX-752]
+- [x] **Passo 1 (Marco 1)**: `Data & Importer: Definições e Arquivos JSON dos 7 Arquétipos` [NEX-752]
   - **Ação**: Implementar `EnemyDefinition`, `EnemyCatalog`, os 7 JSONs canônicos em `Content/Source/Enemies/` e `EnemyImporter`.
   - **Seam Público**: `EnemyImporter`, `EnemyCatalog`.
   - **Marco de PR**: Marco 1

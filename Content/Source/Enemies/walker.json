@@ -1,0 +1,10 @@
+{
+  "id": "walker",
+  "baseHp": 20,
+  "speed": 2.0,
+  "contactDps": 5.0,
+  "coinValue": 1,
+  "behaviors": [
+    { "type": "MoveStraight" }
+  ]
+}

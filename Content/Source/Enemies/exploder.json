@@ -1,0 +1,12 @@
+{
+  "id": "exploder",
+  "baseHp": 30,
+  "speed": 2.5,
+  "contactDps": 0.0,
+  "coinValue": 2,
+  "behaviors": [
+    { "type": "MoveStraight" },
+    { "type": "ExplodeOnContact", "damage": 30, "radius": 2.0 },
+    { "type": "ExplodeOnDeath", "damage": 50, "radius": 3.0 }
+  ]
+}
