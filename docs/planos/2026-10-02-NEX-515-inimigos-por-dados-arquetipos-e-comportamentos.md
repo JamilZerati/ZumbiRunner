@@ -96,7 +96,7 @@ namespace Game.Data
   - **Marco de PR**: Marco 2
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Gameplay: Comportamentos Defensivos e Reativos` [NEX-755]
+- [x] **Passo 3 (Marco 3)**: `Gameplay: Comportamentos Defensivos e Reativos` [NEX-755]
   - **Ação**: Implementar `FrontShieldBehavior` (bloqueia tiros retos até receber status/área), `ExplodeOnContactBehavior` e `ExplodeOnDeathBehavior`.
   - **Seam Público**: `FrontShieldBehavior`, `ExplodeOnContactBehavior`, `ExplodeOnDeathBehavior`.
   - **Marco de PR**: Marco 3
