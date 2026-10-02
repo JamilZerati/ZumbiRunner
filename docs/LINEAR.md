@@ -47,6 +47,7 @@ Project → Milestone (Épico) → História (issue-pai raiz, Story) → Tarefa 
 | `NEX-516`, `NEX-517` M11–M12 | E3 | Spec gameplay/meta/live-ops |
 | `NEX-518`, `NEX-519` M13–M14 | E4 | Spec gameplay/meta/live-ops |
 | `NEX-650`…`NEX-653` M15–M18 (tropa como poder, poder do General, portões vivos, resgate) | E2 | Spec gameplay/meta/live-ops |
+| `NEX-742` M30 · Trechos de Barricada | E2 | Spec gameplay/meta/live-ops |
 | `NEX-654`…`NEX-656` M19–M21 (telas e estreia, mutações, quartel) | E3 | Spec gameplay/meta/live-ops |
 | `NEX-657`…`NEX-659` M22–M24 (analytics, compras, cosméticos) | E4 | Spec gameplay/meta/live-ops |
 | `NEX-660`…`NEX-664` M25–M29 (calendário, missões, passe, eventos, conteúdo remoto) | E5 | Spec gameplay/meta/live-ops |
