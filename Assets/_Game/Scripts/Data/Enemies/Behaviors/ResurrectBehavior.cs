@@ -9,7 +9,25 @@ namespace Game.Data
         public float Interval = 6f;
         public string ArchetypeId = "walker";
 
-        public void UpdateBehavior(EnemyBehaviorContext context, float deltaTime) { }
+        private float _timer;
+
+        public void UpdateBehavior(EnemyBehaviorContext context, float deltaTime)
+        {
+            if (context == null)
+            {
+                return;
+            }
+
+            _timer += deltaTime;
+
+            if (_timer >= Interval)
+            {
+                _timer = 0f;
+                context.ResurrectTriggered = true;
+                context.ResurrectArchetypeId = ArchetypeId;
+            }
+        }
+
         public void OnHit(ref DamageInfo hit, EnemyBehaviorContext context) { }
         public void OnEngage(EnemyBehaviorContext context) { }
         public void OnDeath(EnemyBehaviorContext context) { }
