@@ -90,7 +90,7 @@ namespace Game.Data
   - **Marco de PR**: Marco 1
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Gameplay: Comportamentos de Movimentação e Perseguição` [NEX-754]
+- [x] **Passo 2 (Marco 2)**: `Gameplay: Comportamentos de Movimentação e Perseguição` [NEX-754]
   - **Ação**: Implementar `MoveStraightBehavior`, `ChaseLaneBehavior` (Corredor persegue lane do General após 1s), `StopAtBehavior`.
   - **Seam Público**: `MoveStraightBehavior`, `ChaseLaneBehavior`, `StopAtBehavior`.
   - **Marco de PR**: Marco 2
