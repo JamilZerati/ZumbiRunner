@@ -2,8 +2,13 @@ using Game.Core.State;
 
 namespace Game.Core.Events
 {
-    public struct RunEndedEvent
+    public readonly struct RunEndedEvent
     {
-        public RunResult Result;
+        public RunResult Result { get; }
+
+        public RunEndedEvent(RunResult result)
+        {
+            Result = result;
+        }
     }
 }
