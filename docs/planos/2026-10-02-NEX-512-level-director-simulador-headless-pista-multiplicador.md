@@ -64,12 +64,12 @@ namespace Game.Core.State
 ## 4.5 Linear overlay
 - **História (issue-pai):** NEX-512
 - **Sub-issues deste plano:** 
-  - Marco 0: Suíte de Cenários & Contratos de Level Director e Simulador [NEX-512-M0] (Priority: High)
-  - Marco 1: RunConfig, RunResult e Sinais de Core [NEX-512-M1] (Priority: High)
-  - Marco 2: LevelDefinition, SegmentDefinition e Importador JSON [NEX-512-M2] (Priority: High)
-  - Marco 3: Pista de Multiplicador x1..x5 [NEX-512-M3] (Priority: High)
-  - Marco 4: LevelDirector e Validador headless [NEX-512-M4] (Priority: High)
-  - Marco 5: Simulador headless [NEX-512-M5] (Priority: High)
+  - Marco 0: Suíte de Cenários & Contratos de Level Director e Simulador [NEX-743] (Priority: High)
+  - Marco 1: RunConfig, RunResult e Sinais de Core [NEX-744] (Priority: High)
+  - Marco 2: LevelDefinition, SegmentDefinition e Importador JSON [NEX-745] (Priority: High)
+  - Marco 3: Pista de Multiplicador x1..x5 [NEX-746] (Priority: High)
+  - Marco 4: LevelDirector e Validador headless [NEX-747] (Priority: High)
+  - Marco 5: Simulador headless [NEX-748] (Priority: High)
 - **PRs (modelo C):** Draft PR → `main`. Tarefas ramificam de `jamilzerati/nex-512-story-m7-level-director-simulador-headless-e-pista-de`.
 
 ## 5. Divisão de Execução por Passo
@@ -80,42 +80,42 @@ namespace Game.Core.State
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos` [NEX-512-M0]
+- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos` [NEX-743]
   - **Ação**: Criar cenários de teste Red (EditMode).
   - **Lógica de Negócios / Responsabilidade**: Definir contratos de Seams públicos. Criar as estruturas vazias e testes cobrindo o validador de lane, bots de simulador, pista de multiplicador e LevelDirector.
   - **Seam Público**: Testes na assembly Game.Editor e Game.Gameplay.
   - **Marco de PR**: Marco 0
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Core: Config, Result e Sinais` [NEX-512-M1]
+- [ ] **Passo 1 (Marco 1)**: `Core: Config, Result e Sinais` [NEX-744]
   - **Ação**: Criar/Modificar classes em Game.Core
   - **Lógica de Negócios / Responsabilidade**: Implementar `RunConfig`, `RunResult` e os eventos necessários (RunStartedEvent, RunEndedEvent, EnemyEscapedEvent, etc).
   - **Seam Público**: `IEventBus`
   - **Marco de PR**: Marco 1
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Data: Definitions e Importer` [NEX-512-M2]
+- [ ] **Passo 2 (Marco 2)**: `Data: Definitions e Importer` [NEX-745]
   - **Ação**: Criar ScriptableObjects e importador JSON.
   - **Lógica de Negócios / Responsabilidade**: `LevelDefinition`, `SegmentDefinition` e parseamento a partir de `Content/Source/Levels/level_01.json`.
   - **Seam Público**: `LevelImporter`
   - **Marco de PR**: Marco 2
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Gameplay: Pista de Multiplicador` [NEX-512-M3]
+- [ ] **Passo 3 (Marco 3)**: `Gameplay: Pista de Multiplicador` [NEX-746]
   - **Ação**: Criar componente de pista
   - **Lógica de Negócios / Responsabilidade**: A cada 15m, marcos x1 a x5 exigem e consomem soldados.
   - **Seam Público**: `MultiplierLane`
   - **Marco de PR**: Marco 3
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Gameplay/Editor: LevelDirector e Validador` [NEX-512-M4]
+- [ ] **Passo 4 (Marco 4)**: `Gameplay/Editor: LevelDirector e Validador` [NEX-747]
   - **Ação**: Criar `LevelDirector` e script de CLI `ValidateCommand`.
   - **Lógica de Negócios / Responsabilidade**: O diretor lê os eventos por distância. O validador rejeita fase com lane vazia em segmento de horda (sobreposição mínima de 8m).
   - **Seam Público**: `LevelDirector`, `ValidateCommand`
   - **Marco de PR**: Marco 4
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Editor: Simulador headless` [NEX-512-M5]
+- [ ] **Passo 5 (Marco 5)**: `Editor: Simulador headless` [NEX-748]
   - **Ação**: Modificar shell e criar `SimulateCommand`.
   - **Lógica de Negócios / Responsabilidade**: Roda com `-level <id> -seed <n>`. Roda "bot guloso" e "bot fujão" e cospe `.artifacts/simulation.json`. Regra: bot fujão vence <= 20% das fases comuns.
   - **Seam Público**: `SimulateCommand` (CLI entry point)
