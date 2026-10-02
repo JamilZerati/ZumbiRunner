@@ -1,12 +1,16 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Data
 {
-    [CreateAssetMenu(menuName = "Game/Level Definition")]
+    [CreateAssetMenu(menuName = "Game/Data/Level Definition", fileName = "LevelDefinition")]
     public class LevelDefinition : ScriptableObject
     {
-        public string Id;
-        public List<SegmentDefinition> Segments;
+        public string LevelId;
+        public float TotalDistance;
+        public float Speed;
+        public float TargetDurationSeconds;
+        public int InitialTroops;
+        
+        public SegmentDefinition[] Segments;
     }
 }
