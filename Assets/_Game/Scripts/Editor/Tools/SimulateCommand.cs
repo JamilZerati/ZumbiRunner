@@ -126,11 +126,36 @@ namespace Game.Editor.Tools
             return summary;
         }
 
+        private readonly struct ArchetypeStats
+        {
+            public readonly int Hp;
+            public readonly float Speed;
+            public readonly int ContactDamage;
+
+            public ArchetypeStats(int hp, float speed, int contactDamage)
+            {
+                Hp = hp;
+                Speed = speed;
+                ContactDamage = contactDamage;
+            }
+        }
+
+        private static readonly Dictionary<string, ArchetypeStats> Archetypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "walker", new ArchetypeStats(20, 2.0f, 1) },
+            { "runner", new ArchetypeStats(12, 5.0f, 1) },
+            { "brute", new ArchetypeStats(300, 1.2f, 5) },
+            { "exploder", new ArchetypeStats(30, 2.5f, 3) },
+            { "spitter", new ArchetypeStats(40, 1.0f, 2) },
+            { "shielded", new ArchetypeStats(80, 1.5f, 2) },
+            { "shaman", new ArchetypeStats(60, 1.0f, 2) }
+        };
+
         public static SimulationRunResult SimulateSingleRun(LevelDefinition level, BotType bot, int seed, int runIndex)
         {
             var rng = new System.Random(seed + runIndex * 10007);
             int squad = level.InitialTroops > 0 ? level.InitialTroops : 5;
-            float currentDist = 0f, fireRate = 2f, speed = level.Speed > 0f ? level.Speed : 8f, zombieSpeed = 2f;
+            float currentDist = 0f, fireRate = 2f, speed = level.Speed > 0f ? level.Speed : 8f;
             int damage = 2, kills = 0, mult = 0;
             bool isAlive = true;
 
@@ -147,7 +172,7 @@ namespace Game.Editor.Tools
                         currentDist = seg.StartDistance + seg.Length;
                     }
                     else if (seg.SegmentType == SegmentType.Horde)
-                        ProcessHordeSegment(seg, bot, ref squad, fireRate, damage, speed, zombieSpeed, ref kills, ref currentDist, ref isAlive, rng);
+                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng);
                     else if (seg.SegmentType == SegmentType.Multiplier)
                         ProcessMultiplierSegment(seg, ref squad, ref mult, ref currentDist);
                 }
@@ -200,26 +225,28 @@ namespace Game.Editor.Tools
         }
 
         private static void ProcessHordeSegment(
-            SegmentDefinition seg, BotType bot, ref int squad, float fireRate, int damage,
-            float speed, float zombieSpeed, ref int kills, ref float currentDist, ref bool isAlive, System.Random rng)
+            SegmentDefinition seg, LevelDefinition level, BotType bot, ref int squad, float fireRate, int damage,
+            float speed, ref int kills, ref float currentDist, ref bool isAlive, System.Random rng)
         {
-            var waves = new List<(float distance, int count)>();
+            float hpMultiplier = level != null ? level.GetHpMultiplier() : 1f;
+            var waves = new List<(float distance, int count, string archetype)>();
             if (seg.Events != null)
             {
-                var eventGroups = new Dictionary<float, int>();
                 for (int i = 0; i < seg.Events.Length; i++)
                 {
                     var e = seg.Events[i];
                     if (e == null || e.Type != "HordeSpawn") continue;
                     int count = 5;
+                    string archetype = "walker";
                     if (!string.IsNullOrEmpty(e.Data))
                     {
-                        var m = Regex.Match(e.Data, @"count\s*=\s*(\d+)");
-                        if (m.Success) count = int.Parse(m.Groups[1].Value);
+                        var mCount = Regex.Match(e.Data, @"count\s*=\s*(\d+)");
+                        if (mCount.Success) count = int.Parse(mCount.Groups[1].Value);
+                        var mArch = Regex.Match(e.Data, @"archetype\s*=\s*([a-zA-Z]+)");
+                        if (mArch.Success) archetype = mArch.Groups[1].Value;
                     }
-                    eventGroups[e.DistanceOffset] = eventGroups.TryGetValue(e.DistanceOffset, out int c) ? c + count : count;
+                    waves.Add((seg.StartDistance + e.DistanceOffset, count, archetype));
                 }
-                foreach (var kvp in eventGroups) waves.Add((seg.StartDistance + kvp.Key, kvp.Value));
             }
 
             for (float offset = waves.Count > 0 ? 60f : 20f; offset < seg.Length - 10f; offset += 60f)
@@ -227,21 +254,25 @@ namespace Game.Editor.Tools
                 float wDist = seg.StartDistance + offset;
                 bool near = false;
                 for (int w = 0; w < waves.Count; w++) if (Math.Abs(waves[w].distance - wDist) < 20f) { near = true; break; }
-                if (!near) waves.Add((wDist, 8 + rng.Next(0, 3)));
+                if (!near) waves.Add((wDist, 8 + rng.Next(0, 3), "walker"));
             }
             waves.Sort((a, b) => a.distance.CompareTo(b.distance));
-            float closingTime = 40f / (speed + zombieSpeed);
 
             for (int i = 0; i < waves.Count; i++)
             {
                 currentDist = waves[i].distance;
+                string archName = waves[i].archetype;
+                var stats = Archetypes.TryGetValue(archName, out var a) ? a : new ArchetypeStats(20, 2.0f, 1);
+                float effectiveHp = stats.Hp * hpMultiplier;
+                float closingTime = 40f / (speed + stats.Speed);
+
                 float eff = (bot == BotType.Guloso) ? (0.95f + (float)(rng.NextDouble() * 0.08 - 0.04)) : (0.55f + (float)(rng.NextDouble() * 0.08 - 0.04));
-                int killed = Math.Min(waves[i].count, (int)(fireRate * damage * squad * eff * closingTime / 20f));
+                int killed = Math.Min(waves[i].count, (int)(fireRate * damage * squad * eff * closingTime / effectiveHp));
                 kills += killed;
                 int reaching = waves[i].count - killed;
                 if (reaching > 0)
                 {
-                    squad -= reaching;
+                    squad -= reaching * stats.ContactDamage;
                     if (squad <= 0) { squad = 0; isAlive = false; return; }
                 }
             }
