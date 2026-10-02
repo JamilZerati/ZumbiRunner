@@ -10,17 +10,41 @@ namespace Game.Core.Abilities
 
         public AbilityChargeTracker(int killsPerCharge, int initialCharges = 0)
         {
-            throw new NotImplementedException();
+            if (killsPerCharge <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(killsPerCharge), "Kills per charge must be greater than zero.");
+            }
+
+            CurrentKills = 0;
+            KillsPerCharge = killsPerCharge;
+            CurrentCharges = initialCharges;
         }
 
         public void RegisterKill(bool byAbility = false)
         {
-            throw new NotImplementedException();
+            // Abates provocados por habilidade nao geram cargas para impedir auto-recarga infinita.
+            if (byAbility)
+            {
+                return;
+            }
+
+            CurrentKills++;
+            if (CurrentKills >= KillsPerCharge)
+            {
+                CurrentCharges += CurrentKills / KillsPerCharge;
+                CurrentKills %= KillsPerCharge;
+            }
         }
 
         public bool TryConsumeCharge()
         {
-            throw new NotImplementedException();
+            if (CurrentCharges > 0)
+            {
+                CurrentCharges--;
+                return true;
+            }
+
+            return false;
         }
     }
 }
