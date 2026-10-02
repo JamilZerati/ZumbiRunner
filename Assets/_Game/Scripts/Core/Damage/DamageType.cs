@@ -6,6 +6,7 @@ namespace Game.Core
         Fire,
         Ice,
         Lightning,
-        Poison
+        Poison,
+        Area
     }
 }
