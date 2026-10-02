@@ -14,6 +14,11 @@ namespace Game.Data
 
         public void OnEngage(EnemyBehaviorContext context)
         {
+            if (context == null)
+            {
+                return;
+            }
+
             context.DamageDealtToSquad += Damage;
             context.Squad?.Remove(Damage);
             context.CurrentHealth = 0;

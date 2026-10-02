@@ -12,7 +12,7 @@ namespace Game.Data
 
         public void OnHit(ref DamageInfo hit, EnemyBehaviorContext context)
         {
-            if (!IsActive || !context.ShieldActive)
+            if (context == null || !IsActive || !context.ShieldActive)
             {
                 return;
             }

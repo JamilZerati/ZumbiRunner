@@ -16,6 +16,11 @@ namespace Game.Data
 
         public void OnDeath(EnemyBehaviorContext context)
         {
+            if (context == null)
+            {
+                return;
+            }
+
             context.DamageDealtToZombies += Damage;
 
             if (context.NearbyZombies == null)
@@ -26,7 +31,7 @@ namespace Game.Data
             for (int i = 0; i < context.NearbyZombies.Count; i++)
             {
                 var zombie = context.NearbyZombies[i];
-                if (zombie != null && zombie.IsAlive)
+                if (zombie != null && zombie != context && zombie.IsAlive)
                 {
                     float dist = Vector3.Distance(context.Position, zombie.Position);
                     if (dist <= Radius)
