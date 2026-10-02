@@ -11,7 +11,19 @@ namespace Game.Data
 
         public void UpdateBehavior(EnemyBehaviorContext context, float deltaTime) { }
         public void OnHit(ref DamageInfo hit, EnemyBehaviorContext context) { }
-        public void OnEngage(EnemyBehaviorContext context) { }
+
+        public void OnEngage(EnemyBehaviorContext context)
+        {
+            if (context == null)
+            {
+                return;
+            }
+
+            context.DamageDealtToSquad += Damage;
+            context.Squad?.Remove(Damage);
+            context.CurrentHealth = 0;
+        }
+
         public void OnDeath(EnemyBehaviorContext context) { }
     }
 }

@@ -9,7 +9,24 @@ namespace Game.Data
         public bool IsActive = true;
 
         public void UpdateBehavior(EnemyBehaviorContext context, float deltaTime) { }
-        public void OnHit(ref DamageInfo hit, EnemyBehaviorContext context) { }
+
+        public void OnHit(ref DamageInfo hit, EnemyBehaviorContext context)
+        {
+            if (context == null || !IsActive || !context.ShieldActive)
+            {
+                return;
+            }
+
+            if (hit.Type != DamageType.Physical)
+            {
+                IsActive = false;
+                context.ShieldActive = false;
+                return;
+            }
+
+            hit = new DamageInfo(0, hit.Type, hit.Source);
+        }
+
         public void OnEngage(EnemyBehaviorContext context) { }
         public void OnDeath(EnemyBehaviorContext context) { }
     }

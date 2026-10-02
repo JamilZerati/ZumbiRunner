@@ -169,6 +169,37 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void FrontShield_BreaksOnAreaDamage_AndAllowsFullDamage()
+        {
+            var behavior = new FrontShieldBehavior();
+            var context = new EnemyBehaviorContext { ShieldActive = true };
+            var aoeHit = new DamageInfo(25, DamageType.Area, null);
+
+            behavior.OnHit(ref aoeHit, context);
+
+            Assert.AreEqual(25, aoeHit.Amount);
+            Assert.IsFalse(behavior.IsActive);
+            Assert.IsFalse(context.ShieldActive);
+
+            var physicalHit = new DamageInfo(15, DamageType.Physical, null);
+            behavior.OnHit(ref physicalHit, context);
+            Assert.AreEqual(15, physicalHit.Amount);
+        }
+
+        [Test]
+        public void FrontShield_BreaksOnElementalStatusDamage()
+        {
+            var behavior = new FrontShieldBehavior();
+            var context = new EnemyBehaviorContext { ShieldActive = true };
+            var fireHit = new DamageInfo(10, DamageType.Fire, null);
+
+            behavior.OnHit(ref fireHit, context);
+
+            Assert.AreEqual(10, fireHit.Amount);
+            Assert.IsFalse(context.ShieldActive);
+        }
+
+        [Test]
         public void ExplodeOnContact_DamagesSquad_OnEngagement()
         {
             var behavior = new ExplodeOnContactBehavior { Damage = 30, Radius = 2f };
@@ -180,6 +211,24 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void ExplodeOnContact_ReducesZombieHealthToZero_AndConsumesSquad()
+        {
+            var behavior = new ExplodeOnContactBehavior { Damage = 30, Radius = 2f };
+            var squad = new FakeSquad(50);
+            var context = new EnemyBehaviorContext
+            {
+                CurrentHealth = 30,
+                Squad = squad
+            };
+
+            behavior.OnEngage(context);
+
+            Assert.AreEqual(0, context.CurrentHealth);
+            Assert.AreEqual(30, context.DamageDealtToSquad);
+            Assert.AreEqual(20, squad.SquadCount);
+        }
+
+        [Test]
         public void ExplodeOnDeath_DamagesAdjacentZombies_OnKilled()
         {
             var behavior = new ExplodeOnDeathBehavior { Damage = 50, Radius = 3f };
@@ -188,6 +237,34 @@ namespace Game.Tests.EditMode
             behavior.OnDeath(context);
 
             Assert.AreEqual(50, context.DamageDealtToZombies);
+        }
+
+        [Test]
+        public void ExplodeOnDeath_DamagesNearbyZombiesWithinRadius()
+        {
+            var behavior = new ExplodeOnDeathBehavior { Damage = 50, Radius = 3f };
+            var zombieNear = new EnemyBehaviorContext
+            {
+                Position = new Vector3(0, 0, 2f),
+                CurrentHealth = 80
+            };
+            var zombieFar = new EnemyBehaviorContext
+            {
+                Position = new Vector3(0, 0, 10f),
+                CurrentHealth = 80
+            };
+
+            var context = new EnemyBehaviorContext
+            {
+                Position = Vector3.zero,
+                NearbyZombies = new List<EnemyBehaviorContext> { zombieNear, zombieFar }
+            };
+
+            behavior.OnDeath(context);
+
+            Assert.AreEqual(50, context.DamageDealtToZombies);
+            Assert.AreEqual(30, zombieNear.CurrentHealth);
+            Assert.AreEqual(80, zombieFar.CurrentHealth);
         }
 
         [Test]
@@ -222,6 +299,46 @@ namespace Game.Tests.EditMode
 
             Assert.IsTrue(context.ResurrectTriggered);
             Assert.AreEqual("walker", context.ResurrectArchetypeId);
+        }
+
+        private sealed class FakeSquad : ISquad
+        {
+            public int SquadCount { get; private set; }
+
+            public FakeSquad(int initialCount)
+            {
+                SquadCount = initialCount;
+            }
+
+            public bool Add(int amount)
+            {
+                SquadCount += amount;
+                return true;
+            }
+
+            public bool Remove(int amount)
+            {
+                SquadCount = Mathf.Max(0, SquadCount - amount);
+                return true;
+            }
+
+            public bool Multiply(int factor)
+            {
+                SquadCount *= factor;
+                return true;
+            }
+
+            public bool Divide(int divisor)
+            {
+                SquadCount /= divisor;
+                return true;
+            }
+
+            public bool SetCount(int newCount)
+            {
+                SquadCount = newCount;
+                return true;
+            }
         }
     }
 }
