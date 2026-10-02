@@ -1,11 +1,29 @@
-using UnityEngine;
+using System;
 
 namespace Game.Data
 {
-    [System.Serializable]
+    public enum SegmentType
+    {
+        Warmup,
+        Gate,
+        Horde,
+        Multiplier
+    }
+
+    [Serializable]
+    public class SegmentEvent
+    {
+        public float DistanceOffset;
+        public string Type;
+        public string Data;
+    }
+
+    [Serializable]
     public class SegmentDefinition
     {
-        public float Distance;
-        public bool IsHorde;
+        public SegmentType SegmentType;
+        public float StartDistance;
+        public float Length;
+        public SegmentEvent[] Events;
     }
 }
