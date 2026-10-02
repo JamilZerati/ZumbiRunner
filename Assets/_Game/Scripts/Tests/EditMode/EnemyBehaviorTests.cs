@@ -276,6 +276,31 @@ namespace Game.Tests.EditMode
             behavior.UpdateBehavior(context, 2.5f);
 
             Assert.IsTrue(context.SpitWarningActive);
+            Assert.AreEqual(1, context.SpitWarningLane);
+
+            behavior.UpdateBehavior(context, 0.6f);
+
+            Assert.IsTrue(context.DidSpit);
+            Assert.AreEqual(30, context.DamageDealtToSquad);
+            Assert.IsFalse(context.SpitWarningActive);
+        }
+
+        [Test]
+        public void RangedSpit_EvadedWhenGeneralSwitchesLane()
+        {
+            var behavior = new RangedSpitBehavior { Interval = 3f, WarningDuration = 1f, Damage = 30 };
+            var context = new EnemyBehaviorContext { GeneralLane = 1 };
+
+            behavior.UpdateBehavior(context, 2.5f);
+            Assert.IsTrue(context.SpitWarningActive);
+            Assert.AreEqual(1, context.SpitWarningLane);
+
+            context.GeneralLane = 2;
+            behavior.UpdateBehavior(context, 0.6f);
+
+            Assert.IsTrue(context.DidSpit);
+            Assert.AreEqual(0, context.DamageDealtToSquad);
+            Assert.IsFalse(context.SpitWarningActive);
         }
 
         [Test]
@@ -290,6 +315,58 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void HealAura_HealsNearbyZombiesWithinRadius()
+        {
+            var behavior = new HealAuraBehavior { HealPerSecond = 5, Radius = 4f };
+            var zombieNear = new EnemyBehaviorContext
+            {
+                Position = new Vector3(0, 0, 2f),
+                CurrentHealth = 10,
+                MaxHealth = 20
+            };
+            var zombieFar = new EnemyBehaviorContext
+            {
+                Position = new Vector3(0, 0, 6f),
+                CurrentHealth = 10,
+                MaxHealth = 20
+            };
+
+            var context = new EnemyBehaviorContext
+            {
+                Position = Vector3.zero,
+                NearbyZombies = new List<EnemyBehaviorContext> { zombieNear, zombieFar }
+            };
+
+            behavior.UpdateBehavior(context, 1f);
+
+            Assert.AreEqual(5, context.HealApplied);
+            Assert.AreEqual(15, zombieNear.CurrentHealth);
+            Assert.AreEqual(10, zombieFar.CurrentHealth);
+        }
+
+        [Test]
+        public void HealAura_ClampsToMaxHealth()
+        {
+            var behavior = new HealAuraBehavior { HealPerSecond = 5, Radius = 4f };
+            var zombie = new EnemyBehaviorContext
+            {
+                Position = Vector3.zero,
+                CurrentHealth = 18,
+                MaxHealth = 20
+            };
+
+            var context = new EnemyBehaviorContext
+            {
+                Position = Vector3.zero,
+                NearbyZombies = new List<EnemyBehaviorContext> { zombie }
+            };
+
+            behavior.UpdateBehavior(context, 1f);
+
+            Assert.AreEqual(20, zombie.CurrentHealth);
+        }
+
+        [Test]
         public void Resurrect_RevivesWalker_Periodically()
         {
             var behavior = new ResurrectBehavior { Interval = 6f, ArchetypeId = "walker" };
@@ -299,6 +376,17 @@ namespace Game.Tests.EditMode
 
             Assert.IsTrue(context.ResurrectTriggered);
             Assert.AreEqual("walker", context.ResurrectArchetypeId);
+        }
+
+        [Test]
+        public void Resurrect_DoesNotTrigger_BeforeInterval()
+        {
+            var behavior = new ResurrectBehavior { Interval = 6f, ArchetypeId = "walker" };
+            var context = new EnemyBehaviorContext();
+
+            behavior.UpdateBehavior(context, 3f);
+
+            Assert.IsFalse(context.ResurrectTriggered);
         }
 
         private sealed class FakeSquad : ISquad
