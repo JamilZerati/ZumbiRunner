@@ -2,6 +2,7 @@ using System;
 
 namespace Game.Core.Abilities.Effects
 {
+    [Serializable]
     public class GrenadeAbilityEffect : IAbilityEffect
     {
         public const float DefaultRadius = 4f;
