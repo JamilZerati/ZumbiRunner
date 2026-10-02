@@ -15,17 +15,17 @@ MonoBehaviour:
   id: ammo_cryo
   displayName: "Muni\xE7\xE3o Criog\xEAnica"
   effects:
-  - rid: 6580925693209346107
-  - rid: 6580925693209346108
+  - rid: 5800860180657209353
+  - rid: 5800860180657209354
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346107
+    - rid: 5800860180657209353
       type: {class: ApplyStatusOnHitEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Status: 1
         Stacks: 1
-    - rid: 6580925693209346108
+    - rid: 5800860180657209354
       type: {class: ApplyStatusOnHitEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Status: 3

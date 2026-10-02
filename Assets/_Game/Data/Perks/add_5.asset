@@ -15,11 +15,11 @@ MonoBehaviour:
   id: add_5
   displayName: +5
   effects:
-  - rid: 6580925693209346112
+  - rid: 5800860149564047362
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346112
+    - rid: 5800860149564047362
       type: {class: AddSoldiersEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Amount: 5

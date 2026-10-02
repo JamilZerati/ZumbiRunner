@@ -15,11 +15,11 @@ MonoBehaviour:
   id: multiply_2
   displayName: x2
   effects:
-  - rid: 6580925693209346114
+  - rid: 5800860149564047363
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346114
+    - rid: 5800860149564047363
       type: {class: MultiplySoldiersEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Factor: 2

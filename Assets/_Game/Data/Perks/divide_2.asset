@@ -15,11 +15,11 @@ MonoBehaviour:
   id: divide_2
   displayName: "\xF72"
   effects:
-  - rid: 6580925693209346116
+  - rid: 5800860149564047364
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346116
+    - rid: 5800860149564047364
       type: {class: DivideSoldiersEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Divisor: 2

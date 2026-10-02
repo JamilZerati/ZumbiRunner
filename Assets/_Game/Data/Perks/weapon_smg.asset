@@ -15,11 +15,11 @@ MonoBehaviour:
   id: weapon_smg
   displayName: Submetralhadora
   effects:
-  - rid: 6580925693209346111
+  - rid: 5800860176870801411
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346111
+    - rid: 5800860176870801411
       type: {class: EquipWeaponEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         WeaponId: smg

@@ -15,11 +15,11 @@ MonoBehaviour:
   id: damage_up_25
   displayName: +25% Dano
   effects:
-  - rid: 6580925693209346113
+  - rid: 5800860176870801413
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346113
+    - rid: 5800860176870801413
       type: {class: ModifyStatEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Stat: 0

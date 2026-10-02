@@ -15,11 +15,11 @@ MonoBehaviour:
   id: ammo_fire
   displayName: "Muni\xE7\xE3o de Fogo"
   effects:
-  - rid: 6580925693209346105
+  - rid: 5800860180657209351
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346105
+    - rid: 5800860180657209351
       type: {class: ApplyStatusOnHitEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Status: 0

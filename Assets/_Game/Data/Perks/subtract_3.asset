@@ -15,11 +15,11 @@ MonoBehaviour:
   id: subtract_3
   displayName: -3
   effects:
-  - rid: 6580925693209346110
+  - rid: 5800860149564047361
   references:
     version: 2
     RefIds:
-    - rid: 6580925693209346110
+    - rid: 5800860149564047361
       type: {class: AddSoldiersEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Amount: -3
