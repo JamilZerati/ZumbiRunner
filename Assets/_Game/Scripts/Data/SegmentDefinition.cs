@@ -16,6 +16,7 @@ namespace Game.Data
         public float DistanceOffset;
         public string Type;
         public string Data;
+        public int Lane = -1;
     }
 
     [Serializable]
@@ -25,5 +26,6 @@ namespace Game.Data
         public float StartDistance;
         public float Length;
         public SegmentEvent[] Events;
+        public int[] CoveredLanes;
     }
 }

@@ -10,6 +10,7 @@ namespace Game.Data
         public float Speed;
         public float TargetDurationSeconds;
         public int InitialTroops;
+        public int LaneCount = 2;
         
         public SegmentDefinition[] Segments;
     }

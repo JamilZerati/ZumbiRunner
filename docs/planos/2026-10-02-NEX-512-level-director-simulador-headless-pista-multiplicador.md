@@ -108,7 +108,7 @@ namespace Game.Core.State
   - **Marco de PR**: Marco 3
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Gameplay/Editor: LevelDirector e Validador` [NEX-747]
+- [x] **Passo 4 (Marco 4)**: `Gameplay/Editor: LevelDirector e Validador` [NEX-747]
   - **Ação**: Criar `LevelDirector` e script de CLI `ValidateCommand`.
   - **Lógica de Negócios / Responsabilidade**: O diretor lê os eventos por distância. O validador rejeita fase com lane vazia em segmento de horda (sobreposição mínima de 8m).
   - **Seam Público**: `LevelDirector`, `ValidateCommand`

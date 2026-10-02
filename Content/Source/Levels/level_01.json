@@ -27,7 +27,20 @@
       "SegmentType": 2,
       "StartDistance": 60.0,
       "Length": 560.0,
-      "Events": []
+      "Events": [
+        {
+          "DistanceOffset": 10.0,
+          "Type": "HordeSpawn",
+          "Data": "lane=0;count=5",
+          "Lane": 0
+        },
+        {
+          "DistanceOffset": 10.0,
+          "Type": "HordeSpawn",
+          "Data": "lane=1;count=5",
+          "Lane": 1
+        }
+      ]
     },
     {
       "SegmentType": 3,
