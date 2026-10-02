@@ -14,7 +14,7 @@ namespace Game.Core.Events
         {
             ArchetypeId = archetypeId;
             Lane = lane;
-            StatusesAtDeath = statusesAtDeath;
+            StatusesAtDeath = statusesAtDeath ?? System.Array.Empty<StatusKind>();
             ByAbility = byAbility;
         }
     }
