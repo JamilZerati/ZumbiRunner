@@ -108,7 +108,7 @@ namespace Game.Data
   - **Marco de PR**: Marco 4
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Simulador & Escala: Integração e Escala de Vida por Fase` [NEX-757]
+- [x] **Passo 5 (Marco 5)**: `Simulador & Escala: Integração e Escala de Vida por Fase` [NEX-757]
   - **Ação**: Aplicar escala `hp * (1 + 0.08 * (fase - 1))`, integrar os 7 arquétipos no `SimulateCommand` headless e validar taxas de vitória.
   - **Seam Público**: `SimulateCommand`, `LevelDefinition`.
   - **Marco de PR**: Marco 5
