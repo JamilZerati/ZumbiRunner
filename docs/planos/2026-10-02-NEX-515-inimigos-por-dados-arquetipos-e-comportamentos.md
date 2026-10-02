@@ -102,7 +102,7 @@ namespace Game.Data
   - **Marco de PR**: Marco 3
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Gameplay: Ataque à Distância e Suporte (Cuspidor e Xamã)` [NEX-756]
+- [x] **Passo 4 (Marco 4)**: `Gameplay: Ataque à Distância e Suporte (Cuspidor e Xamã)` [NEX-756]
   - **Ação**: Implementar `RangedSpitBehavior` (aviso 1.0s na lane, projétil `EnemyProjectile`), `HealAuraBehavior` (5 HP/s raio 4m) e `ResurrectBehavior` (1 Andarilho a cada 6s).
   - **Seam Público**: `RangedSpitBehavior`, `HealAuraBehavior`, `ResurrectBehavior`.
   - **Marco de PR**: Marco 4
