@@ -167,7 +167,7 @@ namespace Game.Core.Events
   - **Marco de PR**: Marco 1 + `NEX-761`
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Definições de Dados, Catálogo, JSON da Granada e Importer` [NEX-762]
+- [x] **Passo 2 (Marco 2)**: `Definições de Dados, Catálogo, JSON da Granada e Importer` [NEX-762]
   - **Ação**: Implementar `GeneralAbilityDefinition` e `AbilityCatalog` (ScriptableObjects com `[SerializeReference]`), criar `Content/Source/Abilities/grenade.json`, implementar `AbilityImporter` no `Game.Editor` com gancho em `Cli.ImportContent()`, e cobrir com testes em `AbilityImporterTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Autorar o dado canônico da Granada fora do código; converter JSON em SO gerado; alimentar o pipeline CLI `tools/unity import-content`.
   - **Dependências / Pré-requisitos**: Passo 1 (`NEX-761`).
