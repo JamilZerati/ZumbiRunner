@@ -232,7 +232,6 @@ namespace Game.Editor.Tools
             var waves = new List<(float distance, int count, string archetype)>();
             if (seg.Events != null)
             {
-                var eventGroups = new Dictionary<float, (int count, string archetype)>();
                 for (int i = 0; i < seg.Events.Length; i++)
                 {
                     var e = seg.Events[i];
@@ -246,18 +245,7 @@ namespace Game.Editor.Tools
                         var mArch = Regex.Match(e.Data, @"archetype\s*=\s*([a-zA-Z]+)");
                         if (mArch.Success) archetype = mArch.Groups[1].Value;
                     }
-                    if (eventGroups.TryGetValue(e.DistanceOffset, out var existing))
-                    {
-                        eventGroups[e.DistanceOffset] = (existing.count + count, archetype);
-                    }
-                    else
-                    {
-                        eventGroups[e.DistanceOffset] = (count, archetype);
-                    }
-                }
-                foreach (var kvp in eventGroups)
-                {
-                    waves.Add((seg.StartDistance + kvp.Key, kvp.Value.count, kvp.Value.archetype));
+                    waves.Add((seg.StartDistance + e.DistanceOffset, count, archetype));
                 }
             }
 
