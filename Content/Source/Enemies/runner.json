@@ -1,0 +1,11 @@
+{
+  "id": "runner",
+  "baseHp": 12,
+  "speed": 5.0,
+  "contactDps": 4.0,
+  "coinValue": 1,
+  "behaviors": [
+    { "type": "MoveStraight" },
+    { "type": "ChaseLane", "delay": 1.0 }
+  ]
+}
