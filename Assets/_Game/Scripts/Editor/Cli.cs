@@ -44,8 +44,8 @@ namespace Game.Editor
 
         public static void ValidateContent()
         {
-            Debug.Log("[Game.Editor.Cli] ValidateContent stub.");
-            EditorApplication.Exit(0);
+            int exitCode = Tools.ValidateCommand.Run();
+            EditorApplication.Exit(exitCode);
         }
 
         public static void SimulateLevel()

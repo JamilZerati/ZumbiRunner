@@ -17,11 +17,13 @@ MonoBehaviour:
   Speed: 8
   TargetDurationSeconds: 90
   InitialTroops: 5
+  LaneCount: 2
   Segments:
   - SegmentType: 0
     StartDistance: 0
     Length: 40
     Events: []
+    CoveredLanes: 
   - SegmentType: 1
     StartDistance: 40
     Length: 20
@@ -29,11 +31,23 @@ MonoBehaviour:
     - DistanceOffset: 10
       Type: GateSpawn
       Data: fireRate+5
+      Lane: -1
+    CoveredLanes: 
   - SegmentType: 2
     StartDistance: 60
     Length: 560
-    Events: []
+    Events:
+    - DistanceOffset: 10
+      Type: HordeSpawn
+      Data: lane=0;count=5
+      Lane: 0
+    - DistanceOffset: 10
+      Type: HordeSpawn
+      Data: lane=1;count=5
+      Lane: 1
+    CoveredLanes: 
   - SegmentType: 3
     StartDistance: 620
     Length: 100
     Events: []
+    CoveredLanes: 
