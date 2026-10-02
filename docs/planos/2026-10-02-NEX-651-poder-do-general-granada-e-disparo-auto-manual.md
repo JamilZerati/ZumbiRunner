@@ -1,7 +1,7 @@
 # Plano de Implementação: M16 · Poder do General (Granada e Disparo Auto/Manual)
 > Data: 2026-10-02
 > Issue: NEX-651
-> Status: Pronto para Execução via /cenarios
+> Status: Cenários validados — Suíte Red comprovada em 2026-10-02
 
 ## 1. Contexto & Arquitetura
 - **Resumo**: Implementar a habilidade ativa do General (`GeneralAbilityDefinition`) orientada a dados (JSON → SO), introduzindo a Granada (150 de dano, raio de 4 m na lane atual) carregada por 25 abates de zumbis. O disparo suporta os modos Automático e Manual via `IHeroAbilityTriggerPolicy` com toggle persistido, HUD de acompanhamento de carga e disparo manual, evento `AbilityUsedEvent` publicado no barramento, e suporte a carga bônus por rewarded ad (`RunConfig.BonusAbilityCharges`).
@@ -151,7 +151,7 @@ namespace Game.Core.Events
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos do Poder do General` [NEX-760]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos do Poder do General` [NEX-760]
   - **Ação**: Criar stubs de contratos (`IAbilityEffect`, `IHeroAbilityTriggerPolicy`, `AbilityTriggerContext`, `AbilityExecutionContext`, `IAbilityDamageSink`), eventos `AbilityUsedEvent` e `AbilityChargeProgressEvent`, e testes Red comportamentais em `GeneralAbilityCoreTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Fixar as interfaces puras de domínio em `Game.Core`, assegurando que o sistema de habilidade não dependa de UnityEngine e seja completamente testável em EditMode.
   - **Dependências / Pré-requisitos**: Nenhum.
