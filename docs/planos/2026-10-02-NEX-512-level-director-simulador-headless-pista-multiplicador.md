@@ -94,7 +94,7 @@ namespace Game.Core.State
   - **Marco de PR**: Marco 1
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Data: Definitions e Importer` [NEX-745]
+- [x] **Passo 2 (Marco 2)**: `Data: Definitions e Importer` [NEX-745]
   - **Ação**: Criar ScriptableObjects e importador JSON.
   - **Lógica de Negócios / Responsabilidade**: `LevelDefinition`, `SegmentDefinition` e parseamento a partir de `Content/Source/Levels/level_01.json`.
   - **Seam Público**: `LevelImporter`

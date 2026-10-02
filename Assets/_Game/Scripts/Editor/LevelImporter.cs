@@ -8,11 +8,18 @@ namespace Game.Editor
 {
     public static class LevelImporter
     {
-        [MenuItem("Tools/Game/Import Levels")]
-        public static int ImportAll(List<string> errors = null)
+        [MenuItem("Horde Runner/Content/Import Levels")]
+        public static void ImportAllMenuItem()
         {
-            string sourceFolder = "Content/Source/Levels";
-            string destFolder = "Assets/_Game/Data/Levels";
+            var errors = new List<string>();
+            int count = ImportAll(errors: errors);
+            Debug.Log($"[Game.Editor.LevelImporter] Imported {count} levels, {errors.Count} errors.");
+        }
+
+        public static int ImportAll(string sourceFolder = null, string targetFolder = null, List<string> errors = null)
+        {
+            string source = string.IsNullOrEmpty(sourceFolder) ? "Content/Source/Levels" : sourceFolder;
+            string destFolder = string.IsNullOrEmpty(targetFolder) ? "Assets/_Game/Data/Levels" : targetFolder;
             int count = 0;
 
             if (!Directory.Exists(destFolder))
@@ -20,13 +27,13 @@ namespace Game.Editor
                 Directory.CreateDirectory(destFolder);
             }
 
-            if (!Directory.Exists(sourceFolder))
+            if (!Directory.Exists(source))
             {
-                errors?.Add($"Source folder {sourceFolder} does not exist.");
+                errors?.Add($"Source folder {source} does not exist.");
                 return count;
             }
 
-            string[] files = Directory.GetFiles(sourceFolder, "*.json");
+            string[] files = Directory.GetFiles(source, "*.json");
             foreach (string file in files)
             {
                 try

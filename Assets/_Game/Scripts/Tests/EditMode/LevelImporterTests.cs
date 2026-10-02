@@ -10,15 +10,21 @@ namespace Game.Tests.EditMode
 {
     public class LevelImporterTests
     {
-        private const string TestLevelFile = "Content/Source/Levels/test_level_temp.json";
-        private const string OutputAssetPath = "Assets/_Game/Data/Levels/test_level_temp.asset";
+        private const string TestSourceFolder = "Assets/_Game/TempLevelSource";
+        private const string TestDestFolder = "Assets/_Game/TempLevelDest";
+        private const string TestLevelFile = "Assets/_Game/TempLevelSource/test_level_temp.json";
+        private const string OutputAssetPath = "Assets/_Game/TempLevelDest/test_level_temp.asset";
 
         [SetUp]
         public void SetUp()
         {
-            if (!Directory.Exists("Content/Source/Levels"))
+            if (!Directory.Exists(TestSourceFolder))
             {
-                Directory.CreateDirectory("Content/Source/Levels");
+                Directory.CreateDirectory(TestSourceFolder);
+            }
+            if (!Directory.Exists(TestDestFolder))
+            {
+                Directory.CreateDirectory(TestDestFolder);
             }
             
             string json = @"{
@@ -43,30 +49,30 @@ namespace Game.Tests.EditMode
               ]
             }";
             File.WriteAllText(TestLevelFile, json);
+            AssetDatabase.Refresh();
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (File.Exists(TestLevelFile))
+            if (Directory.Exists(TestSourceFolder))
             {
-                File.Delete(TestLevelFile);
+                Directory.Delete(TestSourceFolder, true);
+                File.Delete(TestSourceFolder + ".meta");
             }
-            if (File.Exists(TestLevelFile + ".meta"))
+            if (Directory.Exists(TestDestFolder))
             {
-                File.Delete(TestLevelFile + ".meta");
+                Directory.Delete(TestDestFolder, true);
+                File.Delete(TestDestFolder + ".meta");
             }
-            if (AssetDatabase.LoadAssetAtPath<LevelDefinition>(OutputAssetPath) != null)
-            {
-                AssetDatabase.DeleteAsset(OutputAssetPath);
-            }
+            AssetDatabase.Refresh();
         }
 
         [Test]
         public void ImportAll_CreatesAsset_WithValidData()
         {
             var errors = new List<string>();
-            LevelImporter.ImportAll(errors);
+            LevelImporter.ImportAll(sourceFolder: TestSourceFolder, targetFolder: TestDestFolder, errors: errors);
 
             Assert.IsEmpty(errors);
 
