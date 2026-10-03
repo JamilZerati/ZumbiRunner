@@ -175,7 +175,7 @@ namespace Game.Core.Events
   - **Marco de PR**: Marco 2 + `NEX-762`
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Gameplay: GeneralAbilityController e Emissão de EnemyKilledEvent` [NEX-763]
+- [x] **Passo 3 (Marco 3)**: `Gameplay: GeneralAbilityController e Emissão de EnemyKilledEvent` [NEX-763]
   - **Ação**: Garantir emissão de `EnemyKilledEvent` com flag `byAbility` no ciclo de morte de `EnemyController`. Criar `GeneralAbilityController` em `Game.Gameplay` (subscrição a `EnemyKilledEvent`, avanço do tracker, disparo Auto/Manual, despacho da granada via física/camada `CollisionLayers.EnemyMask` e publicação de `AbilityUsedEvent`). Cobrir com testes em `GeneralAbilityGameplayTests.cs` e `GeneralAbilityPlayModeTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Conectar o domínio de combate ao ciclo de vida da cena; encontrar inimigos no raio de 4 m na lane alvo e causar 150 de dano com `DamageType.Area`; propagar cargas extras vindas de `RunConfig.BonusAbilityCharges`.
   - **Dependências / Pré-requisitos**: Passo 2 (`NEX-762`).
