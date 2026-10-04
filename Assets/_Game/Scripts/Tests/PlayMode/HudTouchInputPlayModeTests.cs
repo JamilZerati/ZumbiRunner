@@ -22,12 +22,19 @@ namespace Game.Tests.PlayMode
         private Mouse _mouse;
         private bool _hadSavedMode;
         private int _savedMode;
+        private InputSettings.BackgroundBehavior _savedBackgroundBehavior;
+        private InputSettings.EditorInputBehaviorInPlayMode _savedEditorInputBehavior;
 
         [SetUp]
         public void SetUp()
         {
             _hadSavedMode = PlayerPrefs.HasKey(PlayerPrefsAbilitySettings.DefaultPrefsKey);
             _savedMode = PlayerPrefs.GetInt(PlayerPrefsAbilitySettings.DefaultPrefsKey, 0);
+            _savedBackgroundBehavior = InputSystem.settings.backgroundBehavior;
+            _savedEditorInputBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
+            // O harness roda em batchmode sem foco de janela; sem isto o Input System descarta o toque simulado.
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             _mouse = InputSystem.AddDevice<Mouse>();
         }
 
@@ -38,6 +45,9 @@ namespace Game.Tests.PlayMode
             {
                 InputSystem.RemoveDevice(_mouse);
             }
+
+            InputSystem.settings.backgroundBehavior = _savedBackgroundBehavior;
+            InputSystem.settings.editorInputBehaviorInPlayMode = _savedEditorInputBehavior;
 
             if (_hadSavedMode)
             {
@@ -73,6 +83,7 @@ namespace Game.Tests.PlayMode
         {
             InputSystem.QueueStateEvent(_mouse, new MouseState { position = screenPosition });
             yield return null;
+            Assert.AreEqual(screenPosition, _mouse.position.ReadValue(), "Precondição: o toque simulado precisa chegar ao Input System.");
             InputSystem.QueueStateEvent(_mouse, new MouseState { position = screenPosition }.WithButton(MouseButton.Left, true));
             yield return null;
             yield return null;
