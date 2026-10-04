@@ -196,5 +196,15 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>(), serialized.FindProperty("abilityController").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityHud>(), serialized.FindProperty("abilityHud").objectReferenceValue);
         }
+
+        [Test]
+        public void BuildM6GreyboxScene_HasEventSystemWithInputSystemModule()
+        {
+            BuildAndReopenM6Scene();
+
+            var eventSystems = Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None);
+            Assert.AreEqual(1, eventSystems.Length);
+            Assert.IsNotNull(eventSystems[0].GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>());
+        }
     }
 }

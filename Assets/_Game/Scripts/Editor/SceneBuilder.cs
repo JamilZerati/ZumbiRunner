@@ -778,6 +778,10 @@ namespace Game.Editor
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             canvasGo.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
+            var eventSystemGo = new GameObject("EventSystem");
+            eventSystemGo.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystemGo.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+
             var hudGo = new GameObject("SquadCountHud", typeof(RectTransform));
             hudGo.transform.SetParent(canvasGo.transform, false);
             var hud = hudGo.AddComponent<SquadCountHud>();
