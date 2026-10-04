@@ -158,6 +158,8 @@ namespace Game.Editor.Tools
             float currentDist = 0f, fireRate = 2f, speed = level.Speed > 0f ? level.Speed : 8f;
             int damage = 2, kills = 0, mult = 0;
             bool isAlive = true;
+            int abilityKillsAccumulator = 0;
+            int abilityCharges = 0;
 
             if (level.Segments != null)
             {
@@ -172,7 +174,7 @@ namespace Game.Editor.Tools
                         currentDist = seg.StartDistance + seg.Length;
                     }
                     else if (seg.SegmentType == SegmentType.Horde)
-                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng);
+                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges);
                     else if (seg.SegmentType == SegmentType.Multiplier)
                         ProcessMultiplierSegment(seg, ref squad, ref mult, ref currentDist);
                 }
@@ -226,7 +228,8 @@ namespace Game.Editor.Tools
 
         private static void ProcessHordeSegment(
             SegmentDefinition seg, LevelDefinition level, BotType bot, ref int squad, float fireRate, int damage,
-            float speed, ref int kills, ref float currentDist, ref bool isAlive, System.Random rng)
+            float speed, ref int kills, ref float currentDist, ref bool isAlive, System.Random rng,
+            ref int abilityKillsAccumulator, ref int abilityCharges)
         {
             float hpMultiplier = level != null ? level.GetHpMultiplier() : 1f;
             var waves = new List<(float distance, int count, string archetype)>();
@@ -269,7 +272,22 @@ namespace Game.Editor.Tools
                 float eff = (bot == BotType.Guloso) ? (0.95f + (float)(rng.NextDouble() * 0.08 - 0.04)) : (0.55f + (float)(rng.NextDouble() * 0.08 - 0.04));
                 int killed = Math.Min(waves[i].count, (int)(fireRate * damage * squad * eff * closingTime / effectiveHp));
                 kills += killed;
+                abilityKillsAccumulator += killed;
+                while (abilityKillsAccumulator >= 25)
+                {
+                    abilityKillsAccumulator -= 25;
+                    abilityCharges++;
+                }
+
                 int reaching = waves[i].count - killed;
+                if (reaching > 0 && abilityCharges > 0)
+                {
+                    abilityCharges--;
+                    int grenadeKilled = Math.Min(reaching, Math.Max(1, (int)(150f / effectiveHp)));
+                    kills += grenadeKilled;
+                    reaching -= grenadeKilled;
+                }
+
                 if (reaching > 0)
                 {
                     squad -= reaching * stats.ContactDamage;
