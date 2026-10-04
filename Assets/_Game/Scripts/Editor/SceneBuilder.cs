@@ -901,6 +901,16 @@ namespace Game.Editor
             abilityHud.ConfigureComponents(slider, chargesTmp, manualBtn, modeBtn, modeTmp);
             abilityHud.Initialize(abilityController, eventBus);
 
+            var composerGo = new GameObject("GreyboxRunComposer");
+            var composer = composerGo.AddComponent<GreyboxRunComposer>();
+            var serializedComposer = new SerializedObject(composer);
+            serializedComposer.FindProperty("combatDirector").objectReferenceValue = director;
+            serializedComposer.FindProperty("hordeSpawner").objectReferenceValue = spawner;
+            serializedComposer.FindProperty("statusDirector").objectReferenceValue = Object.FindFirstObjectByType<StatusEffectDirector>();
+            serializedComposer.FindProperty("abilityController").objectReferenceValue = abilityController;
+            serializedComposer.FindProperty("abilityHud").objectReferenceValue = abilityHud;
+            serializedComposer.ApplyModifiedProperties();
+
             // FollowCamera
             var camGo = new GameObject("Main Camera");
             camGo.tag = "MainCamera";

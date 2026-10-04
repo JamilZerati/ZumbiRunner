@@ -54,6 +54,7 @@ namespace Game.Gameplay
 
         public int DefaultEnemyHealth { get; set; } = 20;
         public float DefaultEnemySpeed { get; set; } = 2f;
+        public IEventBus EventBus { get; set; }
         public IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
 
         private readonly List<EnemyController> _activeEnemies = new List<EnemyController>();
@@ -123,7 +124,7 @@ namespace Game.Gameplay
                 float z = startZ + (i * spacing);
                 enemy.transform.position = new Vector3(x, 0f, z);
                 enemy.gameObject.SetActive(true);
-                enemy.Initialize(laneIndex, DefaultEnemyHealth, DefaultEnemySpeed, recycleCallback);
+                enemy.Initialize(laneIndex, DefaultEnemyHealth, DefaultEnemySpeed, recycleCallback, EventBus);
 
                 _activeEnemies.Add(enemy);
                 spawned.Add(enemy);
