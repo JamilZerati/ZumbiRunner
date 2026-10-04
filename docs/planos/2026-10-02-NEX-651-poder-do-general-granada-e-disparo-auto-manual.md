@@ -191,7 +191,7 @@ namespace Game.Core.Events
   - **Marco de PR**: Marco 4 + `NEX-764`
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Simulador Headless e Validação de Conteúdo` [NEX-765]
+- [x] **Passo 5 (Marco 5)**: `Simulador Headless e Validação de Conteúdo` [NEX-765]
   - **Ação**: Integrar a execução da habilidade no simulador headless `SimulateCommand` (bot ativa Granada ao acumular 25 abates, eliminando zumbis na lane) e adicionar validação de integridade de dados de habilidades no `ValidateCommand`.
   - **Lógica de Negócios / Responsabilidade**: Permitir que simulações determinísticas de balanceamento reflitam o impacto do poder do General nas taxas de vitória; validar integridade de ScriptableObjects de habilidades em `tools/unity validate`.
   - **Dependências / Pré-requisitos**: Passo 4 (`NEX-764`).
