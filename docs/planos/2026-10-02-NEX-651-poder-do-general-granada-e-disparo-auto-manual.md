@@ -183,7 +183,7 @@ namespace Game.Core.Events
   - **Marco de PR**: Marco 3 + `NEX-763`
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `HUD de Carga, Toggle Auto/Manual e Integração SceneBuilder` [NEX-764]
+- [x] **Passo 4 (Marco 4)**: `HUD de Carga, Toggle Auto/Manual e Integração SceneBuilder` [NEX-764]
   - **Ação**: Criar `[TELA]` `GeneralAbilityHud` em `Game.Presentation` (barra/preenchimento de progresso 0..25, indicador numérico de cargas, botão manual com feedback quando pronto, indicador/toggle de modo Auto/Manual), persistência de preferência via `IAbilitySettings` (`PlayerPrefsAbilitySettings`) e montar fiação na cena M6 via `SceneBuilder`.
   - **Lógica de Negócios / Responsabilidade**: Apresentar ao jogador o estado da habilidade; viabilizar acionamento manual por toque/clique e seleção de modo de disparo; atualizar `SceneBuilder` para instanciar o HUD e o controller sem necessidade de edição manual de cena.
   - **Dependências / Pré-requisitos**: Passo 3 (`NEX-763`).

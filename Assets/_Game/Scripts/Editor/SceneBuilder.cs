@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Game.Composition;
 using Game.Core;
+using Game.Core.Events;
 using Game.Data;
 using Game.Gameplay;
+using Game.Gameplay.Abilities;
 using Game.Infrastructure;
 using Game.Infrastructure.Input;
 using Game.Presentation;
@@ -739,10 +741,11 @@ namespace Game.Editor
             spawner.SpawnWave(1, 4, 105f, 2f);
 
             // CombatDirector
+            var eventBus = new EventBus();
             var director = generalGo.AddComponent<CombatDirector>();
             var stateMachine = new GameStateMachine(null, GameState.Boot);
             stateMachine.TryTransition(GameState.Run);
-            director.Initialize(squad, scroller, stateMachine, 120f, spawner);
+            director.Initialize(squad, scroller, stateMachine, 120f, spawner, eventBus);
 
             var serializedDirector = new SerializedObject(director);
             var dirSquadProp = serializedDirector.FindProperty("squad");
@@ -754,6 +757,18 @@ namespace Game.Editor
             var dirVictoryProp = serializedDirector.FindProperty("victoryDistance");
             if (dirVictoryProp != null) dirVictoryProp.floatValue = 120f;
             serializedDirector.ApplyModifiedProperties();
+
+            // GeneralAbilityController
+            var abilityDef = AssetDatabase.LoadAssetAtPath<GeneralAbilityDefinition>("Assets/_Game/Data/Abilities/grenade.asset");
+            var abilityController = generalGo.AddComponent<GeneralAbilityController>();
+            var serializedAbility = new SerializedObject(abilityController);
+            var defProp = serializedAbility.FindProperty("definition");
+            if (defProp != null)
+            {
+                defProp.objectReferenceValue = abilityDef;
+                serializedAbility.ApplyModifiedProperties();
+            }
+            abilityController.Initialize(abilityDef, eventBus, generalTransform: generalGo.transform);
 
             // HUD
             var canvasGo = new GameObject("Canvas");
@@ -789,7 +804,102 @@ namespace Game.Editor
             serializedHud.FindProperty("squadController").objectReferenceValue = squad;
             serializedHud.ApplyModifiedProperties();
             hud.SetCountText(tmp);
-            hud.Initialize(null, squad.SquadCount);
+            hud.Initialize(eventBus, squad.SquadCount);
+
+            // GeneralAbilityHud
+            var abilityHudGo = new GameObject("GeneralAbilityHud", typeof(RectTransform));
+            abilityHudGo.transform.SetParent(canvasGo.transform, false);
+            var abilityHudRect = abilityHudGo.GetComponent<RectTransform>();
+            if (abilityHudRect != null)
+            {
+                abilityHudRect.anchorMin = abilityHudRect.anchorMax = abilityHudRect.pivot = new Vector2(0.5f, 0f);
+                abilityHudRect.anchoredPosition = new Vector2(0f, 160f);
+                abilityHudRect.sizeDelta = new Vector2(500f, 220f);
+            }
+            var abilityHud = abilityHudGo.AddComponent<GeneralAbilityHud>();
+
+            var sliderGo = new GameObject("ProgressSlider", typeof(RectTransform));
+            sliderGo.transform.SetParent(abilityHudGo.transform, false);
+            var sliderRect = sliderGo.GetComponent<RectTransform>();
+            if (sliderRect != null)
+            {
+                sliderRect.anchorMin = sliderRect.anchorMax = sliderRect.pivot = new Vector2(0.5f, 0.5f);
+                sliderRect.anchoredPosition = new Vector2(0f, 40f);
+                sliderRect.sizeDelta = new Vector2(300f, 20f);
+            }
+            var slider = sliderGo.AddComponent<UnityEngine.UI.Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 25f;
+            slider.value = 0f;
+
+            var chargesTextGo = new GameObject("ChargesText", typeof(RectTransform));
+            chargesTextGo.transform.SetParent(abilityHudGo.transform, false);
+            var chargesRect = chargesTextGo.GetComponent<RectTransform>();
+            if (chargesRect != null)
+            {
+                chargesRect.anchorMin = chargesRect.anchorMax = chargesRect.pivot = new Vector2(0.5f, 0.5f);
+                chargesRect.anchoredPosition = new Vector2(0f, 75f);
+                chargesRect.sizeDelta = new Vector2(300f, 40f);
+            }
+            var chargesTmp = chargesTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            chargesTmp.fontSize = 28;
+            chargesTmp.fontStyle = TMPro.FontStyles.Bold;
+            chargesTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            chargesTmp.color = Color.white;
+            chargesTmp.text = "Cargas: 0";
+
+            var manualBtnGo = new GameObject("ManualTriggerButton", typeof(RectTransform));
+            manualBtnGo.transform.SetParent(abilityHudGo.transform, false);
+            var manualBtnRect = manualBtnGo.GetComponent<RectTransform>();
+            if (manualBtnRect != null)
+            {
+                manualBtnRect.anchorMin = manualBtnRect.anchorMax = manualBtnRect.pivot = new Vector2(0.5f, 0.5f);
+                manualBtnRect.anchoredPosition = new Vector2(-80f, -20f);
+                manualBtnRect.sizeDelta = new Vector2(140f, 50f);
+            }
+            manualBtnGo.AddComponent<UnityEngine.UI.Image>().color = new Color(0.9f, 0.3f, 0.2f);
+            var manualBtn = manualBtnGo.AddComponent<UnityEngine.UI.Button>();
+            manualBtn.interactable = false;
+
+            var manualBtnTextGo = new GameObject("Text", typeof(RectTransform));
+            manualBtnTextGo.transform.SetParent(manualBtnGo.transform, false);
+            var manualBtnTmp = manualBtnTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            manualBtnTmp.fontSize = 22;
+            manualBtnTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            manualBtnTmp.color = Color.white;
+            manualBtnTmp.text = "Disparar";
+
+            var modeBtnGo = new GameObject("ModeToggleButton", typeof(RectTransform));
+            modeBtnGo.transform.SetParent(abilityHudGo.transform, false);
+            var modeBtnRect = modeBtnGo.GetComponent<RectTransform>();
+            if (modeBtnRect != null)
+            {
+                modeBtnRect.anchorMin = modeBtnRect.anchorMax = modeBtnRect.pivot = new Vector2(0.5f, 0.5f);
+                modeBtnRect.anchoredPosition = new Vector2(80f, -20f);
+                modeBtnRect.sizeDelta = new Vector2(140f, 50f);
+            }
+            modeBtnGo.AddComponent<UnityEngine.UI.Image>().color = new Color(0.2f, 0.6f, 0.9f);
+            var modeBtn = modeBtnGo.AddComponent<UnityEngine.UI.Button>();
+
+            var modeTextGo = new GameObject("ModeText", typeof(RectTransform));
+            modeTextGo.transform.SetParent(modeBtnGo.transform, false);
+            var modeTmp = modeTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            modeTmp.fontSize = 22;
+            modeTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            modeTmp.color = Color.white;
+            modeTmp.text = "Auto";
+
+            var serializedAbilityHud = new SerializedObject(abilityHud);
+            serializedAbilityHud.FindProperty("controller").objectReferenceValue = abilityController;
+            serializedAbilityHud.FindProperty("progressSlider").objectReferenceValue = slider;
+            serializedAbilityHud.FindProperty("chargesText").objectReferenceValue = chargesTmp;
+            serializedAbilityHud.FindProperty("manualTriggerButton").objectReferenceValue = manualBtn;
+            serializedAbilityHud.FindProperty("modeToggleButton").objectReferenceValue = modeBtn;
+            serializedAbilityHud.FindProperty("modeText").objectReferenceValue = modeTmp;
+            serializedAbilityHud.ApplyModifiedProperties();
+
+            abilityHud.ConfigureComponents(slider, chargesTmp, manualBtn, modeBtn, modeTmp);
+            abilityHud.Initialize(abilityController, eventBus);
 
             // FollowCamera
             var camGo = new GameObject("Main Camera");
