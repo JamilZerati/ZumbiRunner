@@ -17,6 +17,7 @@ namespace Game.Composition
         [SerializeField] private GeneralAbilityController abilityController;
         [SerializeField] private GeneralAbilityHud abilityHud;
         [SerializeField] private GeneralAbilityAudio abilityAudio;
+        [SerializeField] private GeneralAbilityExplosionVfx abilityVfx;
 
         public IEventBus EventBus { get; private set; }
 
@@ -26,7 +27,8 @@ namespace Game.Composition
             StatusEffectDirector status,
             GeneralAbilityController controller,
             GeneralAbilityHud hud,
-            GeneralAbilityAudio audio = null)
+            GeneralAbilityAudio audio = null,
+            GeneralAbilityExplosionVfx vfx = null)
         {
             combatDirector = director;
             hordeSpawner = spawner;
@@ -34,6 +36,7 @@ namespace Game.Composition
             abilityController = controller;
             abilityHud = hud;
             abilityAudio = audio;
+            abilityVfx = vfx;
         }
 
         public void Compose(IEventBus eventBus)
@@ -73,6 +76,11 @@ namespace Game.Composition
             if (abilityAudio != null)
             {
                 abilityAudio.Initialize(eventBus);
+            }
+
+            if (abilityVfx != null)
+            {
+                abilityVfx.Initialize(eventBus);
             }
         }
 

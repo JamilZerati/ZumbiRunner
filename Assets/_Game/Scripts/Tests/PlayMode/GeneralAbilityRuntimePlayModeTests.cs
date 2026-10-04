@@ -91,6 +91,9 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(0, controller.CurrentCharges);
             Assert.AreEqual(1, audio.PlayedCount, "Disparo manual deve tocar a explosão.");
             Assert.IsFalse(hud.ManualTriggerButton.interactable);
+            var vfx = Object.FindFirstObjectByType<GeneralAbilityExplosionVfx>();
+            Assert.AreEqual(1, vfx.PlayedCount, "Disparo manual deve mostrar a explosão.");
+            Assert.IsTrue(vfx.Renderer.enabled);
         }
 
         [UnityTest]
@@ -112,6 +115,7 @@ namespace Game.Tests.PlayMode
 
             Assert.AreEqual(0, controller.CurrentCharges, "Auto deve consumir a carga no 25º abate.");
             Assert.AreEqual(1, audio.PlayedCount, "Disparo automático deve tocar a explosão.");
+            Assert.AreEqual(1, Object.FindFirstObjectByType<GeneralAbilityExplosionVfx>().PlayedCount, "Disparo automático deve mostrar a explosão.");
         }
     }
 }

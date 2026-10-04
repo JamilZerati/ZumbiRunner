@@ -196,16 +196,31 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>(), serialized.FindProperty("abilityController").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityHud>(), serialized.FindProperty("abilityHud").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityAudio>(), serialized.FindProperty("abilityAudio").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityExplosionVfx>(), serialized.FindProperty("abilityVfx").objectReferenceValue);
+        }
+
+        [TestCase(SceneBuilder.GrenadeIconPath)]
+        [TestCase(SceneBuilder.GrenadeExplosionSpritePath)]
+        public void GrenadeSprites_AreImportedAsSprite(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            Assert.IsNotNull(importer, $"Sprite ausente em {path}");
+            Assert.AreEqual(TextureImporterType.Sprite, importer.textureType);
+            Assert.IsFalse(importer.mipmapEnabled);
         }
 
         [Test]
-        public void GrenadeIcon_IsImportedAsSprite()
+        public void BuildM6GreyboxScene_ExplosionVfxUsesGeneratedSpriteAtGeneral()
         {
-            var importer = AssetImporter.GetAtPath(SceneBuilder.GrenadeIconPath) as TextureImporter;
+            BuildAndReopenM6Scene();
 
-            Assert.IsNotNull(importer, $"Ícone ausente em {SceneBuilder.GrenadeIconPath}");
-            Assert.AreEqual(TextureImporterType.Sprite, importer.textureType);
-            Assert.IsFalse(importer.mipmapEnabled);
+            var vfx = Object.FindAnyObjectByType<GeneralAbilityExplosionVfx>();
+            Assert.IsNotNull(vfx);
+            Assert.IsNull(vfx.transform.parent, "VFX fica na raiz, fora da hierarquia do General.");
+            Assert.AreEqual(AssetDatabase.LoadAssetAtPath<Sprite>(SceneBuilder.GrenadeExplosionSpritePath), vfx.Renderer.sprite);
+            Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>().transform, vfx.Origin);
+            Assert.IsFalse(vfx.Renderer.enabled);
         }
 
         [Test]

@@ -1,15 +1,20 @@
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace Game.Editor
 {
-    public class UiSpriteImportRules : AssetPostprocessor
+    public class SpriteImportRules : AssetPostprocessor
     {
-        public const string UiArtFolder = "Assets/_Game/Art/UI/";
+        public static readonly string[] SpriteFolders =
+        {
+            "Assets/_Game/Art/UI/",
+            "Assets/_Game/Art/VFX/",
+        };
 
         private void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith(UiArtFolder))
+            if (!SpriteFolders.Any(folder => assetPath.StartsWith(folder)))
             {
                 return;
             }

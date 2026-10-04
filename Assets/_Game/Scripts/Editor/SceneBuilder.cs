@@ -27,6 +27,7 @@ namespace Game.Editor
         public const string M6GreyboxScenePath = "Assets/_Game/Scenes/M6_Greybox.unity";
         public const string GrenadeIconPath = "Assets/_Game/Art/UI/grenade_icon.png";
         public const string GrenadeExplosionClipPath = "Assets/_Game/Audio/SFX/grenade_explosion.ogg";
+        public const string GrenadeExplosionSpritePath = "Assets/_Game/Art/VFX/grenade_explosion.png";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -926,6 +927,16 @@ namespace Game.Editor
             serializedAbilityAudio.ApplyModifiedProperties();
             abilityAudio.Initialize(eventBus);
 
+            var vfxGo = new GameObject("GrenadeExplosionVfx");
+            var vfxRenderer = vfxGo.AddComponent<SpriteRenderer>();
+            vfxRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(GrenadeExplosionSpritePath);
+            var abilityVfx = vfxGo.AddComponent<GeneralAbilityExplosionVfx>();
+            var serializedVfx = new SerializedObject(abilityVfx);
+            serializedVfx.FindProperty("spriteRenderer").objectReferenceValue = vfxRenderer;
+            serializedVfx.FindProperty("origin").objectReferenceValue = generalGo.transform;
+            serializedVfx.ApplyModifiedProperties();
+            abilityVfx.Initialize(eventBus);
+
             var composerGo = new GameObject("GreyboxRunComposer");
             var composer = composerGo.AddComponent<GreyboxRunComposer>();
             var serializedComposer = new SerializedObject(composer);
@@ -935,6 +946,7 @@ namespace Game.Editor
             serializedComposer.FindProperty("abilityController").objectReferenceValue = abilityController;
             serializedComposer.FindProperty("abilityHud").objectReferenceValue = abilityHud;
             serializedComposer.FindProperty("abilityAudio").objectReferenceValue = abilityAudio;
+            serializedComposer.FindProperty("abilityVfx").objectReferenceValue = abilityVfx;
             serializedComposer.ApplyModifiedProperties();
 
             // FollowCamera
