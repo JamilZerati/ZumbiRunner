@@ -12,6 +12,7 @@ namespace Game.Gameplay.Abilities
 {
     public class GeneralAbilityController : MonoBehaviour, IAbilityDamageSink
     {
+        [SerializeField] private GeneralAbilityDefinition definition;
         private GeneralAbilityDefinition _definition;
         private IEventBus _eventBus;
         private IHeroAbilityTriggerPolicy _triggerPolicy;
@@ -20,12 +21,12 @@ namespace Game.Gameplay.Abilities
         private IDisposable _enemyKilledSub;
         private Func<bool> _targetsDetector;
 
-        public GeneralAbilityDefinition Definition => _definition;
+        public GeneralAbilityDefinition Definition => _definition != null ? _definition : definition;
         public AbilityChargeTracker Tracker => _tracker;
         public IHeroAbilityTriggerPolicy TriggerPolicy => _triggerPolicy;
         public int CurrentCharges => _tracker != null ? _tracker.CurrentCharges : 0;
         public int CurrentKills => _tracker != null ? _tracker.CurrentKills : 0;
-        public int KillsPerCharge => _tracker != null ? _tracker.KillsPerCharge : (_definition != null ? _definition.ChargeKills : 25);
+        public int KillsPerCharge => _tracker != null ? _tracker.KillsPerCharge : (Definition != null ? Definition.ChargeKills : 25);
 
         public void Initialize(
             GeneralAbilityDefinition definition,
@@ -37,7 +38,8 @@ namespace Game.Gameplay.Abilities
             _enemyKilledSub?.Dispose();
             _enemyKilledSub = null;
 
-            _definition = definition;
+            _definition = definition != null ? definition : this.definition;
+            this.definition = _definition;
             _eventBus = eventBus;
             _triggerPolicy = triggerPolicy ?? new AutoHeroAbilityTriggerPolicy();
             _generalTransform = generalTransform != null ? generalTransform : transform;
@@ -175,6 +177,14 @@ namespace Game.Gameplay.Abilities
                     _tracker.CurrentKills,
                     _tracker.KillsPerCharge,
                     _tracker.CurrentCharges));
+            }
+        }
+
+        private void Awake()
+        {
+            if (_tracker == null && definition != null)
+            {
+                Initialize(definition, _eventBus);
             }
         }
 
