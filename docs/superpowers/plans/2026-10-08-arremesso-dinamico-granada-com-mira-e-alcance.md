@@ -259,7 +259,7 @@ git commit -m "feat(data): expor configuracao de targeting no JSON da granada e 
 
 - [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Implementar suporte a `targetOverride` em `GeneralAbilityController.cs`**
+- [x] **Step 3: Implementar suporte a `targetOverride` em `GeneralAbilityController.cs`**
 
 ```csharp
 public bool TriggerAbility(bool manual = false, AbilityPosition? targetOverride = null)
