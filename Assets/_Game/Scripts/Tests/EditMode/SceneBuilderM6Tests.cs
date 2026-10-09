@@ -179,5 +179,18 @@ namespace Game.Tests.EditMode
             Assert.IsNull(spawnerObj.transform.parent);
             Assert.AreEqual(CollisionLayers.EnemyLayer, spawnerObj.layer);
         }
+
+        [Test]
+        public void BuildM6GreyboxScene_CreatesAimIndicatorAndLinksToGeneralAbilityHud()
+        {
+            BuildAndReopenM6Scene();
+
+            var hud = Object.FindAnyObjectByType<GeneralAbilityHud>();
+            Assert.IsNotNull(hud, "GeneralAbilityHud must exist in M6 Greybox scene.");
+            Assert.IsNotNull(hud.AimIndicator, "GeneralAbilityHud must reference AbilityAimIndicator.");
+
+            var indicator = Object.FindAnyObjectByType<AbilityAimIndicator>();
+            Assert.IsNotNull(indicator, "AbilityAimIndicator must exist in M6 Greybox scene.");
+        }
     }
 }

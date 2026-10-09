@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Reflection;
 using Game.Core;
 using Game.Core.Abilities;
@@ -38,7 +40,7 @@ namespace Game.Tests.EditMode
             _controller = controllerGo.AddComponent<GeneralAbilityController>();
 
             _definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
-            _definition.SetData("grenade", "Granada", "Dano em area", 25, null);
+            _definition.SetData("grenade", "Granada", "Dano em area", 25, null, null);
             _controller.Initialize(_definition, _eventBus);
 
             _hudGo = CreateTrackedGameObject("GeneralAbilityHud");
@@ -84,6 +86,7 @@ namespace Game.Tests.EditMode
                 }
             }
             _createdObjects.Clear();
+            Time.timeScale = 1.0f;
         }
 
         private GameObject CreateTrackedGameObject(string name)
@@ -179,7 +182,7 @@ namespace Game.Tests.EditMode
             _hud.Initialize(_controller, _eventBus, settings);
 
             var effect = new FakeAbilityEffect();
-            _definition.SetData("grenade", "Granada", "Area", 25, effect);
+            _definition.SetData("grenade", "Granada", "Area", 25, effect, null);
             _controller.Initialize(_definition, _eventBus, new ManualHeroAbilityTriggerPolicy(), new RunConfig { BonusAbilityCharges = 1 });
 
             Assert.AreEqual(1, _controller.CurrentCharges);
@@ -262,6 +265,105 @@ namespace Game.Tests.EditMode
             {
                 WasExecuted = true;
             }
+        }
+
+        [Test]
+        public void PointerEvents_QuandoGroundTarget_IniciaESaiDoSlowMotion()
+        {
+            _definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
+            var targeting = new AbilityTargetingConfig { Type = AbilityTargetingType.GroundTarget };
+            _definition.SetData("grenade", "Grenade", "Desc", 25, null, targeting);
+            _controller.Initialize(_definition, _eventBus, new ManualHeroAbilityTriggerPolicy(), new RunConfig { BonusAbilityCharges = 1 });
+            _hud.Initialize(_controller, _eventBus, new FakeAbilitySettings(HeroAbilityTriggerMode.Manual));
+
+            var pointerDown = new PointerEventData(EventSystem.current) { position = new Vector2(100, 100) };
+            _hud.OnPointerDown(pointerDown);
+
+            Assert.AreEqual(0.3f, Time.timeScale);
+
+            var pointerUp = new PointerEventData(EventSystem.current) { position = new Vector2(100, 100) };
+            _hud.OnPointerUp(pointerUp);
+
+            Assert.AreEqual(1f, Time.timeScale);
+        }
+
+        [Test]
+        public void PointerUp_NaZonaMorta_CancelaSemDispararENaoGastaCarga()
+        {
+            var effect = new FakeAbilityEffect();
+            _definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
+            var targeting = new AbilityTargetingConfig { Type = AbilityTargetingType.GroundTarget, MaxRange = 10f };
+            _definition.SetData("grenade", "Grenade", "Desc", 1, effect, targeting);
+            _controller.Initialize(_definition, _eventBus, new ManualHeroAbilityTriggerPolicy(), new RunConfig { BonusAbilityCharges = 1 });
+            _hud.Initialize(_controller, _eventBus, new FakeAbilitySettings(HeroAbilityTriggerMode.Manual));
+
+            var pointerDown = new PointerEventData(EventSystem.current) { position = new Vector2(100, 100) };
+            _hud.OnPointerDown(pointerDown);
+
+            // Drag within cancel radius (< 35px)
+            var drag = new PointerEventData(EventSystem.current) { position = new Vector2(100, 120) };
+            _hud.OnDrag(drag);
+
+            var pointerUp = new PointerEventData(EventSystem.current) { position = new Vector2(100, 120) };
+            _hud.OnPointerUp(pointerUp);
+
+            Assert.IsFalse(effect.WasExecuted);
+            Assert.AreEqual(1, _controller.CurrentCharges);
+            Assert.AreEqual(1f, Time.timeScale);
+        }
+
+        [Test]
+        public void PointerUp_ForaDaZonaMorta_AcionaHabilidadeComAlvoCustomizado()
+        {
+            var effect = new FakeAbilityEffect();
+            _definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
+            var targeting = new AbilityTargetingConfig { Type = AbilityTargetingType.GroundTarget, MaxRange = 10f };
+            _definition.SetData("grenade", "Grenade", "Desc", 1, effect, targeting);
+            _controller.Initialize(_definition, _eventBus, new ManualHeroAbilityTriggerPolicy(), new RunConfig { BonusAbilityCharges = 1 });
+            _hud.Initialize(_controller, _eventBus, new FakeAbilitySettings(HeroAbilityTriggerMode.Manual));
+
+            var pointerDown = new PointerEventData(EventSystem.current) { position = new Vector2(100, 100) };
+            _hud.OnPointerDown(pointerDown);
+
+            var drag = new PointerEventData(EventSystem.current) { position = new Vector2(100, 300) }; // Dragging UP
+            _hud.OnDrag(drag);
+
+            var pointerUp = new PointerEventData(EventSystem.current) { position = new Vector2(100, 300) };
+            _hud.OnPointerUp(pointerUp);
+
+            Assert.IsTrue(effect.WasExecuted);
+            Assert.AreEqual(1f, Time.timeScale);
+            Assert.AreEqual(0, _controller.CurrentCharges);
+        }
+
+        [Test]
+        public void TimeoutDe3Segundos_ForcaODisparo()
+        {
+            var effect = new FakeAbilityEffect();
+            _definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
+            var targeting = new AbilityTargetingConfig { Type = AbilityTargetingType.GroundTarget, MaxRange = 10f };
+            _definition.SetData("grenade", "Grenade", "Desc", 1, effect, targeting);
+            _controller.Initialize(_definition, _eventBus, new ManualHeroAbilityTriggerPolicy(), new RunConfig { BonusAbilityCharges = 1 });
+            _hud.Initialize(_controller, _eventBus, new FakeAbilitySettings(HeroAbilityTriggerMode.Manual));
+
+            var pointerDown = new PointerEventData(EventSystem.current) { position = new Vector2(100, 100) };
+            _hud.OnPointerDown(pointerDown);
+
+            // Drag to set a target outside deadzone
+            var drag = new PointerEventData(EventSystem.current) { position = new Vector2(100, 300) };
+            _hud.OnDrag(drag);
+
+            // Set _aimStartTime using reflection to simulate 4 seconds passing
+            var field = typeof(GeneralAbilityHud).GetField("_aimStartTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            field.SetValue(_hud, Time.unscaledTime - 4f);
+
+            // Call Update via reflection
+            var updateMethod = typeof(GeneralAbilityHud).GetMethod("Update", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            updateMethod.Invoke(_hud, null);
+
+            Assert.IsTrue(effect.WasExecuted);
+            Assert.AreEqual(1f, Time.timeScale);
+            Assert.AreEqual(0, _controller.CurrentCharges);
         }
     }
 }

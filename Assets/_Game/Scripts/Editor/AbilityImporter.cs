@@ -23,7 +23,16 @@ namespace Game.Editor
             public string displayName;
             public string description;
             public int chargeKills;
+            public TargetingJsonDto targeting;
             public EffectJsonDto effect;
+        }
+
+        [Serializable]
+        private class TargetingJsonDto
+        {
+            public string type;
+            public float maxRange;
+            public float radius;
         }
 
         [Serializable]
@@ -123,6 +132,8 @@ namespace Game.Editor
                 return null;
             }
 
+            var targeting = CreateTargeting(dto.targeting);
+
             string assetPath = $"{targetFolder}/{dto.id}.asset";
             var definition = AssetDatabase.LoadAssetAtPath<GeneralAbilityDefinition>(assetPath);
             bool isNew = definition == null;
@@ -131,7 +142,7 @@ namespace Game.Editor
                 definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
             }
 
-            definition.SetData(dto.id, dto.displayName, dto.description, dto.chargeKills, effect);
+            definition.SetData(dto.id, dto.displayName, dto.description, dto.chargeKills, effect, targeting);
 
             if (isNew)
             {
@@ -157,6 +168,22 @@ namespace Game.Editor
 
             errors.Add($"{fileName}: effect.type '{dto.type}' desconhecido");
             return null;
+        }
+
+        private static AbilityTargetingConfig CreateTargeting(TargetingJsonDto dto)
+        {
+            var config = new AbilityTargetingConfig();
+            if (dto == null) return config;
+
+            if (Enum.TryParse<AbilityTargetingType>(dto.type, true, out var parsedType))
+            {
+                config.Type = parsedType;
+            }
+            
+            config.MaxRange = dto.maxRange;
+            if (dto.radius > 0) config.Radius = dto.radius;
+            
+            return config;
         }
 
         private static bool Validate(AbilityJsonDto dto, string fileName, List<string> errors)
