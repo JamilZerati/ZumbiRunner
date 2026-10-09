@@ -943,6 +943,65 @@ namespace Game.Editor
             serializedVfx.ApplyModifiedProperties();
             abilityVfx.Initialize(eventBus);
 
+            // DebugOverlay
+            var debugOverlayGo = new GameObject("DebugOverlay", typeof(RectTransform));
+            debugOverlayGo.transform.SetParent(canvasGo.transform, false);
+            var debugOverlayRect = debugOverlayGo.GetComponent<RectTransform>();
+            if (debugOverlayRect != null)
+            {
+                debugOverlayRect.anchorMin = new Vector2(0f, 1f);
+                debugOverlayRect.anchorMax = new Vector2(1f, 1f);
+                debugOverlayRect.pivot = new Vector2(0.5f, 1f);
+                debugOverlayRect.anchoredPosition = new Vector2(0f, -10f);
+                debugOverlayRect.sizeDelta = new Vector2(-40f, 480f);
+            }
+            var debugOverlay = debugOverlayGo.AddComponent<DebugTextOverlay>();
+
+            var panelGo = new GameObject("Panel", typeof(RectTransform));
+            panelGo.transform.SetParent(debugOverlayGo.transform, false);
+            var panelRect = panelGo.GetComponent<RectTransform>();
+            if (panelRect != null)
+            {
+                panelRect.anchorMin = Vector2.zero;
+                panelRect.anchorMax = Vector2.one;
+                panelRect.pivot = new Vector2(0.5f, 0.5f);
+                panelRect.sizeDelta = Vector2.zero;
+                panelRect.anchoredPosition = Vector2.zero;
+            }
+            var debugBg = panelGo.AddComponent<UnityEngine.UI.Image>();
+            debugBg.color = new Color(0f, 0f, 0f, 0.72f);
+
+            var debugTextGo = new GameObject("DebugText", typeof(RectTransform));
+            debugTextGo.transform.SetParent(panelGo.transform, false);
+            var debugTextRect = debugTextGo.GetComponent<RectTransform>();
+            if (debugTextRect != null)
+            {
+                debugTextRect.anchorMin = Vector2.zero;
+                debugTextRect.anchorMax = Vector2.one;
+                debugTextRect.pivot = new Vector2(0.5f, 0.5f);
+                debugTextRect.offsetMin = new Vector2(20f, 15f);
+                debugTextRect.offsetMax = new Vector2(-20f, -15f);
+            }
+            var debugTmp = debugTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            debugTmp.fontSize = 24;
+            debugTmp.fontStyle = TMPro.FontStyles.Normal;
+            debugTmp.alignment = TMPro.TextAlignmentOptions.TopLeft;
+            debugTmp.color = Color.white;
+            debugTmp.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            debugTmp.text = "[DEBUG OVERLAY]";
+
+            var serializedDebugOverlay = new SerializedObject(debugOverlay);
+            serializedDebugOverlay.FindProperty("debugText").objectReferenceValue = debugTmp;
+            serializedDebugOverlay.FindProperty("visualRoot").objectReferenceValue = panelGo;
+            serializedDebugOverlay.FindProperty("squadController").objectReferenceValue = squad;
+            serializedDebugOverlay.FindProperty("combatDirector").objectReferenceValue = director;
+            serializedDebugOverlay.FindProperty("trackScroller").objectReferenceValue = scroller;
+            serializedDebugOverlay.FindProperty("weaponController").objectReferenceValue = weapon;
+            serializedDebugOverlay.FindProperty("abilityController").objectReferenceValue = abilityController;
+            serializedDebugOverlay.ApplyModifiedProperties();
+            debugOverlay.ConfigureComponents(debugTmp, panelGo);
+            debugOverlay.Initialize(eventBus, squad, director, scroller, weapon, abilityController);
+
             var composerGo = new GameObject("GreyboxRunComposer");
             var composer = composerGo.AddComponent<GreyboxRunComposer>();
             var serializedComposer = new SerializedObject(composer);
@@ -953,6 +1012,7 @@ namespace Game.Editor
             serializedComposer.FindProperty("abilityHud").objectReferenceValue = abilityHud;
             serializedComposer.FindProperty("abilityAudio").objectReferenceValue = abilityAudio;
             serializedComposer.FindProperty("abilityVfx").objectReferenceValue = abilityVfx;
+            serializedComposer.FindProperty("debugOverlay").objectReferenceValue = debugOverlay;
             serializedComposer.ApplyModifiedProperties();
 
             // FollowCamera
@@ -1063,6 +1123,72 @@ namespace Game.Editor
         public static void BuildM6GreyboxSceneCli()
         {
             BuildM6GreyboxScene();
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        public static void CaptureM6ScreenshotCli()
+        {
+            BuildM6GreyboxScene();
+            var scene = EditorSceneManager.OpenScene(M6GreyboxScenePath);
+
+            var cam = Camera.main;
+            var overlay = Object.FindFirstObjectByType<DebugTextOverlay>();
+            if (cam != null && overlay != null)
+            {
+                overlay.Refresh();
+                Canvas.ForceUpdateCanvases();
+
+                var canvas = overlay.GetComponentInParent<Canvas>();
+                var originalMode = canvas.renderMode;
+                var originalCam = canvas.worldCamera;
+                var originalDist = canvas.planeDistance;
+
+                var rt = new RenderTexture(1080, 1920, 24, RenderTextureFormat.ARGB32);
+                var prevTarget = cam.targetTexture;
+                var prevActive = RenderTexture.active;
+
+                try
+                {
+                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                    canvas.worldCamera = cam;
+                    canvas.planeDistance = 2f;
+                    Canvas.ForceUpdateCanvases();
+
+                    cam.targetTexture = rt;
+                    cam.Render();
+
+                    RenderTexture.active = rt;
+                    var tex = new Texture2D(1080, 1920, TextureFormat.RGB24, false);
+                    tex.ReadPixels(new Rect(0, 0, 1080, 1920), 0, 0);
+                    tex.Apply();
+
+                    var path = "docs/evidencias/NEX-781-m6-debug-overlay.png";
+                    var dir = System.IO.Path.GetDirectoryName(path);
+                    if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+                    {
+                        System.IO.Directory.CreateDirectory(dir);
+                    }
+
+                    System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
+                    Object.DestroyImmediate(tex);
+                    Debug.Log($"[SceneBuilder] Screenshot saved to {path} ({new System.IO.FileInfo(path).Length} bytes).");
+                }
+                finally
+                {
+                    cam.targetTexture = prevTarget;
+                    RenderTexture.active = prevActive;
+                    canvas.renderMode = originalMode;
+                    canvas.worldCamera = originalCam;
+                    canvas.planeDistance = originalDist;
+                    Canvas.ForceUpdateCanvases();
+                    rt.Release();
+                    Object.DestroyImmediate(rt);
+                }
+            }
+
             if (Application.isBatchMode)
             {
                 EditorApplication.Exit(0);
