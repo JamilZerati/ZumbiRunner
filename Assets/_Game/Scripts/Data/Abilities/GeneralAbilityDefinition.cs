@@ -11,20 +11,23 @@ namespace Game.Data
         [SerializeField] private string description;
         [SerializeField] private int chargeKills;
         [SerializeReference] private IAbilityEffect effect;
+        [SerializeField] private AbilityTargetingConfig targeting = new AbilityTargetingConfig();
 
         public string Id => id;
         public string DisplayName => displayName;
         public string Description => description;
         public int ChargeKills => chargeKills;
         public IAbilityEffect Effect => effect;
+        public AbilityTargetingConfig Targeting => targeting;
 
-        public void SetData(string id, string displayName, string description, int chargeKills, IAbilityEffect effect)
+        public void SetData(string id, string displayName, string description, int chargeKills, IAbilityEffect effect, AbilityTargetingConfig targeting)
         {
             this.id = id;
             this.displayName = displayName;
             this.description = description;
             this.chargeKills = chargeKills;
             this.effect = effect;
+            this.targeting = targeting ?? new AbilityTargetingConfig();
         }
     }
 }

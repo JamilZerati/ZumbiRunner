@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Game.Core.Abilities;
 using Game.Core.Abilities.Effects;
 using Game.Data;
 using Game.Editor;
@@ -67,6 +68,11 @@ namespace Game.Tests.EditMode
                 ""displayName"": ""Granada Custom"",
                 ""description"": ""Granada de teste"",
                 ""chargeKills"": 10,
+                ""targeting"": {
+                    ""type"": ""GroundTarget"",
+                    ""maxRange"": 20.0,
+                    ""radius"": 4.0
+                },
                 ""effect"": {
                     ""type"": ""GrenadeAbilityEffect""
                 }
@@ -86,6 +92,10 @@ namespace Game.Tests.EditMode
             Assert.AreEqual("Granada Custom", ability.DisplayName);
             Assert.AreEqual("Granada de teste", ability.Description);
             Assert.AreEqual(10, ability.ChargeKills);
+            Assert.IsNotNull(ability.Targeting);
+            Assert.AreEqual(AbilityTargetingType.GroundTarget, ability.Targeting.Type);
+            Assert.AreEqual(20f, ability.Targeting.MaxRange);
+            Assert.AreEqual(4f, ability.Targeting.Radius);
             Assert.IsNotNull(ability.Effect);
             Assert.IsInstanceOf<GrenadeAbilityEffect>(ability.Effect);
         }
@@ -244,7 +254,7 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0, catalog.Abilities.Count);
 
             var validAbility = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
-            validAbility.SetData("valid", "Valid", "Desc", 10, new GrenadeAbilityEffect());
+            validAbility.SetData("valid", "Valid", "Desc", 10, new GrenadeAbilityEffect(), null);
             catalog.SetAbilities(new[] { validAbility, null });
             Assert.AreEqual(1, catalog.Abilities.Count);
             Assert.IsTrue(catalog.TryGet("valid", out _));

@@ -38,7 +38,7 @@ namespace Game.Tests.EditMode
             _controller = controllerGo.AddComponent<GeneralAbilityController>();
 
             _definition = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
-            _definition.SetData("grenade", "Granada", "Dano em area", 25, null);
+            _definition.SetData("grenade", "Granada", "Dano em area", 25, null, null);
             _controller.Initialize(_definition, _eventBus);
 
             _hudGo = CreateTrackedGameObject("GeneralAbilityHud");
@@ -179,7 +179,7 @@ namespace Game.Tests.EditMode
             _hud.Initialize(_controller, _eventBus, settings);
 
             var effect = new FakeAbilityEffect();
-            _definition.SetData("grenade", "Granada", "Area", 25, effect);
+            _definition.SetData("grenade", "Granada", "Area", 25, effect, null);
             _controller.Initialize(_definition, _eventBus, new ManualHeroAbilityTriggerPolicy(), new RunConfig { BonusAbilityCharges = 1 });
 
             Assert.AreEqual(1, _controller.CurrentCharges);

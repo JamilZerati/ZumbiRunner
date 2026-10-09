@@ -194,7 +194,7 @@ git commit -m "feat(core): adicionar AbilityTargetingType e configuracao de mira
 - Consumes: `AbilityTargetingConfig`, `GeneralAbilityDefinition`.
 - Produces: Importação via `tools/unity import-content`.
 
-- [ ] **Step 1: Atualizar `AbilityImporterTests.cs` com asserções sobre `Targeting`**
+- [x] **Step 1: Atualizar `AbilityImporterTests.cs` com asserções sobre `Targeting`**
 
 ```csharp
 Assert.IsNotNull(def.Targeting);
@@ -203,9 +203,9 @@ Assert.AreEqual(20f, def.Targeting.MaxRange);
 Assert.AreEqual(4f, def.Targeting.Radius);
 ```
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Atualizar `grenade.json`, `GeneralAbilityDefinition.cs` e `AbilityImporter.cs`**
+- [x] **Step 3: Atualizar `grenade.json`, `GeneralAbilityDefinition.cs` e `AbilityImporter.cs`**
 
 Em `grenade.json`:
 ```json
@@ -233,9 +233,9 @@ public AbilityTargetingConfig Targeting => targeting;
 
 Em `AbilityImporter.cs`: deserializar a chave `targeting` e preencher no ScriptableObject gerado.
 
-- [ ] **Step 4: Rodar `./tools/unity import-content` e `./tools/unity test-edit` (Green)**
+- [x] **Step 4: Rodar `./tools/unity import-content` e `./tools/unity test-edit` (Green)**
 
-- [ ] **Step 5: Commitar Task 2**
+- [x] **Step 5: Commitar Task 2**
 ```bash
 git add Content/Source/Abilities/ Assets/_Game/Scripts/Data/ Assets/_Game/Scripts/Editor/ Assets/_Game/Scripts/Tests/EditMode/AbilityImporterTests.cs
 git commit -m "feat(data): expor configuracao de targeting no JSON da granada e importer [NEX-651]"

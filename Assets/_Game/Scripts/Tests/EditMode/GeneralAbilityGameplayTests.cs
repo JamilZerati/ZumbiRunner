@@ -60,7 +60,7 @@ namespace Game.Tests.EditMode
         private GeneralAbilityDefinition CreateDefinition(string id, int chargeKills, IAbilityEffect effect)
         {
             var def = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
-            def.SetData(id, id, "Test Description", chargeKills, effect);
+            def.SetData(id, id, "Test Description", chargeKills, effect, null);
             return def;
         }
 
