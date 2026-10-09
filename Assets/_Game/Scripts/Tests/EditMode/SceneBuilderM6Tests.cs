@@ -181,6 +181,23 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void BuildM6GreyboxScene_RunComposerWiresEveryEventBusConsumer()
+        {
+            BuildAndReopenM6Scene();
+
+            var composer = Object.FindAnyObjectByType<Game.Composition.GreyboxRunComposer>();
+            Assert.IsNotNull(composer);
+            Assert.IsNull(composer.transform.parent);
+
+            var serialized = new SerializedObject(composer);
+            Assert.AreEqual(Object.FindAnyObjectByType<CombatDirector>(), serialized.FindProperty("combatDirector").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<HordeSpawner>(), serialized.FindProperty("hordeSpawner").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<StatusEffectDirector>(), serialized.FindProperty("statusDirector").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>(), serialized.FindProperty("abilityController").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityHud>(), serialized.FindProperty("abilityHud").objectReferenceValue);
+        }
+
+        [Test]
         public void BuildM6GreyboxScene_CreatesAimIndicatorAndLinksToGeneralAbilityHud()
         {
             BuildAndReopenM6Scene();
