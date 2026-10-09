@@ -61,7 +61,7 @@ graph TD
 - Consumes: `AbilityPosition`, `IAbilityEffect`, `IAbilityDamageSink`.
 - Produces: `AbilityTargetingType`, `AbilityTargetingConfig.ClampTarget()`, `AbilityExecutionContext.TargetPosition`.
 
-- [ ] **Step 1: Escrever teste Red para `AbilityTargetingConfig` e `ClampTarget`**
+- [x] **Step 1: Escrever teste Red para `AbilityTargetingConfig` e `ClampTarget`**
 
 ```csharp
 // Assets/_Game/Scripts/Tests/EditMode/AbilityTargetingCoreTests.cs
@@ -115,9 +115,9 @@ namespace Game.Tests.EditMode
 }
 ```
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e confirmar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e confirmar falha Red**
 
-- [ ] **Step 3: Implementar `AbilityTargetingType.cs`, `AbilityTargetingConfig.cs` e atualizar `AbilityExecutionContext`**
+- [x] **Step 3: Implementar `AbilityTargetingType.cs`, `AbilityTargetingConfig.cs` e atualizar `AbilityExecutionContext`**
 
 ```csharp
 // Assets/_Game/Scripts/Core/Abilities/AbilityTargetingType.cs
@@ -172,9 +172,9 @@ var center = context.TargetPosition.Z != 0f || context.TargetPosition.X != 0f ? 
 context.DamageSink.ApplyAreaDamage(center, DefaultRadius, DefaultDamage, DamageType.Area, this);
 ```
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
 
-- [ ] **Step 5: Commitar Task 1**
+- [x] **Step 5: Commitar Task 1**
 ```bash
 git add Assets/_Game/Scripts/Core/ Assets/_Game/Scripts/Tests/EditMode/AbilityTargetingCoreTests.cs
 git commit -m "feat(core): adicionar AbilityTargetingType e configuracao de mira com clamping [NEX-651]"
