@@ -22,7 +22,8 @@ namespace Game.Core.Abilities.Effects
                 throw new ArgumentNullException(nameof(context.DamageSink));
             }
 
-            context.DamageSink.ApplyAreaDamage(context.OriginPosition, DefaultRadius, DefaultDamage, DamageType.Area, this);
+            var center = context.TargetPosition.Z != 0f || context.TargetPosition.X != 0f ? context.TargetPosition : context.OriginPosition;
+            context.DamageSink.ApplyAreaDamage(center, DefaultRadius, DefaultDamage, DamageType.Area, this);
         }
     }
 }

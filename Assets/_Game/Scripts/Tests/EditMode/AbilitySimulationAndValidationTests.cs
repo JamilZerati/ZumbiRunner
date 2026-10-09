@@ -29,7 +29,7 @@ namespace Game.Tests.EditMode
         private GeneralAbilityDefinition CreateTrackedAbility(string id, string displayName, int chargeKills, IAbilityEffect effect)
         {
             var def = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
-            def.SetData(id, displayName, "Desc", chargeKills, effect);
+            def.SetData(id, displayName, "Desc", chargeKills, effect, null);
             _createdAssets.Add(def);
             return def;
         }

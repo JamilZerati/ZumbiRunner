@@ -78,7 +78,7 @@ namespace Game.Tests.PlayMode
             var controller = controllerGo.AddComponent<GeneralAbilityController>();
 
             var def = ScriptableObject.CreateInstance<GeneralAbilityDefinition>();
-            def.SetData("grenade", "Granada", "Explosão de área", 25, new GrenadeAbilityEffect());
+            def.SetData("grenade", "Granada", "Explosão de área", 25, new GrenadeAbilityEffect(), null);
 
             controller.Initialize(def, eventBus);
             controller.SetTargetsDetector(() => true);

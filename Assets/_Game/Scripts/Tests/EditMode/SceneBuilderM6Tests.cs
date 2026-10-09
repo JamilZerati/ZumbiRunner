@@ -206,5 +206,18 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(1, eventSystems.Length);
             Assert.IsNotNull(eventSystems[0].GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>());
         }
+
+        [Test]
+        public void BuildM6GreyboxScene_CreatesAimIndicatorAndLinksToGeneralAbilityHud()
+        {
+            BuildAndReopenM6Scene();
+
+            var hud = Object.FindAnyObjectByType<GeneralAbilityHud>();
+            Assert.IsNotNull(hud, "GeneralAbilityHud must exist in M6 Greybox scene.");
+            Assert.IsNotNull(hud.AimIndicator, "GeneralAbilityHud must reference AbilityAimIndicator.");
+
+            var indicator = Object.FindAnyObjectByType<AbilityAimIndicator>();
+            Assert.IsNotNull(indicator, "AbilityAimIndicator must exist in M6 Greybox scene.");
+        }
     }
 }
