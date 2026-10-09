@@ -137,10 +137,14 @@ namespace Game.Gameplay.Abilities
             {
                 finalTarget = _definition.Targeting.ClampTarget(originPos, targetOverride.Value);
             }
+            else if (_definition.Targeting != null && _definition.Targeting.Type == AbilityTargetingType.GroundTarget)
+            {
+                float defaultForward = Mathf.Min(12f, _definition.Targeting.MaxRange > 0 ? _definition.Targeting.MaxRange : 12f);
+                finalTarget = new AbilityPosition(originPos.X, originPos.Y, originPos.Z + defaultForward);
+            }
             else
             {
-                float defaultForward = _definition.Targeting != null ? Mathf.Min(12f, _definition.Targeting.MaxRange > 0 ? _definition.Targeting.MaxRange : 12f) : 12f;
-                finalTarget = new AbilityPosition(originPos.X, originPos.Y, originPos.Z + defaultForward);
+                finalTarget = originPos;
             }
 
             var executionContext = new AbilityExecutionContext

@@ -384,20 +384,20 @@ git commit -m "feat(presentation): implementar controle por arraste no HUD com s
 - Consumes: Toda a pilha integrada na cena M6.
 - Produces: Validação PlayMode de ponta a ponta e portão verde.
 
-- [ ] **Step 1: Criar testes PlayMode cobrindo:**
+- [x] **Step 1: Criar testes PlayMode cobrindo:**
   - Simulação de toque no botão manual com arraste para frente.
   - Verificação de desaceleração de tempo e restauração.
   - Verificação de dano e abates aplicados nas coordenadas exatas da lane e Z mirados.
 
-- [ ] **Step 2: Rodar portão completo pelo harness:**
+- [x] **Step 2: Rodar portão completo pelo harness:**
   - `./tools/unity compile` (0 erros)
   - `./tools/unity test-edit` (todos passando)
   - `./tools/unity test-play` (todos passando)
 
-- [ ] **Step 3: Commitar Task 6 e restaurar ruído de regeneração**
+- [x] **Step 3: Commitar Task 6 e restaurar ruído de regeneração**
 ```bash
-git add Assets/_Game/Scripts/Tests/PlayMode/
-git commit -m "test(playmode): validar ciclo de mira e arremesso dinâmico da granada [NEX-651]"
+git add Assets/_Game/Scripts/Tests/PlayMode/ Assets/_Game/Scripts/Tests/EditMode/SceneBuilderM6Tests.cs Assets/_Game/Scripts/Gameplay/Abilities/GeneralAbilityController.cs docs/superpowers/plans/
+git commit -m "test(playmode): validar ciclo de mira e arremesso dinamico [NEX-879]"
 ```
 
 ---
