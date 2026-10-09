@@ -99,7 +99,7 @@ namespace Game.Gameplay.Abilities
             }
         }
 
-        public bool TriggerAbility(bool manual = false)
+        public bool TriggerAbility(bool manual = false, AbilityPosition? targetOverride = null)
         {
             if (_definition == null || _definition.Effect == null || _tracker == null)
             {
@@ -130,9 +130,23 @@ namespace Game.Gameplay.Abilities
                 currentLane = localMover.CurrentLane;
             }
 
+            var originPos = new AbilityPosition(generalPos.x, generalPos.y, generalPos.z);
+            AbilityPosition finalTarget;
+
+            if (targetOverride.HasValue && _definition.Targeting != null)
+            {
+                finalTarget = _definition.Targeting.ClampTarget(originPos, targetOverride.Value);
+            }
+            else
+            {
+                float defaultForward = _definition.Targeting != null ? Mathf.Min(12f, _definition.Targeting.MaxRange > 0 ? _definition.Targeting.MaxRange : 12f) : 12f;
+                finalTarget = new AbilityPosition(originPos.X, originPos.Y, originPos.Z + defaultForward);
+            }
+
             var executionContext = new AbilityExecutionContext
             {
-                OriginPosition = new AbilityPosition(generalPos.x, generalPos.y, generalPos.z),
+                OriginPosition = originPos,
+                TargetPosition = finalTarget,
                 TargetLane = currentLane,
                 DamageSink = this,
                 EventBus = _eventBus

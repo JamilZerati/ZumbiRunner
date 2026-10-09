@@ -233,5 +233,53 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(2, controller.CurrentCharges);
             Assert.AreEqual(0, controller.CurrentKills);
         }
+        [Test]
+        public void TriggerAbility_WithTargetOverride_UsesOverriddenTargetClamped()
+        {
+            var effect = new SpyAbilityEffect();
+            var def = CreateDefinition("grenade", 1, effect);
+            def.Targeting.Type = AbilityTargetingType.GroundTarget;
+            def.Targeting.MaxRange = 20f;
+            def.Targeting.Radius = 4f;
+
+            var controllerGo = Track(new GameObject("Controller"));
+            controllerGo.transform.position = new Vector3(1f, 0f, 10f); // Origin at Z=10
+            var controller = controllerGo.AddComponent<GeneralAbilityController>();
+            controller.Initialize(def, _eventBus, new ManualHeroAbilityTriggerPolicy());
+
+            _eventBus.Publish(new EnemyKilledEvent("walker", 0, null, byAbility: false)); // Gain 1 charge
+
+            var desiredTarget = new AbilityPosition(1f, 0f, 40f); // Beyond 20m range
+            controller.TriggerAbility(manual: true, targetOverride: desiredTarget);
+
+            Assert.AreEqual(1, effect.ExecuteCount);
+            Assert.IsNotNull(effect.LastContext);
+            Assert.AreEqual(1f, effect.LastContext.OriginPosition.X);
+            Assert.AreEqual(10f, effect.LastContext.OriginPosition.Z);
+            Assert.AreEqual(1f, effect.LastContext.TargetPosition.X);
+            Assert.AreEqual(30f, effect.LastContext.TargetPosition.Z); // Clamped to 10 + 20
+        }
+
+        [Test]
+        public void TriggerAbility_AutoOrNoOverride_TargetsForward()
+        {
+            var effect = new SpyAbilityEffect();
+            var def = CreateDefinition("grenade", 1, effect);
+            def.Targeting.Type = AbilityTargetingType.GroundTarget;
+            def.Targeting.MaxRange = 20f;
+
+            var controllerGo = Track(new GameObject("Controller"));
+            controllerGo.transform.position = new Vector3(0f, 0f, 5f);
+            var controller = controllerGo.AddComponent<GeneralAbilityController>();
+            controller.Initialize(def, _eventBus, new ManualHeroAbilityTriggerPolicy());
+
+            _eventBus.Publish(new EnemyKilledEvent("walker", 0, null, byAbility: false)); // Gain 1 charge
+
+            controller.TriggerAbility(manual: true);
+
+            Assert.AreEqual(1, effect.ExecuteCount);
+            Assert.IsNotNull(effect.LastContext);
+            Assert.AreEqual(17f, effect.LastContext.TargetPosition.Z); // 5 + 12 (default forward)
+        }
     }
 }

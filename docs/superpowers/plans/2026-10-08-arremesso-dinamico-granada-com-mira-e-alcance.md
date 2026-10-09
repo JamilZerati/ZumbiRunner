@@ -253,7 +253,7 @@ git commit -m "feat(data): expor configuracao de targeting no JSON da granada e 
 - Consumes: `AbilityTargetingConfig`, `AbilityPosition`.
 - Produces: `TriggerAbility(bool manual = false, AbilityPosition? targetOverride = null)`.
 
-- [ ] **Step 1: Escrever testes Red em `GeneralAbilityGameplayTests.cs`**
+- [x] **Step 1: Escrever testes Red em `GeneralAbilityGameplayTests.cs`**
   - Testar que disparar com `targetOverride` aplica o dano centrado na posição Z mirada e atinge inimigos no raio de 4 m daquele ponto.
   - Testar que disparar no modo Auto calcula automaticamente a posição à frente na lane atual.
 
@@ -297,9 +297,9 @@ public bool TriggerAbility(bool manual = false, AbilityPosition? targetOverride 
 }
 ```
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
 
-- [ ] **Step 5: Commitar Task 3**
+- [x] **Step 5: Commitar Task 3**
 ```bash
 git add Assets/_Game/Scripts/Gameplay/Abilities/ Assets/_Game/Scripts/Tests/EditMode/GeneralAbilityGameplayTests.cs
 git commit -m "feat(gameplay): suportar alvo customizado e limite de alcance no controller [NEX-651]"
