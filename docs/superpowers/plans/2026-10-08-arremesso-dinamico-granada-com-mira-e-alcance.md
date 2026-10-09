@@ -257,7 +257,7 @@ git commit -m "feat(data): expor configuracao de targeting no JSON da granada e 
   - Testar que disparar com `targetOverride` aplica o dano centrado na posição Z mirada e atinge inimigos no raio de 4 m daquele ponto.
   - Testar que disparar no modo Auto calcula automaticamente a posição à frente na lane atual.
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
 - [ ] **Step 3: Implementar suporte a `targetOverride` em `GeneralAbilityController.cs`**
 
@@ -318,20 +318,20 @@ git commit -m "feat(gameplay): suportar alvo customizado e limite de alcance no 
 - Consumes: `AbilityTargetingConfig`, `Vector3`.
 - Produces: `AbilityAimIndicator.Show()`, `AbilityAimIndicator.UpdateAim()`, `AbilityAimIndicator.Hide()`.
 
-- [ ] **Step 1: Escrever testes Red para `AbilityAimIndicator`**
+- [x] **Step 1: Escrever testes Red para `AbilityAimIndicator`**
   - Testar ativação/desativação do renderer.
   - Testar posicionamento da retícula nas coordenadas de mundo.
   - Testar troca de estado visual para cancelamento.
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Implementar `AbilityAimIndicator.cs`**
+- [x] **Step 3: Implementar `AbilityAimIndicator.cs`**
   - Renderiza círculo plano de raio `Radius` no chão (`Y = 0.05f`).
   - Atualiza posição em tempo real e muda cor para avermelhado quando `isCanceling == true`.
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e validar Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e validar Green**
 
-- [ ] **Step 5: Commitar Task 4**
+- [x] **Step 5: Commitar Task 4**
 ```bash
 git add Assets/_Game/Scripts/Presentation/ Assets/_Game/Scripts/Tests/EditMode/AbilityAimIndicatorTests.cs
 git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-651]"
@@ -356,7 +356,7 @@ git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-
   - Testar que pointer up na zona morta cancela sem disparar.
   - Testar que timeout de 3s força o disparo.
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
 - [ ] **Step 3: Implementar joystick relativo no `GeneralAbilityHud.cs`**
   - Implementar interfaces de ponteiro do Unity UI.
@@ -364,7 +364,7 @@ git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-
   - Integrar `AbilityAimIndicator` na inicialização do HUD.
   - Atualizar `SceneBuilder.cs` para instanciar o indicador na cena M6.
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e validar Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e validar Green**
 
 - [ ] **Step 5: Commitar Task 5**
 ```bash
