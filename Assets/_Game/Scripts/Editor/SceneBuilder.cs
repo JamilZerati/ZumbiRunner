@@ -25,6 +25,9 @@ namespace Game.Editor
         public const string M4GreyboxScenePath = "Assets/_Game/Scenes/M4_Greybox.unity";
         public const string M5GreyboxScenePath = "Assets/_Game/Scenes/M5_Greybox.unity";
         public const string M6GreyboxScenePath = "Assets/_Game/Scenes/M6_Greybox.unity";
+        public const string GrenadeIconPath = "Assets/_Game/Art/UI/grenade_icon.png";
+        public const string GrenadeExplosionClipPath = "Assets/_Game/Audio/SFX/grenade_explosion.ogg";
+        public const string GrenadeExplosionSpritePath = "Assets/_Game/Art/VFX/grenade_explosion.png";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -858,15 +861,23 @@ namespace Game.Editor
             if (manualBtnRect != null)
             {
                 manualBtnRect.anchorMin = manualBtnRect.anchorMax = manualBtnRect.pivot = new Vector2(0.5f, 0.5f);
-                manualBtnRect.anchoredPosition = new Vector2(-80f, -20f);
-                manualBtnRect.sizeDelta = new Vector2(140f, 50f);
+                manualBtnRect.anchoredPosition = new Vector2(-90f, -45f);
+                manualBtnRect.sizeDelta = new Vector2(110f, 110f);
             }
-            manualBtnGo.AddComponent<UnityEngine.UI.Image>().color = new Color(0.9f, 0.3f, 0.2f);
+            var manualBtnImage = manualBtnGo.AddComponent<UnityEngine.UI.Image>();
+            manualBtnImage.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(GrenadeIconPath);
+            manualBtnImage.preserveAspect = true;
+            manualBtnImage.color = Color.white;
             var manualBtn = manualBtnGo.AddComponent<UnityEngine.UI.Button>();
+            manualBtn.targetGraphic = manualBtnImage;
             manualBtn.interactable = false;
 
             var manualBtnTextGo = new GameObject("Text", typeof(RectTransform));
             manualBtnTextGo.transform.SetParent(manualBtnGo.transform, false);
+            var manualBtnTextRect = manualBtnTextGo.GetComponent<RectTransform>();
+            manualBtnTextRect.anchorMin = manualBtnTextRect.anchorMax = manualBtnTextRect.pivot = new Vector2(0.5f, 0.5f);
+            manualBtnTextRect.anchoredPosition = new Vector2(0f, -70f);
+            manualBtnTextRect.sizeDelta = new Vector2(160f, 30f);
             var manualBtnTmp = manualBtnTextGo.AddComponent<TMPro.TextMeshProUGUI>();
             manualBtnTmp.fontSize = 22;
             manualBtnTmp.alignment = TMPro.TextAlignmentOptions.Center;
@@ -911,6 +922,27 @@ namespace Game.Editor
             abilityHud.ConfigureComponents(slider, chargesTmp, manualBtn, modeBtn, modeTmp);
             abilityHud.Initialize(abilityController, eventBus);
 
+            var abilitySource = abilityHudGo.AddComponent<AudioSource>();
+            abilitySource.playOnAwake = false;
+            abilitySource.spatialBlend = 0f;
+            var abilityAudio = abilityHudGo.AddComponent<GeneralAbilityAudio>();
+            var explosionClip = AssetDatabase.LoadAssetAtPath<AudioClip>(GrenadeExplosionClipPath);
+            var serializedAbilityAudio = new SerializedObject(abilityAudio);
+            serializedAbilityAudio.FindProperty("audioSource").objectReferenceValue = abilitySource;
+            serializedAbilityAudio.FindProperty("explosionClip").objectReferenceValue = explosionClip;
+            serializedAbilityAudio.ApplyModifiedProperties();
+            abilityAudio.Initialize(eventBus);
+
+            var vfxGo = new GameObject("GrenadeExplosionVfx");
+            var vfxRenderer = vfxGo.AddComponent<SpriteRenderer>();
+            vfxRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(GrenadeExplosionSpritePath);
+            var abilityVfx = vfxGo.AddComponent<GeneralAbilityExplosionVfx>();
+            var serializedVfx = new SerializedObject(abilityVfx);
+            serializedVfx.FindProperty("spriteRenderer").objectReferenceValue = vfxRenderer;
+            serializedVfx.FindProperty("origin").objectReferenceValue = generalGo.transform;
+            serializedVfx.ApplyModifiedProperties();
+            abilityVfx.Initialize(eventBus);
+
             var composerGo = new GameObject("GreyboxRunComposer");
             var composer = composerGo.AddComponent<GreyboxRunComposer>();
             var serializedComposer = new SerializedObject(composer);
@@ -919,12 +951,15 @@ namespace Game.Editor
             serializedComposer.FindProperty("statusDirector").objectReferenceValue = Object.FindFirstObjectByType<StatusEffectDirector>();
             serializedComposer.FindProperty("abilityController").objectReferenceValue = abilityController;
             serializedComposer.FindProperty("abilityHud").objectReferenceValue = abilityHud;
+            serializedComposer.FindProperty("abilityAudio").objectReferenceValue = abilityAudio;
+            serializedComposer.FindProperty("abilityVfx").objectReferenceValue = abilityVfx;
             serializedComposer.ApplyModifiedProperties();
 
             // FollowCamera
             var camGo = new GameObject("Main Camera");
             camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>();
+            camGo.AddComponent<AudioListener>();
             cam.clearFlags = CameraClearFlags.Skybox;
             camGo.transform.rotation = Quaternion.Euler(30f, 0f, 0f);
 

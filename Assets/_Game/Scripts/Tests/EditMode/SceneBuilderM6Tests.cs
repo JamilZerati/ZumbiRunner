@@ -195,6 +195,63 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(Object.FindAnyObjectByType<StatusEffectDirector>(), serialized.FindProperty("statusDirector").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>(), serialized.FindProperty("abilityController").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityHud>(), serialized.FindProperty("abilityHud").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityAudio>(), serialized.FindProperty("abilityAudio").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityExplosionVfx>(), serialized.FindProperty("abilityVfx").objectReferenceValue);
+        }
+
+        [TestCase(SceneBuilder.GrenadeIconPath)]
+        [TestCase(SceneBuilder.GrenadeExplosionSpritePath)]
+        public void GrenadeSprites_AreImportedAsSprite(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            Assert.IsNotNull(importer, $"Sprite ausente em {path}");
+            Assert.AreEqual(TextureImporterType.Sprite, importer.textureType);
+            Assert.IsFalse(importer.mipmapEnabled);
+        }
+
+        [Test]
+        public void BuildM6GreyboxScene_ExplosionVfxUsesGeneratedSpriteAtGeneral()
+        {
+            BuildAndReopenM6Scene();
+
+            var vfx = Object.FindAnyObjectByType<GeneralAbilityExplosionVfx>();
+            Assert.IsNotNull(vfx);
+            Assert.IsNull(vfx.transform.parent, "VFX fica na raiz, fora da hierarquia do General.");
+            Assert.AreEqual(AssetDatabase.LoadAssetAtPath<Sprite>(SceneBuilder.GrenadeExplosionSpritePath), vfx.Renderer.sprite);
+            Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>().transform, vfx.Origin);
+            Assert.IsFalse(vfx.Renderer.enabled);
+        }
+
+        [Test]
+        public void BuildM6GreyboxScene_ManualTriggerButtonShowsGrenadeIcon()
+        {
+            BuildAndReopenM6Scene();
+
+            var hud = Object.FindAnyObjectByType<GeneralAbilityHud>();
+            Assert.IsNotNull(hud);
+            var image = hud.ManualTriggerButton.GetComponent<UnityEngine.UI.Image>();
+            var expected = AssetDatabase.LoadAssetAtPath<Sprite>(SceneBuilder.GrenadeIconPath);
+
+            Assert.IsNotNull(expected);
+            Assert.AreEqual(expected, image.sprite);
+            Assert.IsTrue(image.preserveAspect);
+            Assert.AreEqual(image, hud.ManualTriggerButton.targetGraphic);
+        }
+
+        [Test]
+        public void BuildM6GreyboxScene_AbilityAudioPlaysExplosionAndCameraListens()
+        {
+            BuildAndReopenM6Scene();
+
+            var audio = Object.FindAnyObjectByType<GeneralAbilityAudio>();
+            Assert.IsNotNull(audio);
+            Assert.AreEqual(AssetDatabase.LoadAssetAtPath<AudioClip>(SceneBuilder.GrenadeExplosionClipPath), audio.ExplosionClip);
+            Assert.IsNotNull(audio.Source);
+            Assert.IsFalse(audio.Source.playOnAwake);
+
+            Assert.IsNotNull(Camera.main);
+            Assert.IsNotNull(Camera.main.GetComponent<AudioListener>());
         }
 
         [Test]
