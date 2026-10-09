@@ -3,6 +3,11 @@
   "displayName": "Granada",
   "description": "Dispara uma granada na lane causando 150 de dano em área (4 m).",
   "chargeKills": 25,
+  "targeting": {
+    "type": "GroundTarget",
+    "maxRange": 20.0,
+    "radius": 4.0
+  },
   "effect": {
     "type": "GrenadeAbilityEffect"
   }

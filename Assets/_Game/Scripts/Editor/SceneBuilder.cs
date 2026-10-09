@@ -898,6 +898,12 @@ namespace Game.Editor
             serializedAbilityHud.FindProperty("modeText").objectReferenceValue = modeTmp;
             serializedAbilityHud.ApplyModifiedProperties();
 
+            // AbilityAimIndicator
+            var aimIndicatorGo = new GameObject("AbilityAimIndicator");
+            var aimIndicator = aimIndicatorGo.AddComponent<AbilityAimIndicator>();
+            aimIndicator.Initialize();
+            abilityHud.AimIndicator = aimIndicator;
+
             abilityHud.ConfigureComponents(slider, chargesTmp, manualBtn, modeBtn, modeTmp);
             abilityHud.Initialize(abilityController, eventBus);
 

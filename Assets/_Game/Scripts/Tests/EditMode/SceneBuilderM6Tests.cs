@@ -196,5 +196,18 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(Object.FindAnyObjectByType<Game.Gameplay.Abilities.GeneralAbilityController>(), serialized.FindProperty("abilityController").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityHud>(), serialized.FindProperty("abilityHud").objectReferenceValue);
         }
+
+        [Test]
+        public void BuildM6GreyboxScene_CreatesAimIndicatorAndLinksToGeneralAbilityHud()
+        {
+            BuildAndReopenM6Scene();
+
+            var hud = Object.FindAnyObjectByType<GeneralAbilityHud>();
+            Assert.IsNotNull(hud, "GeneralAbilityHud must exist in M6 Greybox scene.");
+            Assert.IsNotNull(hud.AimIndicator, "GeneralAbilityHud must reference AbilityAimIndicator.");
+
+            var indicator = Object.FindAnyObjectByType<AbilityAimIndicator>();
+            Assert.IsNotNull(indicator, "AbilityAimIndicator must exist in M6 Greybox scene.");
+        }
     }
 }

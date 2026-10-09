@@ -17,10 +17,14 @@ MonoBehaviour:
   description: "Dispara uma granada na lane causando 150 de dano em \xE1rea (4 m)."
   chargeKills: 25
   effect:
-    rid: 6580925701951324161
+    rid: 6580925848773197825
+  targeting:
+    Type: 1
+    MaxRange: 20
+    Radius: 4
   references:
     version: 2
     RefIds:
-    - rid: 6580925701951324161
+    - rid: 6580925848773197825
       type: {class: GrenadeAbilityEffect, ns: Game.Core.Abilities.Effects, asm: Game.Core}
       data: 
