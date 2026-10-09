@@ -92,6 +92,22 @@ namespace Game.Tests.PlayMode
             yield return null;
         }
 
+        private IEnumerator DragAt(Vector2 startPosition, Vector2 endPosition)
+        {
+            InputSystem.QueueStateEvent(_mouse, new MouseState { position = startPosition });
+            yield return null;
+            Assert.AreEqual(startPosition, _mouse.position.ReadValue(), "Precondição: o toque simulado precisa chegar ao Input System.");
+            InputSystem.QueueStateEvent(_mouse, new MouseState { position = startPosition }.WithButton(MouseButton.Left, true));
+            yield return null;
+            yield return null;
+            InputSystem.QueueStateEvent(_mouse, new MouseState { position = endPosition }.WithButton(MouseButton.Left, true));
+            yield return null;
+            yield return null;
+            InputSystem.QueueStateEvent(_mouse, new MouseState { position = endPosition });
+            yield return null;
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator M6DoDisco_ToqueNoBotaoManualComCarga_DisparaGranada()
         {
@@ -108,7 +124,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(1, controller.CurrentCharges, "Precondição: uma carga pronta.");
 
             var buttonCenter = (Vector2)hud.ManualTriggerButton.transform.position;
-            yield return TapAt(buttonCenter);
+            yield return DragAt(buttonCenter, buttonCenter + new Vector2(0f, 100f));
 
             Assert.AreEqual(0, controller.CurrentCharges, "Toque no botão manual deve disparar a Granada.");
         }
