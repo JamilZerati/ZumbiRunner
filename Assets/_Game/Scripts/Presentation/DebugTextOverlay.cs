@@ -18,6 +18,7 @@ namespace Game.Presentation
         private const int MaxRecentSynergies = 3;
 
         [SerializeField] private TMP_Text debugText;
+        [SerializeField] private GameObject visualRoot;
         [SerializeField] private SquadController squadController;
         [SerializeField] private CombatDirector combatDirector;
         [SerializeField] private TrackScroller trackScroller;
@@ -40,11 +41,15 @@ namespace Game.Presentation
 
         public bool IsVisible { get; private set; } = true;
         public TMP_Text DebugText => debugText;
+        public GameObject VisualRoot => visualRoot;
+        public string CurrentText => debugText != null ? debugText.text : string.Empty;
+        public bool HasDebugText => debugText != null;
         internal Func<bool> DebugBuildCheck { get; set; } = () => Debug.isDebugBuild || Application.isEditor;
 
-        public void ConfigureComponents(TMP_Text text)
+        public void ConfigureComponents(TMP_Text text, GameObject root = null)
         {
             debugText = text;
+            if (root != null) visualRoot = root;
         }
 
         public void Initialize(
@@ -53,8 +58,7 @@ namespace Game.Presentation
             CombatDirector director = null,
             TrackScroller scroller = null,
             WeaponController weapon = null,
-            GeneralAbilityController ability = null,
-            TMP_Text text = null)
+            GeneralAbilityController ability = null)
         {
             Unsubscribe();
 
@@ -64,7 +68,6 @@ namespace Game.Presentation
             if (scroller != null) trackScroller = scroller;
             if (weapon != null) weaponController = weapon;
             if (ability != null) abilityController = ability;
-            if (text != null) debugText = text;
 
             if (_eventBus != null)
             {
@@ -145,7 +148,11 @@ namespace Game.Presentation
         public void SetVisible(bool visible)
         {
             IsVisible = visible;
-            if (debugText != null)
+            if (visualRoot != null)
+            {
+                visualRoot.SetActive(visible);
+            }
+            else if (debugText != null)
             {
                 debugText.gameObject.SetActive(visible);
             }

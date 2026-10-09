@@ -18,6 +18,7 @@ namespace Game.Composition
         [SerializeField] private GeneralAbilityHud abilityHud;
         [SerializeField] private GeneralAbilityAudio abilityAudio;
         [SerializeField] private GeneralAbilityExplosionVfx abilityVfx;
+        [SerializeField] private DebugTextOverlay debugOverlay;
 
         public IEventBus EventBus { get; private set; }
 
@@ -28,7 +29,8 @@ namespace Game.Composition
             GeneralAbilityController controller,
             GeneralAbilityHud hud,
             GeneralAbilityAudio audio = null,
-            GeneralAbilityExplosionVfx vfx = null)
+            GeneralAbilityExplosionVfx vfx = null,
+            DebugTextOverlay overlay = null)
         {
             combatDirector = director;
             hordeSpawner = spawner;
@@ -37,6 +39,7 @@ namespace Game.Composition
             abilityHud = hud;
             abilityAudio = audio;
             abilityVfx = vfx;
+            debugOverlay = overlay;
         }
 
         public void Compose(IEventBus eventBus)
@@ -81,6 +84,14 @@ namespace Game.Composition
             if (abilityVfx != null)
             {
                 abilityVfx.Initialize(eventBus);
+            }
+
+            if (debugOverlay != null)
+            {
+                var squad = combatDirector != null ? combatDirector.Squad : FindFirstObjectByType<SquadController>();
+                var scroller = combatDirector != null ? combatDirector.Scroller : FindFirstObjectByType<TrackScroller>();
+                var weapon = combatDirector != null ? combatDirector.GetComponent<WeaponController>() : FindFirstObjectByType<WeaponController>();
+                debugOverlay.Initialize(eventBus, squad, combatDirector, scroller, weapon, abilityController);
             }
         }
 

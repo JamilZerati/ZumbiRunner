@@ -197,6 +197,19 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityHud>(), serialized.FindProperty("abilityHud").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityAudio>(), serialized.FindProperty("abilityAudio").objectReferenceValue);
             Assert.AreEqual(Object.FindAnyObjectByType<GeneralAbilityExplosionVfx>(), serialized.FindProperty("abilityVfx").objectReferenceValue);
+            Assert.AreEqual(Object.FindAnyObjectByType<DebugTextOverlay>(), serialized.FindProperty("debugOverlay").objectReferenceValue);
+        }
+
+        [Test]
+        public void BuildM6GreyboxScene_BuildsDebugOverlayUnderCanvas()
+        {
+            BuildAndReopenM6Scene();
+
+            var overlay = Object.FindAnyObjectByType<DebugTextOverlay>();
+            Assert.IsNotNull(overlay);
+            Assert.IsNotNull(overlay.DebugText);
+            Assert.IsNotNull(overlay.VisualRoot);
+            Assert.AreEqual("Canvas", overlay.transform.parent.name);
         }
 
         [TestCase(SceneBuilder.GrenadeIconPath)]

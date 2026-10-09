@@ -57,7 +57,8 @@ namespace Game.Tests.EditMode
             var squad = squadGo.AddComponent<SquadController>();
             squad.Initialize(7, bus);
 
-            overlay.Initialize(bus, squad: squad, text: tmp);
+            overlay.ConfigureComponents(tmp);
+            overlay.Initialize(bus, squad: squad);
 
             // Simula frame de update
             overlay.Refresh();
@@ -76,7 +77,8 @@ namespace Game.Tests.EditMode
             var tmp = textGo.AddComponent<TextMeshProUGUI>();
 
             var bus = new EventBus();
-            overlay.Initialize(bus, text: tmp);
+            overlay.ConfigureComponents(tmp);
+            overlay.Initialize(bus);
 
             bus.Publish(new GateTriggeredEvent(1, "perk_rapid_fire"));
             bus.Publish(new SynergyTriggeredEvent("shatter", null, 15, 30));
@@ -101,7 +103,8 @@ namespace Game.Tests.EditMode
             var tmp = textGo.AddComponent<TextMeshProUGUI>();
 
             var bus = new EventBus();
-            overlay.Initialize(bus, text: tmp);
+            overlay.ConfigureComponents(tmp);
+            overlay.Initialize(bus);
 
             Assert.IsTrue(overlay.IsVisible);
             Assert.IsTrue(textGo.activeSelf);
