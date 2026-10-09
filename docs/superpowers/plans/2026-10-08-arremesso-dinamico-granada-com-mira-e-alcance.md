@@ -61,7 +61,7 @@ graph TD
 - Consumes: `AbilityPosition`, `IAbilityEffect`, `IAbilityDamageSink`.
 - Produces: `AbilityTargetingType`, `AbilityTargetingConfig.ClampTarget()`, `AbilityExecutionContext.TargetPosition`.
 
-- [ ] **Step 1: Escrever teste Red para `AbilityTargetingConfig` e `ClampTarget`**
+- [x] **Step 1: Escrever teste Red para `AbilityTargetingConfig` e `ClampTarget`**
 
 ```csharp
 // Assets/_Game/Scripts/Tests/EditMode/AbilityTargetingCoreTests.cs
@@ -115,9 +115,9 @@ namespace Game.Tests.EditMode
 }
 ```
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e confirmar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e confirmar falha Red**
 
-- [ ] **Step 3: Implementar `AbilityTargetingType.cs`, `AbilityTargetingConfig.cs` e atualizar `AbilityExecutionContext`**
+- [x] **Step 3: Implementar `AbilityTargetingType.cs`, `AbilityTargetingConfig.cs` e atualizar `AbilityExecutionContext`**
 
 ```csharp
 // Assets/_Game/Scripts/Core/Abilities/AbilityTargetingType.cs
@@ -172,9 +172,9 @@ var center = context.TargetPosition.Z != 0f || context.TargetPosition.X != 0f ? 
 context.DamageSink.ApplyAreaDamage(center, DefaultRadius, DefaultDamage, DamageType.Area, this);
 ```
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
 
-- [ ] **Step 5: Commitar Task 1**
+- [x] **Step 5: Commitar Task 1**
 ```bash
 git add Assets/_Game/Scripts/Core/ Assets/_Game/Scripts/Tests/EditMode/AbilityTargetingCoreTests.cs
 git commit -m "feat(core): adicionar AbilityTargetingType e configuracao de mira com clamping [NEX-651]"
@@ -194,7 +194,7 @@ git commit -m "feat(core): adicionar AbilityTargetingType e configuracao de mira
 - Consumes: `AbilityTargetingConfig`, `GeneralAbilityDefinition`.
 - Produces: Importação via `tools/unity import-content`.
 
-- [ ] **Step 1: Atualizar `AbilityImporterTests.cs` com asserções sobre `Targeting`**
+- [x] **Step 1: Atualizar `AbilityImporterTests.cs` com asserções sobre `Targeting`**
 
 ```csharp
 Assert.IsNotNull(def.Targeting);
@@ -203,9 +203,9 @@ Assert.AreEqual(20f, def.Targeting.MaxRange);
 Assert.AreEqual(4f, def.Targeting.Radius);
 ```
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Atualizar `grenade.json`, `GeneralAbilityDefinition.cs` e `AbilityImporter.cs`**
+- [x] **Step 3: Atualizar `grenade.json`, `GeneralAbilityDefinition.cs` e `AbilityImporter.cs`**
 
 Em `grenade.json`:
 ```json
@@ -233,9 +233,9 @@ public AbilityTargetingConfig Targeting => targeting;
 
 Em `AbilityImporter.cs`: deserializar a chave `targeting` e preencher no ScriptableObject gerado.
 
-- [ ] **Step 4: Rodar `./tools/unity import-content` e `./tools/unity test-edit` (Green)**
+- [x] **Step 4: Rodar `./tools/unity import-content` e `./tools/unity test-edit` (Green)**
 
-- [ ] **Step 5: Commitar Task 2**
+- [x] **Step 5: Commitar Task 2**
 ```bash
 git add Content/Source/Abilities/ Assets/_Game/Scripts/Data/ Assets/_Game/Scripts/Editor/ Assets/_Game/Scripts/Tests/EditMode/AbilityImporterTests.cs
 git commit -m "feat(data): expor configuracao de targeting no JSON da granada e importer [NEX-651]"
@@ -253,13 +253,13 @@ git commit -m "feat(data): expor configuracao de targeting no JSON da granada e 
 - Consumes: `AbilityTargetingConfig`, `AbilityPosition`.
 - Produces: `TriggerAbility(bool manual = false, AbilityPosition? targetOverride = null)`.
 
-- [ ] **Step 1: Escrever testes Red em `GeneralAbilityGameplayTests.cs`**
+- [x] **Step 1: Escrever testes Red em `GeneralAbilityGameplayTests.cs`**
   - Testar que disparar com `targetOverride` aplica o dano centrado na posição Z mirada e atinge inimigos no raio de 4 m daquele ponto.
   - Testar que disparar no modo Auto calcula automaticamente a posição à frente na lane atual.
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Implementar suporte a `targetOverride` em `GeneralAbilityController.cs`**
+- [x] **Step 3: Implementar suporte a `targetOverride` em `GeneralAbilityController.cs`**
 
 ```csharp
 public bool TriggerAbility(bool manual = false, AbilityPosition? targetOverride = null)
@@ -297,9 +297,9 @@ public bool TriggerAbility(bool manual = false, AbilityPosition? targetOverride 
 }
 ```
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e verificar se passou Green**
 
-- [ ] **Step 5: Commitar Task 3**
+- [x] **Step 5: Commitar Task 3**
 ```bash
 git add Assets/_Game/Scripts/Gameplay/Abilities/ Assets/_Game/Scripts/Tests/EditMode/GeneralAbilityGameplayTests.cs
 git commit -m "feat(gameplay): suportar alvo customizado e limite de alcance no controller [NEX-651]"
@@ -318,20 +318,20 @@ git commit -m "feat(gameplay): suportar alvo customizado e limite de alcance no 
 - Consumes: `AbilityTargetingConfig`, `Vector3`.
 - Produces: `AbilityAimIndicator.Show()`, `AbilityAimIndicator.UpdateAim()`, `AbilityAimIndicator.Hide()`.
 
-- [ ] **Step 1: Escrever testes Red para `AbilityAimIndicator`**
+- [x] **Step 1: Escrever testes Red para `AbilityAimIndicator`**
   - Testar ativação/desativação do renderer.
   - Testar posicionamento da retícula nas coordenadas de mundo.
   - Testar troca de estado visual para cancelamento.
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Implementar `AbilityAimIndicator.cs`**
+- [x] **Step 3: Implementar `AbilityAimIndicator.cs`**
   - Renderiza círculo plano de raio `Radius` no chão (`Y = 0.05f`).
   - Atualiza posição em tempo real e muda cor para avermelhado quando `isCanceling == true`.
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e validar Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e validar Green**
 
-- [ ] **Step 5: Commitar Task 4**
+- [x] **Step 5: Commitar Task 4**
 ```bash
 git add Assets/_Game/Scripts/Presentation/ Assets/_Game/Scripts/Tests/EditMode/AbilityAimIndicatorTests.cs
 git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-651]"
@@ -350,26 +350,26 @@ git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-
 - Consumes: `IPointerDownHandler`, `IDragHandler`, `IPointerUpHandler`, `AbilityAimIndicator`.
 - Produces: Disparo de mira manual e controle de `Time.timeScale`.
 
-- [ ] **Step 1: Escrever testes Red para os eventos de mira do HUD**
+- [x] **Step 1: Escrever testes Red para os eventos de mira do HUD**
   - Testar que para `Instant`, clique dispara diretamente.
   - Testar que para `GroundTarget`, pointer down inicia slow motion e timer.
   - Testar que pointer up na zona morta cancela sem disparar.
   - Testar que timeout de 3s força o disparo.
 
-- [ ] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
+- [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Implementar joystick relativo no `GeneralAbilityHud.cs`**
+- [x] **Step 3: Implementar joystick relativo no `GeneralAbilityHud.cs`**
   - Implementar interfaces de ponteiro do Unity UI.
   - Gerenciar `Time.timeScale = 0.3f` durante mira e restauração para `1.0f`.
   - Integrar `AbilityAimIndicator` na inicialização do HUD.
   - Atualizar `SceneBuilder.cs` para instanciar o indicador na cena M6.
 
-- [ ] **Step 4: Executar `./tools/unity test-edit` e validar Green**
+- [x] **Step 4: Executar `./tools/unity test-edit` e validar Green**
 
-- [ ] **Step 5: Commitar Task 5**
+- [x] **Step 5: Commitar Task 5**
 ```bash
 git add Assets/_Game/Scripts/Presentation/ Assets/_Game/Scripts/Editor/SceneBuilder.cs Assets/_Game/Scripts/Tests/EditMode/GeneralAbilityHudTests.cs
-git commit -m "feat(presentation): implementar controle por arraste no HUD com slow motion e timeout [NEX-651]"
+git commit -m "feat(presentation): implementar controle por arraste no HUD com slow motion e timeout [NEX-879]"
 ```
 
 ---
@@ -384,20 +384,20 @@ git commit -m "feat(presentation): implementar controle por arraste no HUD com s
 - Consumes: Toda a pilha integrada na cena M6.
 - Produces: Validação PlayMode de ponta a ponta e portão verde.
 
-- [ ] **Step 1: Criar testes PlayMode cobrindo:**
+- [x] **Step 1: Criar testes PlayMode cobrindo:**
   - Simulação de toque no botão manual com arraste para frente.
   - Verificação de desaceleração de tempo e restauração.
   - Verificação de dano e abates aplicados nas coordenadas exatas da lane e Z mirados.
 
-- [ ] **Step 2: Rodar portão completo pelo harness:**
+- [x] **Step 2: Rodar portão completo pelo harness:**
   - `./tools/unity compile` (0 erros)
   - `./tools/unity test-edit` (todos passando)
   - `./tools/unity test-play` (todos passando)
 
-- [ ] **Step 3: Commitar Task 6 e restaurar ruído de regeneração**
+- [x] **Step 3: Commitar Task 6 e restaurar ruído de regeneração**
 ```bash
-git add Assets/_Game/Scripts/Tests/PlayMode/
-git commit -m "test(playmode): validar ciclo de mira e arremesso dinâmico da granada [NEX-651]"
+git add Assets/_Game/Scripts/Tests/PlayMode/ Assets/_Game/Scripts/Tests/EditMode/SceneBuilderM6Tests.cs Assets/_Game/Scripts/Gameplay/Abilities/GeneralAbilityController.cs docs/superpowers/plans/
+git commit -m "test(playmode): validar ciclo de mira e arremesso dinamico [NEX-879]"
 ```
 
 ---

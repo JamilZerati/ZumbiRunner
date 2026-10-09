@@ -7,12 +7,14 @@ using Game.Gameplay.Abilities;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace Game.Presentation
 {
-    public class GeneralAbilityHud : MonoBehaviour
+    public class GeneralAbilityHud : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
     {
         [SerializeField] private GeneralAbilityController controller;
+        [SerializeField] private AbilityAimIndicator aimIndicator;
         [SerializeField] private Slider progressSlider;
         [SerializeField] private TMP_Text chargesText;
         [SerializeField] private Button manualTriggerButton;
@@ -39,6 +41,7 @@ namespace Game.Presentation
         public TMP_Text ModeText => modeText;
         public HeroAbilityTriggerMode CurrentMode => _currentMode;
         public IAbilitySettings Settings => _settings;
+        public AbilityAimIndicator AimIndicator { get => aimIndicator; set => aimIndicator = value; }
         public int DisplayedCharges { get; private set; }
         public int DisplayedKills { get; private set; }
         public int DisplayedTargetKills { get; private set; }
@@ -125,7 +128,11 @@ namespace Game.Presentation
         {
             if (controller != null)
             {
-                controller.TriggerAbility(manual: true);
+                var config = controller.Definition?.Targeting;
+                if (config == null || config.Type == Game.Core.Abilities.AbilityTargetingType.Instant)
+                {
+                    controller.TriggerAbility(manual: true);
+                }
             }
         }
 
@@ -200,6 +207,23 @@ namespace Game.Presentation
             if (manualTriggerButton != null)
             {
                 manualTriggerButton.onClick.AddListener(OnManualButtonClicked);
+
+                var trigger = manualTriggerButton.gameObject.GetComponent<EventTrigger>();
+                if (trigger == null) trigger = manualTriggerButton.gameObject.AddComponent<EventTrigger>();
+                
+                trigger.triggers.Clear();
+                
+                var pd = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+                pd.callback.AddListener((data) => OnPointerDown((PointerEventData)data));
+                trigger.triggers.Add(pd);
+
+                var d = new EventTrigger.Entry { eventID = EventTriggerType.Drag };
+                d.callback.AddListener((data) => OnDrag((PointerEventData)data));
+                trigger.triggers.Add(d);
+
+                var pu = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+                pu.callback.AddListener((data) => OnPointerUp((PointerEventData)data));
+                trigger.triggers.Add(pu);
             }
 
             if (modeToggleButton != null)
@@ -218,6 +242,9 @@ namespace Game.Presentation
             if (manualTriggerButton != null)
             {
                 manualTriggerButton.onClick.RemoveListener(OnManualButtonClicked);
+
+                var trigger = manualTriggerButton.gameObject.GetComponent<EventTrigger>();
+                if (trigger != null) trigger.triggers.Clear();
             }
 
             if (modeToggleButton != null)
@@ -257,6 +284,123 @@ namespace Game.Presentation
         {
             UnbindUiListeners();
             CleanupSubscriptions();
+        }
+
+        private bool _isAiming;
+        private float _aimStartTime;
+        private Vector2 _pointerDownPosition;
+        private Vector2 _currentPointerPosition;
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (controller == null || controller.CurrentCharges <= 0) return;
+
+            var config = controller.Definition?.Targeting;
+            if (config != null && config.Type == Game.Core.Abilities.AbilityTargetingType.GroundTarget)
+            {
+                _isAiming = true;
+                _aimStartTime = Time.unscaledTime;
+                _pointerDownPosition = eventData != null ? eventData.position : Vector2.zero;
+                _currentPointerPosition = _pointerDownPosition;
+                Time.timeScale = 0.3f;
+                
+                if (aimIndicator != null)
+                {
+                    aimIndicator.Show(config.Radius);
+                }
+                UpdateAimVisuals();
+            }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!_isAiming) return;
+            _currentPointerPosition = eventData != null ? eventData.position : _pointerDownPosition;
+            UpdateAimVisuals();
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (!_isAiming) return;
+            
+            _isAiming = false;
+            Time.timeScale = 1.0f;
+            
+            if (aimIndicator != null)
+            {
+                aimIndicator.Hide();
+            }
+
+            if (eventData != null)
+            {
+                _currentPointerPosition = eventData.position;
+            }
+
+            bool isCanceling = Vector2.Distance(_pointerDownPosition, _currentPointerPosition) < 35f;
+            
+            if (!isCanceling)
+            {
+                var targetPos = CalculateTargetPosition();
+                controller.TriggerAbility(manual: true, targetOverride: targetPos);
+            }
+        }
+
+        private void Update()
+        {
+            if (_isAiming)
+            {
+                if (Time.unscaledTime - _aimStartTime >= 3f)
+                {
+                    _isAiming = false;
+                    Time.timeScale = 1.0f;
+                    if (aimIndicator != null)
+                    {
+                        aimIndicator.Hide();
+                    }
+                    var targetPos = CalculateTargetPosition();
+                    controller.TriggerAbility(manual: true, targetOverride: targetPos);
+                }
+                else
+                {
+                    UpdateAimVisuals();
+                }
+            }
+        }
+
+        private void UpdateAimVisuals()
+        {
+            if (aimIndicator != null && controller != null)
+            {
+                bool isCanceling = Vector2.Distance(_pointerDownPosition, _currentPointerPosition) < 35f;
+                var targetPos = CalculateTargetPosition();
+                aimIndicator.UpdateAim(new Vector3(targetPos.X, 0f, targetPos.Z), isCanceling);
+            }
+        }
+
+        private Game.Core.Abilities.AbilityPosition CalculateTargetPosition()
+        {
+            if (controller == null || controller.Definition == null) return new Game.Core.Abilities.AbilityPosition(0,0,0);
+            
+            var config = controller.Definition.Targeting;
+            Vector2 delta = _currentPointerPosition - _pointerDownPosition;
+            
+            float maxDrag = 200f;
+            float dragDistance = Mathf.Clamp(delta.magnitude, 0f, maxDrag);
+            float normalizedDistance = dragDistance / maxDrag;
+            
+            float maxRange = config != null ? config.MaxRange : 20f;
+            float targetDistance = Mathf.Lerp(0f, maxRange, normalizedDistance);
+            
+            Vector3 origin = controller.transform.position;
+            Vector3 direction = new Vector3(delta.x, 0f, delta.y).normalized;
+            if (direction.sqrMagnitude < 0.01f)
+            {
+                direction = Vector3.forward;
+                targetDistance = maxRange * 0.5f;
+            }
+            
+            Vector3 worldPos = origin + direction * targetDistance;
+            return new Game.Core.Abilities.AbilityPosition(worldPos.x, worldPos.y, worldPos.z);
         }
     }
 }
