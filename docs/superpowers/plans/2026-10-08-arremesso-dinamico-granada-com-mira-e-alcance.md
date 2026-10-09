@@ -350,7 +350,7 @@ git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-
 - Consumes: `IPointerDownHandler`, `IDragHandler`, `IPointerUpHandler`, `AbilityAimIndicator`.
 - Produces: Disparo de mira manual e controle de `Time.timeScale`.
 
-- [ ] **Step 1: Escrever testes Red para os eventos de mira do HUD**
+- [x] **Step 1: Escrever testes Red para os eventos de mira do HUD**
   - Testar que para `Instant`, clique dispara diretamente.
   - Testar que para `GroundTarget`, pointer down inicia slow motion e timer.
   - Testar que pointer up na zona morta cancela sem disparar.
@@ -358,7 +358,7 @@ git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-
 
 - [x] **Step 2: Executar `./tools/unity test-edit` e validar falha Red**
 
-- [ ] **Step 3: Implementar joystick relativo no `GeneralAbilityHud.cs`**
+- [x] **Step 3: Implementar joystick relativo no `GeneralAbilityHud.cs`**
   - Implementar interfaces de ponteiro do Unity UI.
   - Gerenciar `Time.timeScale = 0.3f` durante mira e restauração para `1.0f`.
   - Integrar `AbilityAimIndicator` na inicialização do HUD.
@@ -366,10 +366,10 @@ git commit -m "feat(presentation): adicionar indicador de mira 3D na pista [NEX-
 
 - [x] **Step 4: Executar `./tools/unity test-edit` e validar Green**
 
-- [ ] **Step 5: Commitar Task 5**
+- [x] **Step 5: Commitar Task 5**
 ```bash
 git add Assets/_Game/Scripts/Presentation/ Assets/_Game/Scripts/Editor/SceneBuilder.cs Assets/_Game/Scripts/Tests/EditMode/GeneralAbilityHudTests.cs
-git commit -m "feat(presentation): implementar controle por arraste no HUD com slow motion e timeout [NEX-651]"
+git commit -m "feat(presentation): implementar controle por arraste no HUD com slow motion e timeout [NEX-879]"
 ```
 
 ---
