@@ -126,13 +126,15 @@ namespace Game.Presentation
 
         private void OnManualButtonClicked()
         {
+            if (_wasCancelDrag)
+            {
+                _wasCancelDrag = false;
+                return;
+            }
+
             if (controller != null)
             {
-                var config = controller.Definition?.Targeting;
-                if (config == null || config.Type == Game.Core.Abilities.AbilityTargetingType.Instant)
-                {
-                    controller.TriggerAbility(manual: true);
-                }
+                controller.TriggerAbility(manual: true);
             }
         }
 
@@ -290,10 +292,15 @@ namespace Game.Presentation
         private float _aimStartTime;
         private Vector2 _pointerDownPosition;
         private Vector2 _currentPointerPosition;
+        private bool _hasDragged;
+        private bool _wasCancelDrag;
 
         public void OnPointerDown(PointerEventData eventData)
         {
             if (controller == null || controller.CurrentCharges <= 0) return;
+
+            _hasDragged = false;
+            _wasCancelDrag = false;
 
             var config = controller.Definition?.Targeting;
             if (config != null && config.Type == Game.Core.Abilities.AbilityTargetingType.GroundTarget)
@@ -315,6 +322,7 @@ namespace Game.Presentation
         public void OnDrag(PointerEventData eventData)
         {
             if (!_isAiming) return;
+            _hasDragged = true;
             _currentPointerPosition = eventData != null ? eventData.position : _pointerDownPosition;
             UpdateAimVisuals();
         }
@@ -337,6 +345,11 @@ namespace Game.Presentation
             }
 
             bool isCanceling = Vector2.Distance(_pointerDownPosition, _currentPointerPosition) < 35f;
+
+            if (_hasDragged && isCanceling)
+            {
+                _wasCancelDrag = true;
+            }
             
             if (!isCanceling)
             {
