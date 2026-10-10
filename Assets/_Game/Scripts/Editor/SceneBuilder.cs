@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Game.Composition;
 using Game.Core;
+using Game.Core.Events;
 using Game.Data;
 using Game.Gameplay;
+using Game.Gameplay.Abilities;
 using Game.Infrastructure;
 using Game.Infrastructure.Input;
 using Game.Presentation;
@@ -23,6 +25,9 @@ namespace Game.Editor
         public const string M4GreyboxScenePath = "Assets/_Game/Scenes/M4_Greybox.unity";
         public const string M5GreyboxScenePath = "Assets/_Game/Scenes/M5_Greybox.unity";
         public const string M6GreyboxScenePath = "Assets/_Game/Scenes/M6_Greybox.unity";
+        public const string GrenadeIconPath = "Assets/_Game/Art/UI/grenade_icon.png";
+        public const string GrenadeExplosionClipPath = "Assets/_Game/Audio/SFX/grenade_explosion.ogg";
+        public const string GrenadeExplosionSpritePath = "Assets/_Game/Art/VFX/grenade_explosion.png";
 
         [MenuItem("Horde Runner/Scenes/Build Bootstrap Scene")]
         public static void BuildBootstrapScene()
@@ -739,10 +744,11 @@ namespace Game.Editor
             spawner.SpawnWave(1, 4, 105f, 2f);
 
             // CombatDirector
+            var eventBus = new EventBus();
             var director = generalGo.AddComponent<CombatDirector>();
             var stateMachine = new GameStateMachine(null, GameState.Boot);
             stateMachine.TryTransition(GameState.Run);
-            director.Initialize(squad, scroller, stateMachine, 120f, spawner);
+            director.Initialize(squad, scroller, stateMachine, 120f, spawner, eventBus);
 
             var serializedDirector = new SerializedObject(director);
             var dirSquadProp = serializedDirector.FindProperty("squad");
@@ -755,6 +761,18 @@ namespace Game.Editor
             if (dirVictoryProp != null) dirVictoryProp.floatValue = 120f;
             serializedDirector.ApplyModifiedProperties();
 
+            // GeneralAbilityController
+            var abilityDef = AssetDatabase.LoadAssetAtPath<GeneralAbilityDefinition>("Assets/_Game/Data/Abilities/grenade.asset");
+            var abilityController = generalGo.AddComponent<GeneralAbilityController>();
+            var serializedAbility = new SerializedObject(abilityController);
+            var defProp = serializedAbility.FindProperty("definition");
+            if (defProp != null)
+            {
+                defProp.objectReferenceValue = abilityDef;
+                serializedAbility.ApplyModifiedProperties();
+            }
+            abilityController.Initialize(abilityDef, eventBus, generalTransform: generalGo.transform);
+
             // HUD
             var canvasGo = new GameObject("Canvas");
             canvasGo.AddComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -762,6 +780,10 @@ namespace Game.Editor
             scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             canvasGo.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            var eventSystemGo = new GameObject("EventSystem");
+            eventSystemGo.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystemGo.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
 
             var hudGo = new GameObject("SquadCountHud", typeof(RectTransform));
             hudGo.transform.SetParent(canvasGo.transform, false);
@@ -789,12 +811,215 @@ namespace Game.Editor
             serializedHud.FindProperty("squadController").objectReferenceValue = squad;
             serializedHud.ApplyModifiedProperties();
             hud.SetCountText(tmp);
-            hud.Initialize(null, squad.SquadCount);
+            hud.Initialize(eventBus, squad.SquadCount);
+
+            // GeneralAbilityHud
+            var abilityHudGo = new GameObject("GeneralAbilityHud", typeof(RectTransform));
+            abilityHudGo.transform.SetParent(canvasGo.transform, false);
+            var abilityHudRect = abilityHudGo.GetComponent<RectTransform>();
+            if (abilityHudRect != null)
+            {
+                abilityHudRect.anchorMin = abilityHudRect.anchorMax = abilityHudRect.pivot = new Vector2(0.5f, 0f);
+                abilityHudRect.anchoredPosition = new Vector2(0f, 160f);
+                abilityHudRect.sizeDelta = new Vector2(500f, 220f);
+            }
+            var abilityHud = abilityHudGo.AddComponent<GeneralAbilityHud>();
+
+            var sliderGo = new GameObject("ProgressSlider", typeof(RectTransform));
+            sliderGo.transform.SetParent(abilityHudGo.transform, false);
+            var sliderRect = sliderGo.GetComponent<RectTransform>();
+            if (sliderRect != null)
+            {
+                sliderRect.anchorMin = sliderRect.anchorMax = sliderRect.pivot = new Vector2(0.5f, 0.5f);
+                sliderRect.anchoredPosition = new Vector2(0f, 40f);
+                sliderRect.sizeDelta = new Vector2(300f, 20f);
+            }
+            var slider = sliderGo.AddComponent<UnityEngine.UI.Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 25f;
+            slider.value = 0f;
+
+            var chargesTextGo = new GameObject("ChargesText", typeof(RectTransform));
+            chargesTextGo.transform.SetParent(abilityHudGo.transform, false);
+            var chargesRect = chargesTextGo.GetComponent<RectTransform>();
+            if (chargesRect != null)
+            {
+                chargesRect.anchorMin = chargesRect.anchorMax = chargesRect.pivot = new Vector2(0.5f, 0.5f);
+                chargesRect.anchoredPosition = new Vector2(0f, 75f);
+                chargesRect.sizeDelta = new Vector2(300f, 40f);
+            }
+            var chargesTmp = chargesTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            chargesTmp.fontSize = 28;
+            chargesTmp.fontStyle = TMPro.FontStyles.Bold;
+            chargesTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            chargesTmp.color = Color.white;
+            chargesTmp.text = "Cargas: 0";
+
+            var manualBtnGo = new GameObject("ManualTriggerButton", typeof(RectTransform));
+            manualBtnGo.transform.SetParent(abilityHudGo.transform, false);
+            var manualBtnRect = manualBtnGo.GetComponent<RectTransform>();
+            if (manualBtnRect != null)
+            {
+                manualBtnRect.anchorMin = manualBtnRect.anchorMax = manualBtnRect.pivot = new Vector2(0.5f, 0.5f);
+                manualBtnRect.anchoredPosition = new Vector2(-90f, -45f);
+                manualBtnRect.sizeDelta = new Vector2(110f, 110f);
+            }
+            var manualBtnImage = manualBtnGo.AddComponent<UnityEngine.UI.Image>();
+            manualBtnImage.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(GrenadeIconPath);
+            manualBtnImage.preserveAspect = true;
+            manualBtnImage.color = Color.white;
+            var manualBtn = manualBtnGo.AddComponent<UnityEngine.UI.Button>();
+            manualBtn.targetGraphic = manualBtnImage;
+            manualBtn.interactable = false;
+
+            var manualBtnTextGo = new GameObject("Text", typeof(RectTransform));
+            manualBtnTextGo.transform.SetParent(manualBtnGo.transform, false);
+            var manualBtnTextRect = manualBtnTextGo.GetComponent<RectTransform>();
+            manualBtnTextRect.anchorMin = manualBtnTextRect.anchorMax = manualBtnTextRect.pivot = new Vector2(0.5f, 0.5f);
+            manualBtnTextRect.anchoredPosition = new Vector2(0f, -70f);
+            manualBtnTextRect.sizeDelta = new Vector2(160f, 30f);
+            var manualBtnTmp = manualBtnTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            manualBtnTmp.fontSize = 22;
+            manualBtnTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            manualBtnTmp.color = Color.white;
+            manualBtnTmp.text = "Disparar";
+
+            var modeBtnGo = new GameObject("ModeToggleButton", typeof(RectTransform));
+            modeBtnGo.transform.SetParent(abilityHudGo.transform, false);
+            var modeBtnRect = modeBtnGo.GetComponent<RectTransform>();
+            if (modeBtnRect != null)
+            {
+                modeBtnRect.anchorMin = modeBtnRect.anchorMax = modeBtnRect.pivot = new Vector2(0.5f, 0.5f);
+                modeBtnRect.anchoredPosition = new Vector2(80f, -20f);
+                modeBtnRect.sizeDelta = new Vector2(140f, 50f);
+            }
+            modeBtnGo.AddComponent<UnityEngine.UI.Image>().color = new Color(0.2f, 0.6f, 0.9f);
+            var modeBtn = modeBtnGo.AddComponent<UnityEngine.UI.Button>();
+
+            var modeTextGo = new GameObject("ModeText", typeof(RectTransform));
+            modeTextGo.transform.SetParent(modeBtnGo.transform, false);
+            var modeTmp = modeTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            modeTmp.fontSize = 22;
+            modeTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            modeTmp.color = Color.white;
+            modeTmp.text = "Auto";
+
+            var serializedAbilityHud = new SerializedObject(abilityHud);
+            serializedAbilityHud.FindProperty("controller").objectReferenceValue = abilityController;
+            serializedAbilityHud.FindProperty("progressSlider").objectReferenceValue = slider;
+            serializedAbilityHud.FindProperty("chargesText").objectReferenceValue = chargesTmp;
+            serializedAbilityHud.FindProperty("manualTriggerButton").objectReferenceValue = manualBtn;
+            serializedAbilityHud.FindProperty("modeToggleButton").objectReferenceValue = modeBtn;
+            serializedAbilityHud.FindProperty("modeText").objectReferenceValue = modeTmp;
+            serializedAbilityHud.ApplyModifiedProperties();
+
+            // AbilityAimIndicator
+            var aimIndicatorGo = new GameObject("AbilityAimIndicator");
+            var aimIndicator = aimIndicatorGo.AddComponent<AbilityAimIndicator>();
+            aimIndicator.Initialize();
+            abilityHud.AimIndicator = aimIndicator;
+
+            abilityHud.ConfigureComponents(slider, chargesTmp, manualBtn, modeBtn, modeTmp);
+            abilityHud.Initialize(abilityController, eventBus);
+
+            var abilitySource = abilityHudGo.AddComponent<AudioSource>();
+            abilitySource.playOnAwake = false;
+            abilitySource.spatialBlend = 0f;
+            var abilityAudio = abilityHudGo.AddComponent<GeneralAbilityAudio>();
+            var explosionClip = AssetDatabase.LoadAssetAtPath<AudioClip>(GrenadeExplosionClipPath);
+            var serializedAbilityAudio = new SerializedObject(abilityAudio);
+            serializedAbilityAudio.FindProperty("audioSource").objectReferenceValue = abilitySource;
+            serializedAbilityAudio.FindProperty("explosionClip").objectReferenceValue = explosionClip;
+            serializedAbilityAudio.ApplyModifiedProperties();
+            abilityAudio.Initialize(eventBus);
+
+            var vfxGo = new GameObject("GrenadeExplosionVfx");
+            var vfxRenderer = vfxGo.AddComponent<SpriteRenderer>();
+            vfxRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(GrenadeExplosionSpritePath);
+            var abilityVfx = vfxGo.AddComponent<GeneralAbilityExplosionVfx>();
+            var serializedVfx = new SerializedObject(abilityVfx);
+            serializedVfx.FindProperty("spriteRenderer").objectReferenceValue = vfxRenderer;
+            serializedVfx.FindProperty("origin").objectReferenceValue = generalGo.transform;
+            serializedVfx.ApplyModifiedProperties();
+            abilityVfx.Initialize(eventBus);
+
+            // DebugOverlay
+            var debugOverlayGo = new GameObject("DebugOverlay", typeof(RectTransform));
+            debugOverlayGo.transform.SetParent(canvasGo.transform, false);
+            var debugOverlayRect = debugOverlayGo.GetComponent<RectTransform>();
+            if (debugOverlayRect != null)
+            {
+                debugOverlayRect.anchorMin = new Vector2(0f, 1f);
+                debugOverlayRect.anchorMax = new Vector2(1f, 1f);
+                debugOverlayRect.pivot = new Vector2(0.5f, 1f);
+                debugOverlayRect.anchoredPosition = new Vector2(0f, -10f);
+                debugOverlayRect.sizeDelta = new Vector2(-40f, 480f);
+            }
+            var debugOverlay = debugOverlayGo.AddComponent<DebugTextOverlay>();
+
+            var panelGo = new GameObject("Panel", typeof(RectTransform));
+            panelGo.transform.SetParent(debugOverlayGo.transform, false);
+            var panelRect = panelGo.GetComponent<RectTransform>();
+            if (panelRect != null)
+            {
+                panelRect.anchorMin = Vector2.zero;
+                panelRect.anchorMax = Vector2.one;
+                panelRect.pivot = new Vector2(0.5f, 0.5f);
+                panelRect.sizeDelta = Vector2.zero;
+                panelRect.anchoredPosition = Vector2.zero;
+            }
+            var debugBg = panelGo.AddComponent<UnityEngine.UI.Image>();
+            debugBg.color = new Color(0f, 0f, 0f, 0.72f);
+
+            var debugTextGo = new GameObject("DebugText", typeof(RectTransform));
+            debugTextGo.transform.SetParent(panelGo.transform, false);
+            var debugTextRect = debugTextGo.GetComponent<RectTransform>();
+            if (debugTextRect != null)
+            {
+                debugTextRect.anchorMin = Vector2.zero;
+                debugTextRect.anchorMax = Vector2.one;
+                debugTextRect.pivot = new Vector2(0.5f, 0.5f);
+                debugTextRect.offsetMin = new Vector2(20f, 15f);
+                debugTextRect.offsetMax = new Vector2(-20f, -15f);
+            }
+            var debugTmp = debugTextGo.AddComponent<TMPro.TextMeshProUGUI>();
+            debugTmp.fontSize = 24;
+            debugTmp.fontStyle = TMPro.FontStyles.Normal;
+            debugTmp.alignment = TMPro.TextAlignmentOptions.TopLeft;
+            debugTmp.color = Color.white;
+            debugTmp.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            debugTmp.text = "[DEBUG OVERLAY]";
+
+            var serializedDebugOverlay = new SerializedObject(debugOverlay);
+            serializedDebugOverlay.FindProperty("debugText").objectReferenceValue = debugTmp;
+            serializedDebugOverlay.FindProperty("visualRoot").objectReferenceValue = panelGo;
+            serializedDebugOverlay.FindProperty("squadController").objectReferenceValue = squad;
+            serializedDebugOverlay.FindProperty("combatDirector").objectReferenceValue = director;
+            serializedDebugOverlay.FindProperty("trackScroller").objectReferenceValue = scroller;
+            serializedDebugOverlay.FindProperty("weaponController").objectReferenceValue = weapon;
+            serializedDebugOverlay.FindProperty("abilityController").objectReferenceValue = abilityController;
+            serializedDebugOverlay.ApplyModifiedProperties();
+            debugOverlay.ConfigureComponents(debugTmp, panelGo);
+            debugOverlay.Initialize(eventBus, squad, director, scroller, weapon, abilityController);
+
+            var composerGo = new GameObject("GreyboxRunComposer");
+            var composer = composerGo.AddComponent<GreyboxRunComposer>();
+            var serializedComposer = new SerializedObject(composer);
+            serializedComposer.FindProperty("combatDirector").objectReferenceValue = director;
+            serializedComposer.FindProperty("hordeSpawner").objectReferenceValue = spawner;
+            serializedComposer.FindProperty("statusDirector").objectReferenceValue = Object.FindFirstObjectByType<StatusEffectDirector>();
+            serializedComposer.FindProperty("abilityController").objectReferenceValue = abilityController;
+            serializedComposer.FindProperty("abilityHud").objectReferenceValue = abilityHud;
+            serializedComposer.FindProperty("abilityAudio").objectReferenceValue = abilityAudio;
+            serializedComposer.FindProperty("abilityVfx").objectReferenceValue = abilityVfx;
+            serializedComposer.FindProperty("debugOverlay").objectReferenceValue = debugOverlay;
+            serializedComposer.ApplyModifiedProperties();
 
             // FollowCamera
             var camGo = new GameObject("Main Camera");
             camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>();
+            camGo.AddComponent<AudioListener>();
             cam.clearFlags = CameraClearFlags.Skybox;
             camGo.transform.rotation = Quaternion.Euler(30f, 0f, 0f);
 
@@ -898,6 +1123,72 @@ namespace Game.Editor
         public static void BuildM6GreyboxSceneCli()
         {
             BuildM6GreyboxScene();
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        public static void CaptureM6ScreenshotCli()
+        {
+            BuildM6GreyboxScene();
+            var scene = EditorSceneManager.OpenScene(M6GreyboxScenePath);
+
+            var cam = Camera.main;
+            var overlay = Object.FindFirstObjectByType<DebugTextOverlay>();
+            if (cam != null && overlay != null)
+            {
+                overlay.Refresh();
+                Canvas.ForceUpdateCanvases();
+
+                var canvas = overlay.GetComponentInParent<Canvas>();
+                var originalMode = canvas.renderMode;
+                var originalCam = canvas.worldCamera;
+                var originalDist = canvas.planeDistance;
+
+                var rt = new RenderTexture(1080, 1920, 24, RenderTextureFormat.ARGB32);
+                var prevTarget = cam.targetTexture;
+                var prevActive = RenderTexture.active;
+
+                try
+                {
+                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                    canvas.worldCamera = cam;
+                    canvas.planeDistance = 2f;
+                    Canvas.ForceUpdateCanvases();
+
+                    cam.targetTexture = rt;
+                    cam.Render();
+
+                    RenderTexture.active = rt;
+                    var tex = new Texture2D(1080, 1920, TextureFormat.RGB24, false);
+                    tex.ReadPixels(new Rect(0, 0, 1080, 1920), 0, 0);
+                    tex.Apply();
+
+                    var path = "docs/evidencias/NEX-781-m6-debug-overlay.png";
+                    var dir = System.IO.Path.GetDirectoryName(path);
+                    if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+                    {
+                        System.IO.Directory.CreateDirectory(dir);
+                    }
+
+                    System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
+                    Object.DestroyImmediate(tex);
+                    Debug.Log($"[SceneBuilder] Screenshot saved to {path} ({new System.IO.FileInfo(path).Length} bytes).");
+                }
+                finally
+                {
+                    cam.targetTexture = prevTarget;
+                    RenderTexture.active = prevActive;
+                    canvas.renderMode = originalMode;
+                    canvas.worldCamera = originalCam;
+                    canvas.planeDistance = originalDist;
+                    Canvas.ForceUpdateCanvases();
+                    rt.Release();
+                    Object.DestroyImmediate(rt);
+                }
+            }
+
             if (Application.isBatchMode)
             {
                 EditorApplication.Exit(0);
