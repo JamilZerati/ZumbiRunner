@@ -60,7 +60,6 @@ namespace Game.Tests.EditMode
             overlay.ConfigureComponents(tmp);
             overlay.Initialize(bus, squad: squad);
 
-            // Simula frame de update
             overlay.Refresh();
 
             StringAssert.Contains("Tropa: 7", tmp.text);
