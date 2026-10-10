@@ -234,3 +234,32 @@ sequenceDiagram
     Controller->>Bus: AbilityUsedEvent("grenade", remainingCharges=0)
     Bus->>Hud: Atualizar Visual (Zerar Barra)
 ```
+
+## Grafo de Execução (workflow-graph/v1)
+
+```workflow-graph/v1
+{
+  "version": "workflow-graph/v1",
+  "story": "NEX-651",
+  "revision": "1",
+  "approved": true,
+  "approvalEvidence": "docs/planos/2026-10-02-NEX-651-poder-do-general-granada-e-disparo-auto-manual.md",
+  "repo": "D:/Projects/game/ZumbiRunner",
+  "githubRepo": "JamilZerati/ZumbiRunner",
+  "target": "jamilzerati/nex-651-story-m16-poder-do-general",
+  "priority": 2,
+  "tasks": [
+    { "id": "NEX-760", "marco": 1, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-760", "branch": "jamilzerati/nex-760-marco-0-suite-de-cenarios-contratos-do-poder-do-general-nex", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-761", "marco": 2, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-761", "branch": "jamilzerati/nex-761-marco-1-modelo-puro-de-carga-politicas-de-disparo-e-efeito", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-760", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-762", "marco": 3, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-762", "branch": "jamilzerati/nex-762-marco-2-definicoes-de-dados-catalogo-json-da-granada-e", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-761", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-763", "marco": 4, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-763", "branch": "jamilzerati/nex-763-marco-3-gameplay-generalabilitycontroller-e-emissao-de", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-762", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-764", "marco": 5, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-764", "branch": "jamilzerati/nex-764-marco-4-hud-de-carga-toggle-automanual-e-integracao", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-763", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-765", "marco": 6, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-765", "branch": "jamilzerati/nex-765-marco-5-simulador-headless-e-validacao-de-conteudo-nex-651", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-764", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-779", "marco": 7, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-779", "branch": "jamilzerati/nex-779-gh-84-poder-do-general-nunca-carrega-em-play-mode-nenhum", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-765", "type": "implementation" }], "gates": [{ "id": "unity-test-play", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-play"] }] },
+    { "id": "NEX-778", "marco": 8, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-778", "branch": "jamilzerati/nex-778-assets-da-granada-icone-hud-sfx-de-explosao-e-evidencia", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-779", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-780", "marco": 9, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-780", "branch": "jamilzerati/nex-780-gh-86-botoes-do-hud-nao-respondem-a-toque-cenas-de-combate", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-778", "type": "implementation" }], "gates": [{ "id": "unity-test-play", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-play"] }] },
+    { "id": "NEX-879", "marco": 10, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-879", "branch": "jamilzerati/nex-879-arremesso-dinamico-da-granada-mira-e-alcance-arraste-no-hud", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-780", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] },
+    { "id": "NEX-781", "marco": 11, "cwd": "D:/Projects/worktrees/ZumbiRunner/nex-781", "branch": "jamilzerati/nex-781-overlay-de-debug-em-texto-tropa-arma-elementos-perks-e", "files": [], "resources": ["unity:ZumbiRunner"], "dependsOn": [{ "task": "NEX-879", "type": "implementation" }], "gates": [{ "id": "unity-test-edit", "command": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools/unity.ps1", "test-edit"] }] }
+  ]
+}
+```
