@@ -289,5 +289,18 @@ namespace Game.Tests.EditMode
             var indicator = Object.FindAnyObjectByType<AbilityAimIndicator>();
             Assert.IsNotNull(indicator, "AbilityAimIndicator must exist in M6 Greybox scene.");
         }
+
+        [Test]
+        public void BuildM6GreyboxScene_ProgressSliderHasBackgroundAndFillGraphic()
+        {
+            BuildAndReopenM6Scene();
+
+            var hud = Object.FindAnyObjectByType<GeneralAbilityHud>();
+            Assert.IsNotNull(hud);
+            Assert.IsNotNull(hud.ProgressSlider);
+            Assert.IsNotNull(hud.ProgressSlider.fillRect, "ProgressSlider deve ter fillRect configurado para exibir o preenchimento visual.");
+            Assert.IsNotNull(hud.ProgressSlider.fillRect.GetComponent<UnityEngine.UI.Image>());
+            Assert.IsNotNull(hud.ProgressSlider.transform.Find("Background")?.GetComponent<UnityEngine.UI.Image>());
+        }
     }
 }

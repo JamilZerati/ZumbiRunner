@@ -834,7 +834,41 @@ namespace Game.Editor
                 sliderRect.anchoredPosition = new Vector2(0f, 40f);
                 sliderRect.sizeDelta = new Vector2(300f, 20f);
             }
+
+            var sliderBgGo = new GameObject("Background", typeof(RectTransform));
+            sliderBgGo.transform.SetParent(sliderGo.transform, false);
+            var sliderBgRect = sliderBgGo.GetComponent<RectTransform>();
+            sliderBgRect.anchorMin = Vector2.zero;
+            sliderBgRect.anchorMax = Vector2.one;
+            sliderBgRect.sizeDelta = Vector2.zero;
+            var sliderBgImage = sliderBgGo.AddComponent<UnityEngine.UI.Image>();
+            sliderBgImage.color = new Color(0.12f, 0.12f, 0.15f, 0.85f);
+            sliderBgImage.raycastTarget = false;
+
+            var fillAreaGo = new GameObject("Fill Area", typeof(RectTransform));
+            fillAreaGo.transform.SetParent(sliderGo.transform, false);
+            var fillAreaRect = fillAreaGo.GetComponent<RectTransform>();
+            fillAreaRect.anchorMin = Vector2.zero;
+            fillAreaRect.anchorMax = Vector2.one;
+            fillAreaRect.offsetMin = new Vector2(2f, 2f);
+            fillAreaRect.offsetMax = new Vector2(-2f, -2f);
+
+            var fillGo = new GameObject("Fill", typeof(RectTransform));
+            fillGo.transform.SetParent(fillAreaGo.transform, false);
+            var fillRect = fillGo.GetComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.sizeDelta = Vector2.zero;
+            var fillImage = fillGo.AddComponent<UnityEngine.UI.Image>();
+            fillImage.color = new Color(0.95f, 0.65f, 0.15f, 1f);
+            fillImage.raycastTarget = false;
+
             var slider = sliderGo.AddComponent<UnityEngine.UI.Slider>();
+            slider.interactable = false;
+            slider.transition = UnityEngine.UI.Selectable.Transition.None;
+            slider.direction = UnityEngine.UI.Slider.Direction.LeftToRight;
+            slider.fillRect = fillRect;
+            slider.targetGraphic = fillImage;
             slider.minValue = 0f;
             slider.maxValue = 25f;
             slider.value = 0f;
