@@ -1,49 +1,107 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Game.Presentation
 {
     public class AbilityAimIndicator : MonoBehaviour
     {
-        private MeshRenderer _renderer;
+        [SerializeField] private MeshRenderer _renderer;
         private Material _material;
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int ColorId = Shader.PropertyToID("_Color");
 
-        private Color _normalColor = new Color(0f, 1f, 1f, 0.5f); // Cyan semi-transparent
-        private Color _cancelColor = new Color(1f, 0f, 0f, 0.5f); // Red semi-transparent
+        private readonly Color _normalColor = new Color(0f, 1f, 1f, 0.5f);
+        private readonly Color _cancelColor = new Color(1f, 0f, 0f, 0.5f);
 
         public bool IsVisible => _renderer != null && _renderer.enabled;
         public bool IsCanceling { get; private set; }
 
         public void Initialize()
         {
-            // Cria um cilindro primitivo achatado como indicador
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            go.transform.SetParent(transform, false);
-            
-            // Remove o colisor para no interferir na fsica
-            var collider = go.GetComponent<Collider>();
-            if (collider != null) DestroyImmediate(collider);
+            if (_renderer == null)
+            {
+                _renderer = GetComponentInChildren<MeshRenderer>(true);
+            }
 
-            _renderer = go.GetComponent<MeshRenderer>();
+            if (_renderer == null)
+            {
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                go.transform.SetParent(transform, false);
+
+                var collider = go.GetComponent<Collider>();
+                if (collider != null)
+                {
+                    DestroyImmediate(collider);
+                }
+
+                _renderer = go.GetComponent<MeshRenderer>();
+            }
+
             _renderer.enabled = false;
+            EnsureMaterial();
+            UpdateColor();
+        }
 
-            _material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            _material.SetFloat("_Surface", 1); // Transparent
-            _material.SetColor(BaseColorId, _normalColor);
-            _renderer.material = _material;
+        private void Awake()
+        {
+            if (_renderer == null)
+            {
+                _renderer = GetComponentInChildren<MeshRenderer>(true);
+            }
+
+            if (_renderer != null)
+            {
+                _renderer.enabled = false;
+                EnsureMaterial();
+                UpdateColor();
+            }
+        }
+
+        private void EnsureMaterial()
+        {
+            if (_material != null)
+            {
+                return;
+            }
+
+            var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Sprites/Default");
+            if (shader == null)
+            {
+                return;
+            }
+
+            _material = new Material(shader);
+            _material.SetFloat("_Surface", 1f);
+            _material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            _material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            _material.SetInt("_ZWrite", 0);
+            _material.renderQueue = (int)RenderQueue.Transparent;
+
+            if (_renderer != null)
+            {
+                _renderer.sharedMaterial = _material;
+            }
         }
 
         public void Show(float radius)
         {
+            if (_renderer == null)
+            {
+                Initialize();
+            }
+            else
+            {
+                EnsureMaterial();
+            }
+
             if (_renderer != null)
             {
                 _renderer.enabled = true;
             }
 
-            // Primitive cylinder has a diameter of 1
             float diameter = radius * 2f;
             transform.localScale = new Vector3(diameter, 0.1f, diameter);
-            
+
             IsCanceling = false;
             UpdateColor();
         }
@@ -59,7 +117,7 @@ namespace Game.Presentation
         public void UpdateAim(Vector3 worldPos, bool isCanceling)
         {
             transform.position = new Vector3(worldPos.x, 0.05f, worldPos.z);
-            
+
             if (IsCanceling != isCanceling)
             {
                 IsCanceling = isCanceling;
@@ -69,9 +127,27 @@ namespace Game.Presentation
 
         private void UpdateColor()
         {
+            EnsureMaterial();
             if (_material != null)
             {
-                _material.SetColor(BaseColorId, IsCanceling ? _cancelColor : _normalColor);
+                var targetColor = IsCanceling ? _cancelColor : _normalColor;
+                _material.SetColor(BaseColorId, targetColor);
+                _material.SetColor(ColorId, targetColor);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_material != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(_material);
+                }
+                else
+                {
+                    DestroyImmediate(_material);
+                }
             }
         }
     }

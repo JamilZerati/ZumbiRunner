@@ -904,20 +904,20 @@ namespace Game.Editor
             modeTmp.color = Color.white;
             modeTmp.text = "Auto";
 
+            var aimIndicatorGo = new GameObject("AbilityAimIndicator");
+            var aimIndicator = aimIndicatorGo.AddComponent<AbilityAimIndicator>();
+            aimIndicator.Initialize();
+            abilityHud.AimIndicator = aimIndicator;
+
             var serializedAbilityHud = new SerializedObject(abilityHud);
             serializedAbilityHud.FindProperty("controller").objectReferenceValue = abilityController;
+            serializedAbilityHud.FindProperty("aimIndicator").objectReferenceValue = aimIndicator;
             serializedAbilityHud.FindProperty("progressSlider").objectReferenceValue = slider;
             serializedAbilityHud.FindProperty("chargesText").objectReferenceValue = chargesTmp;
             serializedAbilityHud.FindProperty("manualTriggerButton").objectReferenceValue = manualBtn;
             serializedAbilityHud.FindProperty("modeToggleButton").objectReferenceValue = modeBtn;
             serializedAbilityHud.FindProperty("modeText").objectReferenceValue = modeTmp;
             serializedAbilityHud.ApplyModifiedProperties();
-
-            // AbilityAimIndicator
-            var aimIndicatorGo = new GameObject("AbilityAimIndicator");
-            var aimIndicator = aimIndicatorGo.AddComponent<AbilityAimIndicator>();
-            aimIndicator.Initialize();
-            abilityHud.AimIndicator = aimIndicator;
 
             abilityHud.ConfigureComponents(slider, chargesTmp, manualBtn, modeBtn, modeTmp);
             abilityHud.Initialize(abilityController, eventBus);

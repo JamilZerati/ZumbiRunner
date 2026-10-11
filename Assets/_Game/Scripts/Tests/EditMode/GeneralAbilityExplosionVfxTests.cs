@@ -107,5 +107,21 @@ namespace Game.Tests.EditMode
             Assert.IsFalse(_vfx.IsPlaying);
             Assert.AreEqual(0, _vfx.PlayedCount);
         }
+
+        [Test]
+        public void AbilityUsedEvent_WithSpatialTarget_ShowsBurstAtTargetPositionAndEnablesThrowArc()
+        {
+            var originPos = new Game.Core.Abilities.AbilityPosition(-1f, 0f, 10f);
+            var targetPos = new Game.Core.Abilities.AbilityPosition(1f, 0f, 25f);
+
+            _eventBus.Publish(new AbilityUsedEvent("grenade", 0, originPos, targetPos, hasSpatialTarget: true));
+
+            Assert.IsTrue(_vfx.IsPlaying);
+            Assert.IsTrue(_renderer.enabled);
+            Assert.AreEqual(targetPos.X, _vfx.transform.position.x, 1e-4f);
+            Assert.AreEqual(targetPos.Z, _vfx.transform.position.z, 1e-4f);
+            Assert.IsNotNull(_vfx.ArcRenderer);
+            Assert.IsTrue(_vfx.ArcRenderer.enabled);
+        }
     }
 }

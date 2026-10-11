@@ -63,5 +63,14 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(new Vector3(2f, 0.05f, 10f), _indicatorGo.transform.position);
             Assert.IsTrue(_indicator.IsCanceling);
         }
+
+        [Test]
+        public void Initialize_ChamarDuasVezes_ReaproveitaMesmoMeshRenderer()
+        {
+            _indicator.Initialize();
+
+            var renderers = _indicatorGo.GetComponentsInChildren<MeshRenderer>(true);
+            Assert.AreEqual(1, renderers.Length);
+        }
     }
 }

@@ -346,7 +346,7 @@ namespace Game.Presentation
 
             bool isCanceling = Vector2.Distance(_pointerDownPosition, _currentPointerPosition) < 35f;
 
-            if (_hasDragged && isCanceling)
+            if (_hasDragged)
             {
                 _wasCancelDrag = true;
             }

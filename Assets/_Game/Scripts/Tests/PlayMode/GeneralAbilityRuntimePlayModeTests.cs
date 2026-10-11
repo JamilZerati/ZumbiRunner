@@ -117,6 +117,61 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(1, audio.PlayedCount, "Disparo automático deve tocar a explosão.");
             Assert.AreEqual(1, Object.FindFirstObjectByType<GeneralAbilityExplosionVfx>().PlayedCount, "Disparo automático deve mostrar a explosão.");
         }
+
+        [UnityTest]
+        public IEnumerator M6DoDisco_ArrasteNoHud_ExibeReticuloEmSlowMotionEArremessaGranadaNoAlvoMirado()
+        {
+            yield return LoadM6FromDisk();
+
+            var controller = Object.FindFirstObjectByType<GeneralAbilityController>();
+            var hud = Object.FindFirstObjectByType<GeneralAbilityHud>();
+            var vfx = Object.FindFirstObjectByType<GeneralAbilityExplosionVfx>();
+            var spawner = Object.FindFirstObjectByType<HordeSpawner>();
+            hud.SetMode(HeroAbilityTriggerMode.Manual);
+
+            KillFarAwayZombies(spawner, controller.KillsPerCharge);
+            Assert.AreEqual(1, controller.CurrentCharges);
+            Assert.IsNotNull(hud.AimIndicator, "Cena M6 no disco deve ter AbilityAimIndicator conectado ao HUD.");
+
+            float generalZ = controller.transform.position.z;
+            var targetEnemies = spawner.SpawnWave(1, 3, generalZ + 14f, 1.2f);
+            yield return new WaitForFixedUpdate();
+
+            var pointerDown = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+            {
+                position = new Vector2(200f, 200f)
+            };
+            hud.OnPointerDown(pointerDown);
+
+            Assert.AreEqual(0.3f, Time.timeScale, 0.01f);
+            Assert.IsTrue(hud.AimIndicator.IsVisible, "Retículo deve ficar visível durante o arraste.");
+
+            var dragCancel = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+            {
+                position = new Vector2(205f, 215f)
+            };
+            hud.OnDrag(dragCancel);
+            Assert.IsTrue(hud.AimIndicator.IsCanceling, "Retículo deve sinalizar cancelamento dentro da zona morta.");
+
+            var dragAim = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+            {
+                position = new Vector2(230f, 340f)
+            };
+            hud.OnDrag(dragAim);
+            var pointerUp = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+            {
+                position = new Vector2(230f, 340f)
+            };
+            hud.OnPointerUp(pointerUp);
+
+            Assert.AreEqual(1f, Time.timeScale, 0.01f);
+            Assert.IsFalse(hud.AimIndicator.IsVisible);
+            Assert.AreEqual(0, controller.CurrentCharges);
+            Assert.IsFalse(targetEnemies[0].IsAlive, "Zumbi no ponto mirado a 14m deve morrer.");
+            Assert.Greater(vfx.transform.position.z, generalZ + 10f, "VFX da explosão deve detonar no ponto mirado à frente do General.");
+            Assert.IsNotNull(vfx.ArcRenderer);
+            Assert.IsTrue(vfx.ArcRenderer.enabled, "Arco parabólico do arremesso deve estar ativo durante a explosão.");
+        }
     }
 }
 #endif

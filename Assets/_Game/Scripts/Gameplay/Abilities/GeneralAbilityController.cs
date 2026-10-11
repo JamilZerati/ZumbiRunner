@@ -157,7 +157,12 @@ namespace Game.Gameplay.Abilities
             };
 
             _definition.Effect.Execute(executionContext);
-            _eventBus?.Publish(new AbilityUsedEvent(_definition.Id, _tracker.CurrentCharges));
+            _eventBus?.Publish(new AbilityUsedEvent(
+                _definition.Id,
+                _tracker.CurrentCharges,
+                originPos,
+                finalTarget,
+                hasSpatialTarget: true));
             PublishChargeProgress();
 
             return true;
