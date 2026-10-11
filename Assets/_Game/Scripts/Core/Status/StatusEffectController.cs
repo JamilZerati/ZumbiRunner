@@ -15,6 +15,7 @@ namespace Game.Core.Status
         private readonly IEventBus eventBus;
 
         private readonly Dictionary<StatusKind, StatusState> states = new Dictionary<StatusKind, StatusState>();
+        private readonly List<StatusKind> _lastActiveStatuses = new List<StatusKind>();
         private bool diedNotified;
 
         public StatusEffectController(IDamageable health, IStatusReceiver owner,
@@ -32,6 +33,18 @@ namespace Game.Core.Status
         public IStatusReceiver Owner => owner;
         public IStatusNeighborhood Neighborhood => neighborhood;
         public IStatusCatalog Catalog => catalog;
+
+        public IReadOnlyList<StatusKind> ActiveStatuses
+        {
+            get
+            {
+                if (states.Count > 0)
+                {
+                    return new List<StatusKind>(states.Keys);
+                }
+                return _lastActiveStatuses.Count > 0 ? _lastActiveStatuses : Array.Empty<StatusKind>();
+            }
+        }
 
         public bool IsStunned => Has(StatusKind.Frozen);
         public bool IsFrozen => Has(StatusKind.Frozen);
@@ -139,6 +152,7 @@ namespace Game.Core.Status
         public void Clear()
         {
             states.Clear();
+            _lastActiveStatuses.Clear();
             diedNotified = false;
         }
 
@@ -200,6 +214,9 @@ namespace Game.Core.Status
 
             if (states.Count > 0)
             {
+                _lastActiveStatuses.Clear();
+                _lastActiveStatuses.AddRange(states.Keys);
+
                 var copy = new StatusState[states.Count];
                 states.Values.CopyTo(copy, 0);
                 states.Clear();

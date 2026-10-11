@@ -9,7 +9,8 @@
         "Game.Infrastructure",
         "Game.Composition",
         "Game.Editor",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

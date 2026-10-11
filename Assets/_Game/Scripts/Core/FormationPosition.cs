@@ -30,7 +30,7 @@ namespace Game.Core
 
         public override string ToString()
         {
-            return $"({X}, {Z})";
+            return $"({X.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {Z.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
         }
 
         public static bool operator ==(FormationPosition left, FormationPosition right)

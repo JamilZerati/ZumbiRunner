@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Abilities;
+using Game.Core.Events;
 using Game.Core.Status;
 using UnityEngine;
 
@@ -10,6 +12,25 @@ namespace Game.Gameplay
     {
         [SerializeField] private StatusEffectDirector statusDirector;
         private StatusEffectController _status;
+        private IEventBus _eventBus;
+        private bool _fatalHitByAbility;
+        private bool _killedEventPublished;
+
+        public IEventBus EventBus
+        {
+            get => _eventBus ?? statusDirector?.EventBus;
+            set
+            {
+                _eventBus = value;
+                _status = null;
+            }
+        }
+
+        public void SetEventBus(IEventBus bus)
+        {
+            _eventBus = bus;
+            _status = null;
+        }
 
         public StatusEffectController Status
         {
@@ -20,7 +41,7 @@ namespace Game.Gameplay
                     IStatusCatalog catalog = statusDirector != null ? statusDirector.Catalog : DefaultFallbackCatalog;
                     IEffectInteractionTable table = statusDirector != null ? statusDirector.Interactions : null;
                     IStatusNeighborhood neighborhood = statusDirector;
-                    IEventBus bus = statusDirector != null ? statusDirector.EventBus : null;
+                    IEventBus bus = EventBus;
                     _status = new StatusEffectController(Health, this, catalog, table, neighborhood, bus);
                 }
                 return _status;
@@ -48,6 +69,7 @@ namespace Game.Gameplay
             int dealt = Status.ResolveHit(hit, onHit);
             if (!IsAlive)
             {
+                _fatalHitByAbility = (hit.Source is IAbilityEffect) || (hit.Source is IAbilityDamageSink) || (hit.Type == DamageType.Area && (hit.Source is IAbilityEffect || hit.Source is IAbilityDamageSink));
                 Die();
             }
             return dealt;
@@ -154,7 +176,7 @@ namespace Game.Gameplay
             statusDirector?.Register(this);
         }
 
-        public void Initialize(int laneIndex, int maxHealth, float moveSpeed, Action<EnemyController> onDeath)
+        public void Initialize(int laneIndex, int maxHealth, float moveSpeed, Action<EnemyController> onDeath, IEventBus eventBus = null)
         {
             EnsurePhysicsSetup();
             Health = GetComponent<HealthComponent>();
@@ -167,6 +189,13 @@ namespace Game.Gameplay
             LaneIndex = laneIndex;
             MoveSpeed = moveSpeed;
             OnDeath = onDeath;
+            if (eventBus != null)
+            {
+                _eventBus = eventBus;
+                _status = null;
+            }
+            _fatalHitByAbility = false;
+            _killedEventPublished = false;
             IsActiveInPool = true;
 
             if (TryGetComponent<Collider>(out var col))
@@ -237,6 +266,7 @@ namespace Game.Gameplay
 
         public void Die()
         {
+            PublishKilledEventIfNeeded();
             Disengage();
             Recycle();
         }
@@ -246,6 +276,11 @@ namespace Game.Gameplay
             if (!IsActiveInPool)
             {
                 return;
+            }
+
+            if (!IsAlive)
+            {
+                PublishKilledEventIfNeeded();
             }
 
             Disengage();
@@ -260,6 +295,17 @@ namespace Game.Gameplay
 
             gameObject.SetActive(false);
             OnDeath?.Invoke(this);
+        }
+
+        private void PublishKilledEventIfNeeded()
+        {
+            if (_killedEventPublished)
+            {
+                return;
+            }
+
+            _killedEventPublished = true;
+            EventBus?.Publish(new EnemyKilledEvent(ArchetypeId, LaneIndex, Status.ActiveStatuses, _fatalHitByAbility));
         }
     }
 }

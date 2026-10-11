@@ -30,11 +30,12 @@ namespace Game.Editor
             int perkCount = PerkImporter.ImportAll(errors: errors);
             int enemyCount = EnemyImporter.ImportAll(errors: errors);
             int levelCount = LevelImporter.ImportAll(errors: errors);
+            int abilityCount = AbilityImporter.ImportAll(errors: errors);
             for (int i = 0; i < errors.Count; i++)
             {
                 Debug.LogError($"[Game.Editor.Cli] ImportContent error: {errors[i]}");
             }
-            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {perkCount} perks, {enemyCount} enemies, {levelCount} levels imported, {errors.Count} errors.");
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {perkCount} perks, {enemyCount} enemies, {levelCount} levels, {abilityCount} abilities imported, {errors.Count} errors.");
             EditorApplication.Exit(ComputeImportExitCode(errors));
         }
 
