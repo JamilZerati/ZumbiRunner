@@ -1,0 +1,12 @@
+{
+  "id": "gate_guarded_multiply_2",
+  "displayName": "x2 Guarded",
+  "perkId": "multiply_2",
+  "variant": {
+    "type": "Guarded",
+    "enemyWaveId": "wave_guard_1",
+    "guardArchetypeId": "runner",
+    "guardCount": 6,
+    "guardDistanceOffset": 8.0
+  }
+}

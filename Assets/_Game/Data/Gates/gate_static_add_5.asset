@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1956d1c22f02cfb4a9a4bcc904414b9f, type: 3}
+  m_Name: gate_static_add_5
+  m_EditorClassIdentifier: Game.Data::Game.Data.GateDefinition
+  id: gate_static_add_5
+  displayName: +5
+  perkId: add_5
+  perk: {fileID: 11400000, guid: ffc7824f09f52be448b6690924d9b82a, type: 2}
+  variant:
+    rid: 6580925928563277880
+  references:
+    version: 2
+    RefIds:
+    - rid: 6580925928563277880
+      type: {class: StaticGateVariant, ns: Game.Core.Gates, asm: Game.Core}
+      data: 

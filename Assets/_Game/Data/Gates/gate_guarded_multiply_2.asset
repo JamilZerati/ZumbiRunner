@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1956d1c22f02cfb4a9a4bcc904414b9f, type: 3}
+  m_Name: gate_guarded_multiply_2
+  m_EditorClassIdentifier: Game.Data::Game.Data.GateDefinition
+  id: gate_guarded_multiply_2
+  displayName: x2 Guarded
+  perkId: multiply_2
+  perk: {fileID: 11400000, guid: b929b3961e61ba449b1d08fbf376644e, type: 2}
+  variant:
+    rid: 6580925928563277878
+  references:
+    version: 2
+    RefIds:
+    - rid: 6580925928563277878
+      type: {class: GuardedGateVariant, ns: Game.Core.Gates, asm: Game.Core}
+      data:
+        enemyWaveId: wave_guard_1
+        guardArchetypeId: runner
+        guardCount: 6
+        guardDistanceOffset: 8
