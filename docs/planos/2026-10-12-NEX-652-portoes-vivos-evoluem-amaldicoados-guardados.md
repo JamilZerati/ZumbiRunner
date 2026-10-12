@@ -182,7 +182,7 @@ flowchart TD
   - **Marco de PR**: Marco 0 + `NEX-882`
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Gates/` [NEX-883]
+- [x] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Gates/` [NEX-883]
   - **Ação**: Modificar `GateRuntimeState.cs`, `StageModifierController.cs`, `StaticGateVariant.cs`, `ShootToUpgradeGateVariant.cs`, `CursedGateVariant.cs` e `GuardedGateVariant.cs` para tornar verdes todos os testes de `LivingGatesCoreTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Calcular a progressão exata `initialValue + (CurrentHits / hitsPerStep) * step` limitada a `cap`; formatar o texto dinâmico (`-5`, `+0`, `+15`); aplicar o valor evoluído ao `ISquad` respeitando o mínimo de 1 soldado; gerenciar ativação, combinação multiplicativa e expiração automática de `IStageModifier` ao atingir `startDistance + durationDistance`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-882`). `interface`: nenhuma.
