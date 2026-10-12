@@ -191,7 +191,7 @@ flowchart TD
   - **Marco de PR**: Marco 1 + `NEX-883`
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Assets/_Game/Scripts/Data/Gates/GateDefinition.cs` e `Assets/_Game/Scripts/Editor/GateImporter.cs` [NEX-884]
+- [x] **Passo 2 (Marco 2)**: `Assets/_Game/Scripts/Data/Gates/GateDefinition.cs` e `Assets/_Game/Scripts/Editor/GateImporter.cs` [NEX-884]
   - **Ação**: Criar `GateDefinition.cs`, `GateCatalog.cs`, os 4 arquivos JSON em `Content/Source/Gates/`, `GateImporter.cs` (integrado a `Cli.ImportContent()` após `PerkImporter` e `EnemyImporter`) e a suíte `Assets/_Game/Scripts/Tests/EditMode/GateImporterTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Importar definições de portões vivos em ScriptableObjects com `[SerializeReference] IGateVariant`, validar referências a `PerkDefinition` (`perkId` e `bonusPerkId`), rejeitar parâmetros inválidos (`hitsPerStep <= 0`, `step == 0`, `durationDistance <= 0`, `guardCount <= 0`) e gerar os assets canônicos via `tools/unity import-content`. Respeitar a armadilha de ordem de importação em `Cli.cs`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-882`), Marco 1 (`NEX-883`). `interface`: nenhuma.
