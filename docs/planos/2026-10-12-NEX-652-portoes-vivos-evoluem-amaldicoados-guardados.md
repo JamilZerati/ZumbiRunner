@@ -1,7 +1,7 @@
 # Plano de Implementação: M17 · Portões vivos (evoluem com tiro, amaldiçoados, guardados)
 > Data: 2026-10-12
 > Issue: NEX-652
-> Status: Pronto para Execução via /executar
+> Status: Em Execução
 
 ## 1. Contexto & Arquitetura
 - **Resumo**: Implementar `GateDefinition` orientada a dados (`Content/Source/Gates/*.json` → `Assets/_Game/Data/Gates/*.asset`) combinando `PerkDefinition` e variantes polimórficas `IGateVariant` via `[SerializeReference]`: `StaticGateVariant`, `ShootToUpgradeGateVariant(initialValue, step, hitsPerStep, cap)`, `CursedGateVariant(bonusPerkId, stageModifier, durationDistance)` e `GuardedGateVariant(enemyWaveId, guardArchetypeId, guardCount, guardDistanceOffset)`. Atualizar `Gate`, `GatePair` e `GateView` para que portões evolutivos na camada `Pickup` recebam projéteis (`IDamageable`), exibam a evolução do valor e cor em tempo real, apliquem modificadores temporários de estágio (`IStageModifier` / `StageModifierController`), publiquem `GatePassedEvent` no `IEventBus` e sejam simulados e validados em `SimulateCommand` e `ValidateCommand`.
@@ -173,7 +173,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-882]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-882]
   - **Ação**: Criar contratos e stubs em `Game.Core.Gates` (`GateVariantType`, `IGateVariant`, `GateRuntimeState`, `IStageModifier`, `StageModifierSpec`, `StageModifierController`, variantes `StaticGateVariant`, `ShootToUpgradeGateVariant`, `CursedGateVariant`, `GuardedGateVariant`), evento `GatePassedEvent` em `Game.Core.Events` e a suíte Red de testes comportamentais em `Assets/_Game/Scripts/Tests/EditMode/LivingGatesCoreTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Fixar as assinaturas públicas de domínio puro em `Game.Core` sem referências a `UnityEngine` e comprovar o estado Red dos cenários de evolução por tiro, teto (`cap`), piso de tropa e expiração de `IStageModifier` por distância.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
