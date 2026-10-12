@@ -29,7 +29,7 @@ namespace Game.Core.Gates
 
         public GateRuntimeState CreateInitialState(string defaultDisplayText)
         {
-            throw new NotImplementedException();
+            return new GateRuntimeState(VariantType, AcceptsProjectiles, 0, defaultDisplayText);
         }
 
         public void RegisterHit(GateRuntimeState state, int hitCount = 1)
@@ -38,17 +38,27 @@ namespace Game.Core.Gates
 
         public int ApplyToSquad(ISquad squad, GateRuntimeState state, int defaultAppliedValue = 0)
         {
-            throw new NotImplementedException();
+            return defaultAppliedValue;
         }
 
         public void ActivateModifier(StageModifierController controller, float currentDistance)
         {
-            throw new NotImplementedException();
+            if (controller != null)
+            {
+                controller.Activate(stageModifier, currentDistance, durationDistance);
+            }
         }
 
         public bool Validate(out string error)
         {
-            throw new NotImplementedException();
+            if (durationDistance <= 0f)
+            {
+                error = "durationDistance must be greater than 0";
+                return false;
+            }
+
+            error = null;
+            return true;
         }
     }
 }
