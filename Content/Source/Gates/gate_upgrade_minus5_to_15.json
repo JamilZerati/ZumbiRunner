@@ -1,0 +1,12 @@
+{
+  "id": "gate_upgrade_minus5_to_15",
+  "displayName": "-5",
+  "perkId": "add_5",
+  "variant": {
+    "type": "ShootToUpgrade",
+    "initialValue": -5,
+    "step": 1,
+    "hitsPerStep": 1,
+    "cap": 15
+  }
+}

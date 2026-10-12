@@ -1,0 +1,15 @@
+{
+  "id": "gate_cursed_triple_frenzy",
+  "displayName": "x3",
+  "perkId": "multiply_2",
+  "variant": {
+    "type": "Cursed",
+    "bonusPerkId": "add_10",
+    "stageModifier": {
+      "sourceId": "cursed_frenzy",
+      "enemySpeedMultiplier": 1.35,
+      "enemyContactDamageMultiplier": 1.2
+    },
+    "durationDistance": 150.0
+  }
+}
