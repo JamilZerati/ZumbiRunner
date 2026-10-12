@@ -32,27 +32,75 @@ namespace Game.Core.Gates
 
         public int EvaluateValue(int totalHits)
         {
-            throw new NotImplementedException();
+            int safeHits = Math.Max(0, totalHits);
+            int safeHitsPerStep = hitsPerStep > 0 ? hitsPerStep : 1;
+            int completedSteps = safeHits / safeHitsPerStep;
+            int calculated = initialValue + completedSteps * step;
+            return step >= 0 ? Math.Min(calculated, cap) : Math.Max(calculated, cap);
         }
 
         public GateRuntimeState CreateInitialState(string defaultDisplayText = null)
         {
-            throw new NotImplementedException();
+            int value = EvaluateValue(0);
+            string text = string.IsNullOrEmpty(defaultDisplayText)
+                ? GateRuntimeState.FormatSignedValue(value)
+                : defaultDisplayText;
+            return new GateRuntimeState(VariantType, AcceptsProjectiles, value, text);
         }
 
         public void RegisterHit(GateRuntimeState state, int hitCount = 1)
         {
-            throw new NotImplementedException();
+            if (state == null)
+            {
+                return;
+            }
+
+            int nextHits = state.CurrentHits + Math.Max(0, hitCount);
+            int nextValue = EvaluateValue(nextHits);
+            state.UpdateProgress(nextHits, nextValue, GateRuntimeState.FormatSignedValue(nextValue));
         }
 
         public int ApplyToSquad(ISquad squad, GateRuntimeState state, int defaultAppliedValue = 0)
         {
-            throw new NotImplementedException();
+            if (squad == null)
+            {
+                return 0;
+            }
+
+            int value = state != null ? state.CurrentValue : defaultAppliedValue;
+            if (value > 0)
+            {
+                squad.Add(value);
+            }
+            else if (value < 0)
+            {
+                int penalty = -value;
+                int maxRemovable = Math.Max(0, squad.SquadCount - 1);
+                int toRemove = Math.Min(penalty, maxRemovable);
+                if (toRemove > 0)
+                {
+                    squad.Remove(toRemove);
+                }
+            }
+
+            return value;
         }
 
         public bool Validate(out string error)
         {
-            throw new NotImplementedException();
+            if (hitsPerStep <= 0)
+            {
+                error = "hitsPerStep must be greater than 0";
+                return false;
+            }
+            if (step == 0)
+            {
+                error = "step cannot be 0";
+                return false;
+            }
+
+            error = null;
+            return true;
         }
     }
 }

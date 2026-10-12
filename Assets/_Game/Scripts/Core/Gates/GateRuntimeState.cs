@@ -24,12 +24,14 @@ namespace Game.Core.Gates
 
         public void UpdateProgress(int currentHits, int currentValue, string displayText)
         {
-            throw new NotImplementedException();
+            CurrentHits = Math.Max(0, currentHits);
+            CurrentValue = currentValue;
+            DisplayText = displayText ?? string.Empty;
         }
 
         public static string FormatSignedValue(int value)
         {
-            throw new NotImplementedException();
+            return value >= 0 ? $"+{value}" : value.ToString();
         }
     }
 }
