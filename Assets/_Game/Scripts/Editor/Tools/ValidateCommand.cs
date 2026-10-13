@@ -20,13 +20,15 @@ namespace Game.Editor.Tools
             string levelsFolder = "Assets/_Game/Data/Levels",
             string abilitiesFolder = "Assets/_Game/Data/Abilities",
             string gatesFolder = "Assets/_Game/Data/Gates",
-            string cagesFolder = "Assets/_Game/Data/Cages")
+            string cagesFolder = "Assets/_Game/Data/Cages",
+            string holdoutsFolder = "Assets/_Game/Data/Holdouts")
         {
             int errorCount = 0;
             int levelCount = 0;
             int abilityCount = 0;
             int gateCount = 0;
             int cageCount = 0;
+            int holdoutCount = 0;
 
             if (!Directory.Exists(levelsFolder))
             {
@@ -49,6 +51,12 @@ namespace Game.Editor.Tools
             if (!Directory.Exists(cagesFolder))
             {
                 Debug.LogError($"[ValidateCommand] Cages folder not found: {cagesFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(holdoutsFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Holdouts folder not found: {holdoutsFolder}");
                 return 1;
             }
 
@@ -77,14 +85,15 @@ namespace Game.Editor.Tools
             errorCount += ValidateAbilities(abilitiesFolder, out abilityCount);
             errorCount += ValidateGates(gatesFolder, out gateCount);
             errorCount += ValidateCages(cagesFolder, out cageCount);
+            errorCount += ValidateHoldouts(holdoutsFolder, out holdoutCount);
 
             if (errorCount > 0)
             {
-                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, {gateCount} gates, and {cageCount} cages.");
+                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, {gateCount} gates, {cageCount} cages, and {holdoutCount} holdouts.");
                 return 1;
             }
 
-            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, {gateCount} gates, and {cageCount} cages (0 errors).");
+            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, {gateCount} gates, {cageCount} cages, and {holdoutCount} holdouts (0 errors).");
             return 0;
         }
 
@@ -275,6 +284,99 @@ namespace Game.Editor.Tools
                 {
                     errors.Add($"Cage '{cage.Id}' references missing enemy archetype '{cage.LostEnemyArchetypeId}'.");
                 }
+            }
+
+            return errors;
+        }
+
+        public static int ValidateHoldouts(string holdoutsFolder, out int holdoutCount)
+        {
+            int errors = 0;
+            holdoutCount = 0;
+
+            if (!Directory.Exists(holdoutsFolder))
+            {
+                Debug.LogWarning($"[ValidateCommand] Holdouts folder not found: {holdoutsFolder}");
+                return 0;
+            }
+
+            var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var file in Directory.GetFiles(holdoutsFolder, "*.asset"))
+            {
+                if (Path.GetFileNameWithoutExtension(file).Equals("HoldoutCatalog", StringComparison.OrdinalIgnoreCase)) continue;
+                var holdout = AssetDatabase.LoadAssetAtPath<HoldoutDefinition>(file.Replace('\\', '/'));
+                if (holdout == null)
+                {
+                    errors++;
+                    Debug.LogError($"[ValidateCommand] Failed to load HoldoutDefinition from asset: {file}");
+                    continue;
+                }
+                holdoutCount++;
+
+                if (!string.IsNullOrWhiteSpace(holdout.Id) && !seenIds.Add(holdout.Id))
+                {
+                    errors++;
+                    Debug.LogError($"[ValidateCommand] Duplicate holdout Id '{holdout.Id}' in file {file}.");
+                }
+
+                var holdoutErrors = ValidateHoldout(holdout);
+                errors += holdoutErrors.Count;
+                foreach (var err in holdoutErrors)
+                {
+                    Debug.LogError($"[ValidateCommand] Holdout '{holdout.Id}' validation error: {err}");
+                }
+            }
+            return errors;
+        }
+
+        public static List<string> ValidateHoldout(HoldoutDefinition holdout)
+        {
+            var errors = new List<string>();
+            if (holdout == null)
+            {
+                errors.Add("Holdout definition is null.");
+                return errors;
+            }
+
+            if (string.IsNullOrWhiteSpace(holdout.Id))
+            {
+                errors.Add("Holdout Id is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(holdout.DisplayName))
+            {
+                errors.Add("Holdout DisplayName is required.");
+            }
+
+            if (holdout.MaxHp <= 0)
+            {
+                errors.Add($"Holdout '{holdout.Id}' MaxHp must be greater than zero (was {holdout.MaxHp}).");
+            }
+
+            if (holdout.TotalSurvivors <= 0)
+            {
+                errors.Add($"Holdout '{holdout.Id}' TotalSurvivors must be greater than zero (was {holdout.TotalSurvivors}).");
+            }
+
+            if (holdout.DurationSeconds <= 0f)
+            {
+                errors.Add($"Holdout '{holdout.Id}' DurationSeconds must be greater than zero (was {holdout.DurationSeconds}).");
+            }
+
+            if (holdout.ZombieContactDps <= 0f)
+            {
+                errors.Add($"Holdout '{holdout.Id}' ZombieContactDps must be greater than zero (was {holdout.ZombieContactDps}).");
+            }
+
+            if (holdout.WaveIntervalSeconds <= 0f)
+            {
+                errors.Add($"Holdout '{holdout.Id}' WaveIntervalSeconds must be greater than zero (was {holdout.WaveIntervalSeconds}).");
+            }
+
+            if (holdout.ZombiesPerWavePerLane <= 0)
+            {
+                errors.Add($"Holdout '{holdout.Id}' ZombiesPerWavePerLane must be greater than zero (was {holdout.ZombiesPerWavePerLane}).");
             }
 
             return errors;

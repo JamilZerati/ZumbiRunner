@@ -24,6 +24,7 @@ O editor é resolvido por `UNITY_EDITOR` (caminho exato do `Unity.exe`) ou pelos
 | `validate` | **Nada ainda**: stub com exit 0 até a M7 | — |
 | `simulate` | **Nada ainda**: stub com exit 0 até a M7 | — |
 | `build-android` | APK de desenvolvimento em `Builds/` (fora do git) | `.artifacts/build-android.log` |
+| `record-gameplay` | Captura determinística em PlayMode (sem `-nographics`) e codificação MP4 via ffmpeg | `.artifacts/gameplay_recorded.mp4` e `.artifacts/record-gameplay.log` |
 
 Falhas de teste, com mensagem e stack trace:
 
