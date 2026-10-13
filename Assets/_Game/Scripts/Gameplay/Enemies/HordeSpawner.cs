@@ -55,6 +55,7 @@ namespace Game.Gameplay
         public int DefaultEnemyHealth { get; set; } = 20;
         public float DefaultEnemySpeed { get; set; } = 2f;
         public IEventBus EventBus { get; set; }
+        public LevelDirector LevelDirector { get; set; }
         public IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
 
         private readonly List<EnemyController> _activeEnemies = new List<EnemyController>();
@@ -104,16 +105,19 @@ namespace Game.Gameplay
                 throw new ArgumentOutOfRangeException(nameof(laneIndex), $"Invalid lane index: {laneIndex}");
             }
 
-            if (count <= 0 || Pool == null)
+            int bonusCount = LevelDirector != null ? LevelDirector.ConsumePendingBonusZombies(laneIndex) : 0;
+            int totalCount = count + bonusCount;
+
+            if (totalCount <= 0 || Pool == null)
             {
                 return new List<EnemyController>();
             }
 
-            var spawned = new List<EnemyController>(count);
+            var spawned = new List<EnemyController>(totalCount);
             float x = Layout.GetLaneCenterX(laneIndex);
             var recycleCallback = _onEnemyRecycled ?? OnEnemyRecycled;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < totalCount; i++)
             {
                 var enemy = Pool.Rent();
                 if (enemy == null)
