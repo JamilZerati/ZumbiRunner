@@ -26,6 +26,7 @@ namespace Game.Gameplay
         private readonly HashSet<SegmentDefinition> _spawnedSegments = new HashSet<SegmentDefinition>();
         private readonly HashSet<SegmentEvent> _spawnedEvents = new HashSet<SegmentEvent>();
         private readonly List<EnemyController> _trackedEnemies = new List<EnemyController>();
+        private readonly List<Cage> _trackedCages = new List<Cage>();
         private readonly Dictionary<int, int> _pendingBonusZombiesByLane = new Dictionary<int, int>();
         private int _rescuedSurvivorsCount;
 
@@ -88,6 +89,7 @@ namespace Game.Gameplay
             _spawnedSegments.Clear();
             _spawnedEvents.Clear();
             _trackedEnemies.Clear();
+            _trackedCages.Clear();
             _rescuedSurvivorsCount = 0;
             _pendingBonusZombiesByLane.Clear();
 
@@ -118,6 +120,7 @@ namespace Game.Gameplay
 
             CheckSpawns(distance);
             CheckTrackedEnemies(distance);
+            CheckTrackedCages(distance);
 
             if (_levelDef != null && _levelDef.TotalDistance > 0f)
             {
@@ -238,6 +241,32 @@ namespace Game.Gameplay
                     EscapedEnemyCount++;
                     _eventBus?.Publish(new EnemyEscapedEvent(enemy.ArchetypeId, enemy.LaneIndex, enemyZ));
                     enemy.Recycle();
+                }
+            }
+        }
+
+        public void TrackCage(Cage cage)
+        {
+            if (cage != null && !_trackedCages.Contains(cage))
+            {
+                _trackedCages.Add(cage);
+            }
+        }
+
+        private void CheckTrackedCages(float generalZ)
+        {
+            for (int i = _trackedCages.Count - 1; i >= 0; i--)
+            {
+                var cage = _trackedCages[i];
+                if (cage == null || !cage.gameObject.activeInHierarchy || !cage.IsAlive)
+                {
+                    _trackedCages.RemoveAt(i);
+                    continue;
+                }
+
+                if (cage.CheckEscape(generalZ))
+                {
+                    _trackedCages.RemoveAt(i);
                 }
             }
         }

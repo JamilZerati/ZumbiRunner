@@ -188,7 +188,7 @@ flowchart TD
   - **Marco de PR**: Marco 2 + `NEX-938`
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Gameplay/Rescue/Cage.cs`, `CageView.cs` e `LevelDirector.cs` [NEX-939]
+- [x] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Gameplay/Rescue/Cage.cs`, `CageView.cs` e `LevelDirector.cs` [NEX-939]
   - **Ação**: Criar [TELA] `Cage.cs` na camada `Pickup` implementando `IDamageable`, `CageView.cs` para exibir HP e sobreviventes presos, estender `LevelDirector.cs` e `HordeSpawner.cs` para acumular `RunResult.Rescued` e injetar zumbis extras em `SpawnWave` após `SurvivorsLostEvent`, e criar `Assets/_Game/Scripts/Tests/EditMode/CageGameplayTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Receber tiros de projéteis (`TakeDamage`), ao abrir adicionar soldados à tropa (`SquadController`) e emitir `SurvivorsRescuedEvent`; ao cruzar a linha do General com `CurrentHp > 0`, emitir `SurvivorsLostEvent`, registrar zumbis pendentes para a próxima horda da lane e acumular `Rescued` no `RunResult`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-936`), Marco 2 (`NEX-938`). `interface`: nenhuma.
