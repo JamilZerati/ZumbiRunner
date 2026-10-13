@@ -194,7 +194,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: medium
 
-- [ ] **Passo 1 (Marco 1)**: `HoldoutDefinition, HoldoutCatalog, JSON canônico e HoldoutImporter` [NEX-955]
+- [x] **Passo 1 (Marco 1)**: `HoldoutDefinition, HoldoutCatalog, JSON canônico e HoldoutImporter` [NEX-955]
   - **Ação**: Criar ScriptableObjects `HoldoutDefinition`, `HoldoutCatalog`, `HoldoutSegmentSpec`, JSON canônico `Content/Source/Holdouts/holdout_standard.json`, importador `HoldoutImporter.cs` e testes `HoldoutImporterTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Estruturar os dados de holdout com validação de schema e geração automática de assets via `tools/unity import-content`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.

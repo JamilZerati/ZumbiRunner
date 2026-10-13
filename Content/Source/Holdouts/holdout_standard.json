@@ -1,0 +1,10 @@
+{
+  "id": "holdout_standard",
+  "displayName": "Barricada Padrão",
+  "maxHp": 200,
+  "totalSurvivors": 5,
+  "durationSeconds": 15.0,
+  "zombieContactDps": 10.0,
+  "waveIntervalSeconds": 3.0,
+  "zombiesPerWavePerLane": 2
+}
