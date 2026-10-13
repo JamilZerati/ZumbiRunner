@@ -206,7 +206,7 @@ flowchart TD
   - **Marco de PR**: Marco 4 + `NEX-940`
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Assets/_Game/Scripts/Editor/Tools/SimulateCommand.cs` e `ValidateCommand.cs` [NEX-941]
+- [x] **Passo 5 (Marco 5)**: `Assets/_Game/Scripts/Editor/Tools/SimulateCommand.cs` e `ValidateCommand.cs` [NEX-941]
   - **Ação**: Modificar `SimulateCommand.cs` e `ValidateCommand.cs` e criar `Assets/_Game/Scripts/Tests/EditMode/CageSimulationAndValidationTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Validar todos os `CageDefinition` dentro de `ValidateCommand.Run`. No `SimulateCommand`, simular encontros com jaulas: o bot `Guloso` foca na jaula e resgata sobreviventes se tiver dano suficiente; o bot `Fujao` desvia e sofre com horda aumentada. Preencher `result.Rescued` no relatório do simulador.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-936`), Marco 2 (`NEX-938`). `interface`: nenhuma.

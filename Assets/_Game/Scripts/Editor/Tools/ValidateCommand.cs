@@ -19,12 +19,14 @@ namespace Game.Editor.Tools
         public static int Run(
             string levelsFolder = "Assets/_Game/Data/Levels",
             string abilitiesFolder = "Assets/_Game/Data/Abilities",
-            string gatesFolder = "Assets/_Game/Data/Gates")
+            string gatesFolder = "Assets/_Game/Data/Gates",
+            string cagesFolder = "Assets/_Game/Data/Cages")
         {
             int errorCount = 0;
             int levelCount = 0;
             int abilityCount = 0;
             int gateCount = 0;
+            int cageCount = 0;
 
             if (Directory.Exists(levelsFolder))
             {
@@ -57,14 +59,15 @@ namespace Game.Editor.Tools
 
             errorCount += ValidateAbilities(abilitiesFolder, out abilityCount);
             errorCount += ValidateGates(gatesFolder, out gateCount);
+            errorCount += ValidateCages(cagesFolder, out cageCount);
 
             if (errorCount > 0)
             {
-                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, and {gateCount} gates.");
+                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, {gateCount} gates, and {cageCount} cages.");
                 return 1;
             }
 
-            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, and {gateCount} gates (0 errors).");
+            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, {gateCount} gates, and {cageCount} cages (0 errors).");
             return 0;
         }
 
@@ -167,6 +170,90 @@ namespace Game.Editor.Tools
             else if (gate.Variant is ShootToUpgradeGateVariant up && !up.Validate(out string upErr)) errors.Add($"Gate variant validation error: {upErr}");
             else if (gate.Variant is CursedGateVariant cursed && !cursed.Validate(out string cErr)) errors.Add($"Gate variant validation error: {cErr}");
             else if (gate.Variant is GuardedGateVariant guarded && !guarded.Validate(out string gErr)) errors.Add($"Gate variant validation error: {gErr}");
+            return errors;
+        }
+
+        public static int ValidateCages(string cagesFolder, out int cageCount, string enemiesFolder = "Assets/_Game/Data/Enemies")
+        {
+            int errors = 0;
+            cageCount = 0;
+            if (!Directory.Exists(cagesFolder)) return 0;
+
+            var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var file in Directory.GetFiles(cagesFolder, "*.asset"))
+            {
+                if (Path.GetFileNameWithoutExtension(file).Equals("CageCatalog", StringComparison.OrdinalIgnoreCase)) continue;
+                var cage = AssetDatabase.LoadAssetAtPath<CageDefinition>(file.Replace('\\', '/'));
+                if (cage == null) continue;
+                cageCount++;
+
+                if (!string.IsNullOrWhiteSpace(cage.Id))
+                {
+                    if (seenIds.Contains(cage.Id))
+                    {
+                        errors++;
+                        Debug.LogError($"[ValidateCommand] Duplicate cage Id '{cage.Id}' in file {file}.");
+                    }
+                    else
+                    {
+                        seenIds.Add(cage.Id);
+                    }
+                }
+
+                var cageErrors = ValidateCage(cage, enemiesFolder);
+                errors += cageErrors.Count;
+                foreach (var err in cageErrors)
+                {
+                    Debug.LogError($"[ValidateCommand] Cage '{cage.Id}' validation error: {err}");
+                }
+            }
+            return errors;
+        }
+
+        public static List<string> ValidateCage(CageDefinition cage, string enemiesFolder = "Assets/_Game/Data/Enemies")
+        {
+            var errors = new List<string>();
+            if (cage == null)
+            {
+                errors.Add("Cage definition is null.");
+                return errors;
+            }
+
+            if (string.IsNullOrWhiteSpace(cage.Id))
+            {
+                errors.Add("Cage Id is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(cage.DisplayName))
+            {
+                errors.Add("Cage DisplayName is required.");
+            }
+
+            if (cage.MaxHp <= 0)
+            {
+                errors.Add($"Cage '{cage.Id}' MaxHp must be greater than zero (was {cage.MaxHp}).");
+            }
+
+            if (cage.SurvivorCount <= 0)
+            {
+                errors.Add($"Cage '{cage.Id}' SurvivorCount must be greater than zero (was {cage.SurvivorCount}).");
+            }
+
+            if (string.IsNullOrWhiteSpace(cage.LostEnemyArchetypeId))
+            {
+                errors.Add($"Cage '{cage.Id}' LostEnemyArchetypeId is required.");
+            }
+            else
+            {
+                string catalogPath = $"{enemiesFolder}/EnemyCatalog.asset";
+                var catalog = AssetDatabase.LoadAssetAtPath<EnemyCatalog>(catalogPath);
+                if (catalog != null && !catalog.TryGet(cage.LostEnemyArchetypeId, out _))
+                {
+                    errors.Add($"Cage '{cage.Id}' references missing enemy archetype '{cage.LostEnemyArchetypeId}'.");
+                }
+            }
+
             return errors;
         }
     }
