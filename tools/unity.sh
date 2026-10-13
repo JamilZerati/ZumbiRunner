@@ -125,8 +125,35 @@ case "$CMD" in
         fi
         echo "[tools/unity test-play] SUCCESS: $PASSED_COUNT/$TOTAL_COUNT passed."
         ;;
+    record-gameplay)
+        EDITOR_BIN="$(resolve_unity_editor)"
+        LOG_PATH="$ARTIFACTS_DIR/record-gameplay.log"
+        RESULTS_PATH="$ARTIFACTS_DIR/record-gameplay.xml"
+        FRAMES_DIR="$ARTIFACTS_DIR/frames_recorded"
+        TARGET_MP4="$ARTIFACTS_DIR/gameplay_recorded.mp4"
+        TEST_FILTER="${1:-RecordGameplayVideo}"
+
+        echo "[tools/unity record-gameplay] Executing PlayMode test filter '$TEST_FILTER'..."
+        set +e
+        "$EDITOR_BIN" -batchmode -projectPath "$PROJECT_PATH" -runTests -testPlatform PlayMode -testFilter "$TEST_FILTER" -testResults "$RESULTS_PATH" -logFile "$LOG_PATH"
+        EXIT_CODE=$?
+        set -e
+
+        if [[ $EXIT_CODE -ne 0 ]]; then
+            echo "[tools/unity record-gameplay] FAILED: PlayMode execution failed (exit code $EXIT_CODE)." >&2
+            exit $EXIT_CODE
+        fi
+
+        if command -v ffmpeg >/dev/null 2>&1 && [[ -f "$FRAMES_DIR/frame_0000.png" || -f "$FRAMES_DIR/frame_0001.png" ]]; then
+            echo "[tools/unity record-gameplay] Encoding MP4 with ffmpeg..."
+            ffmpeg -y -framerate 24 -i "$FRAMES_DIR/frame_%04d.png" -c:v libx264 -pix_fmt yuv420p -crf 18 "$TARGET_MP4"
+            echo "[tools/unity record-gameplay] SUCCESS: Video generated at $TARGET_MP4"
+        else
+            echo "[tools/unity record-gameplay] PlayMode test completed. Exit code: 0."
+        fi
+        ;;
     *)
-        echo "Usage: $0 {setup|compile|test-edit|test-play|import-content|validate|simulate|build-android}" >&2
+        echo "Usage: $0 {setup|compile|test-edit|test-play|import-content|validate|simulate|build-android|record-gameplay}" >&2
         exit 1
         ;;
 esac

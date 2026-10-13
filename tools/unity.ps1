@@ -238,8 +238,39 @@ switch ($Command.ToLower()) {
         $code = Invoke-UnityBatchmode @("-quit", "-executeMethod", "Game.Editor.Cli.BuildAndroid", "-logFile", $logPath)
         exit $code
     }
+    "record-gameplay" {
+        $artifactsDir = Ensure-ArtifactsDirectory
+        $logPath = Join-Path $artifactsDir "record-gameplay.log"
+        $resultsFile = Join-Path $artifactsDir "record-gameplay.xml"
+        $framesDir = Join-Path $artifactsDir "frames_recorded"
+        $targetMp4 = Join-Path $artifactsDir "gameplay_recorded.mp4"
+        $testFilter = if ($ExtraArgs -and $ExtraArgs.Count -gt 0) { $ExtraArgs[0] } else { "RecordGameplayVideo" }
+
+        Write-Host "[tools/unity record-gameplay] Executing PlayMode test filter '$testFilter'..."
+        $editor = Resolve-UnityEditor
+        $projectPath = Get-ProjectPath
+
+        $proc = Start-Process -FilePath $editor -ArgumentList @("-batchmode", "-projectPath", $projectPath, "-runTests", "-testPlatform", "PlayMode", "-testFilter", $testFilter, "-testResults", $resultsFile, "-logFile", $logPath) -Wait -PassThru -NoNewWindow
+
+        if ($proc.ExitCode -ne 0) {
+            Write-Host "[tools/unity record-gameplay] FAILED: PlayMode execution failed (exit code $($proc.ExitCode))." -ForegroundColor Red
+            exit $proc.ExitCode
+        }
+
+        $ffmpeg = Get-Command "ffmpeg" -ErrorAction SilentlyContinue
+        $framesPattern = Join-Path $framesDir "frame_%04d.png"
+        $hasFrames = (Test-Path (Join-Path $framesDir "frame_0000.png")) -or (Test-Path (Join-Path $framesDir "frame_0001.png"))
+        if ($ffmpeg -and $hasFrames) {
+            Write-Host "[tools/unity record-gameplay] Encoding MP4 with ffmpeg..."
+            & $ffmpeg.Source -y -framerate 24 -i $framesPattern -c:v libx264 -pix_fmt yuv420p -crf 18 $targetMp4
+            Write-Host "[tools/unity record-gameplay] SUCCESS: Video generated at $targetMp4" -ForegroundColor Green
+        } else {
+            Write-Host "[tools/unity record-gameplay] PlayMode test completed. Exit code: 0." -ForegroundColor Green
+        }
+        exit 0
+    }
     default {
-        Write-Error "Unknown command: $Command. Available: setup, compile, test-edit, test-play, import-content, validate, simulate, build-android"
+        Write-Error "Unknown command: $Command. Available: setup, compile, test-edit, test-play, import-content, validate, simulate, build-android, record-gameplay"
         exit 1
     }
 }
