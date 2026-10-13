@@ -15,6 +15,8 @@ namespace Game.Core.State
         public IReadOnlyList<string> MutationIds { get; set; }
         public float DurationSeconds { get; set; }
         public int Stars { get; set; }
+        public int HoldoutsAttempted { get; set; }
+        public int HoldoutsHeld { get; set; }
 
         public RunResult()
         {

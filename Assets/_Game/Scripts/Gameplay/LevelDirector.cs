@@ -29,12 +29,16 @@ namespace Game.Gameplay
         private readonly List<Cage> _trackedCages = new List<Cage>();
         private readonly Dictionary<int, int> _pendingBonusZombiesByLane = new Dictionary<int, int>();
         private int _rescuedSurvivorsCount;
+        private int _holdoutsAttempted;
+        private int _holdoutsHeld;
 
         private IDisposable _squadSub;
         private IDisposable _enemyKilledSub;
         private IDisposable _multiplierSub;
         private IDisposable _survivorsRescuedSub;
         private IDisposable _survivorsLostSub;
+        private IDisposable _holdoutStartedSub;
+        private IDisposable _holdoutEndedSub;
 
         public RunConfig Config => _config;
         public LevelDefinition LevelDefinition => _levelDef;
@@ -44,7 +48,10 @@ namespace Game.Gameplay
         public int MultiplierReached => _multiplierReached;
         public int EscapedEnemyCount { get; private set; }
         public int SpawnedHordeCount { get; private set; }
+        public int SpawnedHoldoutCount { get; private set; }
         public int RescuedSurvivorsCount => _rescuedSurvivorsCount;
+        public int HoldoutsAttempted => _holdoutsAttempted;
+        public int HoldoutsHeld => _holdoutsHeld;
         public IReadOnlyDictionary<string, int> KillsByArchetype => _killsByArchetype;
 
         public int GetPendingBonusZombies(int lane)
@@ -63,6 +70,7 @@ namespace Game.Gameplay
         }
 
         public event Action<SegmentDefinition> OnHordeSpawned;
+        public event Action<SegmentDefinition> OnHoldoutSpawned;
         public event Action<SegmentDefinition, SegmentEvent> OnSegmentEventTriggered;
         public event Action<RunResult> OnRunEnded;
 
@@ -84,6 +92,9 @@ namespace Game.Gameplay
             _multiplierReached = 0;
             EscapedEnemyCount = 0;
             SpawnedHordeCount = 0;
+            SpawnedHoldoutCount = 0;
+            _holdoutsAttempted = 0;
+            _holdoutsHeld = 0;
 
             _killsByArchetype.Clear();
             _spawnedSegments.Clear();
@@ -103,6 +114,8 @@ namespace Game.Gameplay
                 _multiplierSub = _eventBus.Subscribe<MultiplierReachedEvent>(OnMultiplierReached);
                 _survivorsRescuedSub = _eventBus.Subscribe<SurvivorsRescuedEvent>(OnSurvivorsRescued);
                 _survivorsLostSub = _eventBus.Subscribe<SurvivorsLostEvent>(OnSurvivorsLost);
+                _holdoutStartedSub = _eventBus.Subscribe<HoldoutStartedEvent>(OnHoldoutStarted);
+                _holdoutEndedSub = _eventBus.Subscribe<HoldoutEndedEvent>(OnHoldoutEnded);
 
                 string levelId = _levelDef != null ? _levelDef.LevelId : (_config != null ? _config.LevelId : string.Empty);
                 _eventBus.Publish(new RunStartedEvent(levelId, _config));
@@ -154,6 +167,15 @@ namespace Game.Gameplay
                         _spawnedSegments.Add(segment);
                         SpawnedHordeCount++;
                         OnHordeSpawned?.Invoke(segment);
+                    }
+                }
+                else if (segment.SegmentType == SegmentType.Holdout)
+                {
+                    if (distance >= segment.StartDistance && !_spawnedSegments.Contains(segment))
+                    {
+                        _spawnedSegments.Add(segment);
+                        SpawnedHoldoutCount++;
+                        OnHoldoutSpawned?.Invoke(segment);
                     }
                 }
 
@@ -279,6 +301,16 @@ namespace Game.Gameplay
 
             _isRunActive = false;
 
+            int stars = 0;
+            if (victory)
+            {
+                stars = _currentSquad > 0 ? 3 : 1;
+                if (_holdoutsAttempted > 0 && _holdoutsHeld < _holdoutsAttempted)
+                {
+                    stars = Mathf.Min(stars, 2);
+                }
+            }
+
             string levelId = _levelDef != null ? _levelDef.LevelId : (_config != null ? _config.LevelId : string.Empty);
             var result = new RunResult
             {
@@ -290,12 +322,37 @@ namespace Game.Gameplay
                 KillsByArchetype = new Dictionary<string, int>(_killsByArchetype),
                 Rescued = _rescuedSurvivorsCount,
                 DurationSeconds = 0f,
-                Stars = victory ? (_currentSquad > 0 ? 3 : 1) : 0,
+                Stars = stars,
+                HoldoutsAttempted = _holdoutsAttempted,
+                HoldoutsHeld = _holdoutsHeld,
                 MutationIds = _config != null && _config.MutationIds != null ? new List<string>(_config.MutationIds) : new List<string>()
             };
 
             OnRunEnded?.Invoke(result);
             _eventBus?.Publish(new RunEndedEvent(result));
+        }
+
+        public void RecordHoldoutStarted()
+        {
+            _holdoutsAttempted++;
+        }
+
+        public void RecordHoldoutEnded(bool barricadeHeld)
+        {
+            if (barricadeHeld)
+            {
+                _holdoutsHeld++;
+            }
+        }
+
+        private void OnHoldoutStarted(HoldoutStartedEvent evt)
+        {
+            RecordHoldoutStarted();
+        }
+
+        private void OnHoldoutEnded(HoldoutEndedEvent evt)
+        {
+            RecordHoldoutEnded(evt.BarricadeHeld);
         }
 
         private void OnSquadSizeChanged(SquadSizeChangedEvent evt)
@@ -352,6 +409,10 @@ namespace Game.Gameplay
             _survivorsRescuedSub = null;
             _survivorsLostSub?.Dispose();
             _survivorsLostSub = null;
+            _holdoutStartedSub?.Dispose();
+            _holdoutStartedSub = null;
+            _holdoutEndedSub?.Dispose();
+            _holdoutEndedSub = null;
         }
 
         private void OnDestroy()

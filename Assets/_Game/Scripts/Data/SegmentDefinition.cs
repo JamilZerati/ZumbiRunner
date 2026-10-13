@@ -8,7 +8,8 @@ namespace Game.Data
         Gate,
         Horde,
         Multiplier,
-        Cage
+        Cage,
+        Holdout
     }
 
     [Serializable]
@@ -29,5 +30,6 @@ namespace Game.Data
         public SegmentEvent[] Events;
         public int[] CoveredLanes;
         public CageSpawnSpec[] Cages;
+        public HoldoutSegmentSpec Holdout;
     }
 }
