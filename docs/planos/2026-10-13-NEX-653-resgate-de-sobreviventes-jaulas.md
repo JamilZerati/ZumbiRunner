@@ -179,7 +179,7 @@ flowchart TD
   - **Marco de PR**: Marco 1 + `NEX-937`
   - **Runtime**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Assets/_Game/Scripts/Data/Cages/` e `Assets/_Game/Scripts/Editor/CageImporter.cs` [NEX-938]
+- [x] **Passo 2 (Marco 2)**: `Assets/_Game/Scripts/Data/Cages/` e `Assets/_Game/Scripts/Editor/CageImporter.cs` [NEX-938]
   - **Ação**: Criar `CageDefinition.cs`, `CageCatalog.cs`, `CageSpawnSpec.cs`, `Content/Source/Cages/cage_standard_3.json`, estender `SegmentDefinition.cs`, implementar `CageImporter.cs` (integrado a `Cli.ImportContent()`) e criar `Assets/_Game/Scripts/Tests/EditMode/CageImporterTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Importar jaulas a partir de JSONs canônicos, validar `maxHp > 0`, `survivorCount > 0` e arquétipo de zumbi existente, e associar jaulas a segmentos do nível.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-936`), Marco 1 (`NEX-937`). `interface`: nenhuma.
