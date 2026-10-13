@@ -200,7 +200,7 @@ flowchart TD
   - **Marco de PR**: Marco 2 + `NEX-884`
   - **Runtime**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Gameplay/Gate.cs`, `GatePair.cs` e `Assets/_Game/Scripts/Presentation/GateView.cs` [NEX-885]
+- [x] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Gameplay/Gate.cs`, `GatePair.cs` e `Assets/_Game/Scripts/Presentation/GateView.cs` [NEX-885]
   - **Ação**: Modificar [TELA] `Gate.cs`, `GatePair.cs` e `GateView.cs` e criar `Assets/_Game/Scripts/Tests/EditMode/LivingGatesGameplayTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Implementar `IDamageable` em `Gate` com `IsAlive == true` somente quando a variante aceita projéteis (`ShootToUpgrade`) e o `GatePair` não foi consumido (respeitando a armadilha de seletividade física). Ao receber `TakeDamage`, avançar `GateRuntimeState` e notificar `GateView` para atualizar o texto (`+N`/`-N`) e cor (`NegativeColor` → `PositiveColor`, ou `CursedColor` para `Cursed`). Ao atravessar `GatePair.TryTrigger`, aplicar a variante (valor evoluído ou ativação de `Cursed` no `StageModifierController`), publicar `GatePassedEvent` e `GateTriggeredEvent`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-882`), Marco 2 (`NEX-884`). `interface`: nenhuma.
