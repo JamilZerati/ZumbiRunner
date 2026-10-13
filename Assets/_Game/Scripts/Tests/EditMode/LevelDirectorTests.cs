@@ -141,5 +141,51 @@ namespace Game.Tests.EditMode
             Assert.IsTrue(endedEvent.Value.Result.Victory);
             Assert.AreEqual(100f, endedEvent.Value.Result.Distance);
         }
+
+        [Test]
+        public void SurvivorsRescuedEvent_AccumulatesInRunResult()
+        {
+            var eventBus = new EventBus();
+            RunEndedEvent? endedEvent = null;
+            eventBus.Subscribe<RunEndedEvent>(e => endedEvent = e);
+
+            var directorGo = CreateGameObject("LevelDirector");
+            var director = directorGo.AddComponent<LevelDirector>();
+            var config = new RunConfig { LevelId = "rescue_test", InitialSquad = 10 };
+            director.Initialize(config, null, eventBus);
+
+            eventBus.Publish(new SurvivorsRescuedEvent(count: 3, laneIndex: 0, cageId: "cage_01"));
+            eventBus.Publish(new SurvivorsRescuedEvent(count: 4, laneIndex: 1, cageId: "cage_02"));
+
+            Assert.AreEqual(7, director.RescuedSurvivorsCount);
+
+            director.EndRun(victory: true);
+
+            Assert.IsNotNull(endedEvent);
+            Assert.AreEqual(7, endedEvent.Value.Result.Rescued);
+        }
+
+        [Test]
+        public void SurvivorsLostEvent_EnqueuesPendingBonusZombiesPerLane()
+        {
+            var eventBus = new EventBus();
+            var directorGo = CreateGameObject("LevelDirector");
+            var director = directorGo.AddComponent<LevelDirector>();
+            var config = new RunConfig { LevelId = "loss_test", InitialSquad = 10 };
+            director.Initialize(config, null, eventBus);
+
+            eventBus.Publish(new SurvivorsLostEvent(count: 2, laneIndex: 0, cageId: "cage_lost_1"));
+            eventBus.Publish(new SurvivorsLostEvent(count: 3, laneIndex: 0, cageId: "cage_lost_2"));
+            eventBus.Publish(new SurvivorsLostEvent(count: 4, laneIndex: 1, cageId: "cage_lost_3"));
+
+            Assert.AreEqual(5, director.GetPendingBonusZombies(0));
+            Assert.AreEqual(4, director.GetPendingBonusZombies(1));
+            Assert.AreEqual(0, director.GetPendingBonusZombies(2));
+
+            int consumedLane0 = director.ConsumePendingBonusZombies(0);
+            Assert.AreEqual(5, consumedLane0);
+            Assert.AreEqual(0, director.GetPendingBonusZombies(0));
+            Assert.AreEqual(4, director.GetPendingBonusZombies(1));
+        }
     }
 }
