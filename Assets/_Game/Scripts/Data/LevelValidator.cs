@@ -50,11 +50,54 @@ namespace Game.Data
                 {
                     CheckHordeSegmentLanes(segment, totalLanes, result.Errors);
                 }
+
+                if (segment.Cages != null && segment.Cages.Length > 0)
+                {
+                    CheckCageSpecs(segment, totalLanes, result.Errors);
+                }
             }
 
             CheckSegmentOverlaps(level, result.Errors);
 
             return result;
+        }
+
+        private static void CheckCageSpecs(SegmentDefinition segment, int totalLanes, List<string> errors)
+        {
+            for (int c = 0; c < segment.Cages.Length; c++)
+            {
+                var spec = segment.Cages[c];
+                if (spec == null)
+                {
+                    errors.Add($"Cage spec at index {c} in segment at {segment.StartDistance:F1}m is null.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(spec.CageId))
+                {
+                    errors.Add($"Cage spec at index {c} in segment at {segment.StartDistance:F1}m has empty CageId.");
+                }
+
+                if (spec.LaneIndex < 0 || spec.LaneIndex >= totalLanes)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has invalid LaneIndex {spec.LaneIndex}. Total lanes: {totalLanes}.");
+                }
+
+                if (spec.DistanceOffset < 0f || spec.DistanceOffset > segment.Length)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has invalid DistanceOffset ({spec.DistanceOffset:F1}m). Must be between 0 and {segment.Length:F1}m.");
+                }
+
+                if (spec.CustomHp < 0)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has negative CustomHp ({spec.CustomHp}).");
+                }
+
+                if (spec.CustomSurvivors < 0)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has negative CustomSurvivors ({spec.CustomSurvivors}).");
+                }
+            }
         }
 
         private static void CheckHordeSegmentLanes(SegmentDefinition segment, int totalLanes, List<string> errors)

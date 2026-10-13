@@ -55,6 +55,12 @@ namespace Game.Gameplay
         public int DefaultEnemyHealth { get; set; } = 20;
         public float DefaultEnemySpeed { get; set; } = 2f;
         public IEventBus EventBus { get; set; }
+        private LevelDirector _levelDirector;
+        public LevelDirector LevelDirector
+        {
+            get => _levelDirector != null ? _levelDirector : (_levelDirector = FindFirstObjectByType<LevelDirector>());
+            set => _levelDirector = value;
+        }
         public IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
 
         private readonly List<EnemyController> _activeEnemies = new List<EnemyController>();
@@ -82,6 +88,7 @@ namespace Game.Gameplay
 
             if (enemyPrefab == null)
             {
+                Debug.LogError($"[HordeSpawner] Cannot initialize pool on '{gameObject.name}': No EnemyController prefab assigned or found in scene.", this);
                 return;
             }
 
@@ -104,16 +111,27 @@ namespace Game.Gameplay
                 throw new ArgumentOutOfRangeException(nameof(laneIndex), $"Invalid lane index: {laneIndex}");
             }
 
-            if (count <= 0 || Pool == null)
+            if (Pool == null)
+            {
+                Debug.LogWarning($"[HordeSpawner] SpawnWave called with null Pool on '{gameObject.name}'.", this);
+                return new List<EnemyController>();
+            }
+
+            // Invariante de pacing: sobreviventes perdidos sao injetados exclusivamente na proxima horda da mesma lane para nao descompassar o ritmo da pista.
+            int bonusCount = LevelDirector != null ? LevelDirector.ConsumePendingBonusZombies(laneIndex) : 0;
+            int totalCount = Math.Max(0, count) + bonusCount;
+
+            if (totalCount <= 0)
             {
                 return new List<EnemyController>();
             }
 
-            var spawned = new List<EnemyController>(count);
+            var spawned = new List<EnemyController>(totalCount);
             float x = Layout.GetLaneCenterX(laneIndex);
-            var recycleCallback = _onEnemyRecycled ?? OnEnemyRecycled;
+            _onEnemyRecycled ??= OnEnemyRecycled;
+            var recycleCallback = _onEnemyRecycled;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < totalCount; i++)
             {
                 var enemy = Pool.Rent();
                 if (enemy == null)

@@ -26,10 +26,15 @@ namespace Game.Gameplay
         private readonly HashSet<SegmentDefinition> _spawnedSegments = new HashSet<SegmentDefinition>();
         private readonly HashSet<SegmentEvent> _spawnedEvents = new HashSet<SegmentEvent>();
         private readonly List<EnemyController> _trackedEnemies = new List<EnemyController>();
+        private readonly List<Cage> _trackedCages = new List<Cage>();
+        private readonly Dictionary<int, int> _pendingBonusZombiesByLane = new Dictionary<int, int>();
+        private int _rescuedSurvivorsCount;
 
         private IDisposable _squadSub;
         private IDisposable _enemyKilledSub;
         private IDisposable _multiplierSub;
+        private IDisposable _survivorsRescuedSub;
+        private IDisposable _survivorsLostSub;
 
         public RunConfig Config => _config;
         public LevelDefinition LevelDefinition => _levelDef;
@@ -39,7 +44,23 @@ namespace Game.Gameplay
         public int MultiplierReached => _multiplierReached;
         public int EscapedEnemyCount { get; private set; }
         public int SpawnedHordeCount { get; private set; }
+        public int RescuedSurvivorsCount => _rescuedSurvivorsCount;
         public IReadOnlyDictionary<string, int> KillsByArchetype => _killsByArchetype;
+
+        public int GetPendingBonusZombies(int lane)
+        {
+            return _pendingBonusZombiesByLane.TryGetValue(lane, out int count) ? count : 0;
+        }
+
+        public int ConsumePendingBonusZombies(int lane)
+        {
+            if (_pendingBonusZombiesByLane.TryGetValue(lane, out int count))
+            {
+                _pendingBonusZombiesByLane[lane] = 0;
+                return count;
+            }
+            return 0;
+        }
 
         public event Action<SegmentDefinition> OnHordeSpawned;
         public event Action<SegmentDefinition, SegmentEvent> OnSegmentEventTriggered;
@@ -68,6 +89,9 @@ namespace Game.Gameplay
             _spawnedSegments.Clear();
             _spawnedEvents.Clear();
             _trackedEnemies.Clear();
+            _trackedCages.Clear();
+            _rescuedSurvivorsCount = 0;
+            _pendingBonusZombiesByLane.Clear();
 
             _isInitialized = true;
             _isRunActive = true;
@@ -77,6 +101,8 @@ namespace Game.Gameplay
                 _squadSub = _eventBus.Subscribe<SquadSizeChangedEvent>(OnSquadSizeChanged);
                 _enemyKilledSub = _eventBus.Subscribe<EnemyKilledEvent>(OnEnemyKilled);
                 _multiplierSub = _eventBus.Subscribe<MultiplierReachedEvent>(OnMultiplierReached);
+                _survivorsRescuedSub = _eventBus.Subscribe<SurvivorsRescuedEvent>(OnSurvivorsRescued);
+                _survivorsLostSub = _eventBus.Subscribe<SurvivorsLostEvent>(OnSurvivorsLost);
 
                 string levelId = _levelDef != null ? _levelDef.LevelId : (_config != null ? _config.LevelId : string.Empty);
                 _eventBus.Publish(new RunStartedEvent(levelId, _config));
@@ -94,6 +120,7 @@ namespace Game.Gameplay
 
             CheckSpawns(distance);
             CheckTrackedEnemies(distance);
+            CheckTrackedCages(distance);
 
             if (_levelDef != null && _levelDef.TotalDistance > 0f)
             {
@@ -218,6 +245,26 @@ namespace Game.Gameplay
             }
         }
 
+        public void TrackCage(Cage cage)
+        {
+            if (cage != null && !_trackedCages.Contains(cage))
+            {
+                _trackedCages.Add(cage);
+            }
+        }
+
+        private void CheckTrackedCages(float generalZ)
+        {
+            for (int i = _trackedCages.Count - 1; i >= 0; i--)
+            {
+                var cage = _trackedCages[i];
+                if (cage == null || !cage.gameObject.activeInHierarchy || !cage.IsAlive || cage.CheckEscape(generalZ))
+                {
+                    _trackedCages.RemoveAt(i);
+                }
+            }
+        }
+
         public bool HasSpawnedSegment(SegmentDefinition segment)
         {
             return segment != null && _spawnedSegments.Contains(segment);
@@ -241,6 +288,7 @@ namespace Game.Gameplay
                 SquadAtEnd = _currentSquad,
                 MultiplierReached = _multiplierReached,
                 KillsByArchetype = new Dictionary<string, int>(_killsByArchetype),
+                Rescued = _rescuedSurvivorsCount,
                 DurationSeconds = 0f,
                 Stars = victory ? (_currentSquad > 0 ? 3 : 1) : 0,
                 MutationIds = _config != null && _config.MutationIds != null ? new List<string>(_config.MutationIds) : new List<string>()
@@ -281,6 +329,17 @@ namespace Game.Gameplay
             _multiplierReached = evt.Multiplier;
         }
 
+        private void OnSurvivorsRescued(SurvivorsRescuedEvent evt)
+        {
+            _rescuedSurvivorsCount += evt.Count;
+        }
+
+        private void OnSurvivorsLost(SurvivorsLostEvent evt)
+        {
+            _pendingBonusZombiesByLane.TryGetValue(evt.LaneIndex, out int current);
+            _pendingBonusZombiesByLane[evt.LaneIndex] = current + evt.Count;
+        }
+
         private void CleanupSubscriptions()
         {
             _squadSub?.Dispose();
@@ -289,6 +348,10 @@ namespace Game.Gameplay
             _enemyKilledSub = null;
             _multiplierSub?.Dispose();
             _multiplierSub = null;
+            _survivorsRescuedSub?.Dispose();
+            _survivorsRescuedSub = null;
+            _survivorsLostSub?.Dispose();
+            _survivorsLostSub = null;
         }
 
         private void OnDestroy()

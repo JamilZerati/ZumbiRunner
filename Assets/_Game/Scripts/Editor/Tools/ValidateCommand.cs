@@ -19,16 +19,40 @@ namespace Game.Editor.Tools
         public static int Run(
             string levelsFolder = "Assets/_Game/Data/Levels",
             string abilitiesFolder = "Assets/_Game/Data/Abilities",
-            string gatesFolder = "Assets/_Game/Data/Gates")
+            string gatesFolder = "Assets/_Game/Data/Gates",
+            string cagesFolder = "Assets/_Game/Data/Cages")
         {
             int errorCount = 0;
             int levelCount = 0;
             int abilityCount = 0;
             int gateCount = 0;
+            int cageCount = 0;
 
-            if (Directory.Exists(levelsFolder))
+            if (!Directory.Exists(levelsFolder))
             {
-                string[] assetFiles = Directory.GetFiles(levelsFolder, "*.asset");
+                Debug.LogError($"[ValidateCommand] Levels folder not found: {levelsFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(abilitiesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Abilities folder not found: {abilitiesFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(gatesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Gates folder not found: {gatesFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(cagesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Cages folder not found: {cagesFolder}");
+                return 1;
+            }
+
+            string[] assetFiles = Directory.GetFiles(levelsFolder, "*.asset");
                 for (int i = 0; i < assetFiles.Length; i++)
                 {
                     string assetPath = assetFiles[i].Replace('\\', '/');
@@ -49,22 +73,18 @@ namespace Game.Editor.Tools
                         }
                     }
                 }
-            }
-            else
-            {
-                Debug.LogWarning($"[ValidateCommand] Levels folder not found: {levelsFolder}");
-            }
 
             errorCount += ValidateAbilities(abilitiesFolder, out abilityCount);
             errorCount += ValidateGates(gatesFolder, out gateCount);
+            errorCount += ValidateCages(cagesFolder, out cageCount);
 
             if (errorCount > 0)
             {
-                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, and {gateCount} gates.");
+                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, {gateCount} gates, and {cageCount} cages.");
                 return 1;
             }
 
-            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, and {gateCount} gates (0 errors).");
+            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, {gateCount} gates, and {cageCount} cages (0 errors).");
             return 0;
         }
 
@@ -167,6 +187,96 @@ namespace Game.Editor.Tools
             else if (gate.Variant is ShootToUpgradeGateVariant up && !up.Validate(out string upErr)) errors.Add($"Gate variant validation error: {upErr}");
             else if (gate.Variant is CursedGateVariant cursed && !cursed.Validate(out string cErr)) errors.Add($"Gate variant validation error: {cErr}");
             else if (gate.Variant is GuardedGateVariant guarded && !guarded.Validate(out string gErr)) errors.Add($"Gate variant validation error: {gErr}");
+            return errors;
+        }
+
+        public static int ValidateCages(string cagesFolder, out int cageCount, string enemiesFolder = "Assets/_Game/Data/Enemies")
+        {
+            int errors = 0;
+            cageCount = 0;
+            if (!Directory.Exists(cagesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Cages folder not found: {cagesFolder}");
+                return 1;
+            }
+
+            var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var file in Directory.GetFiles(cagesFolder, "*.asset"))
+            {
+                if (Path.GetFileNameWithoutExtension(file).Equals("CageCatalog", StringComparison.OrdinalIgnoreCase)) continue;
+                var cage = AssetDatabase.LoadAssetAtPath<CageDefinition>(file.Replace('\\', '/'));
+                if (cage == null)
+                {
+                    errors++;
+                    Debug.LogError($"[ValidateCommand] Failed to load CageDefinition from asset: {file}");
+                    continue;
+                }
+                cageCount++;
+
+                if (!string.IsNullOrWhiteSpace(cage.Id) && !seenIds.Add(cage.Id))
+                {
+                    errors++;
+                    Debug.LogError($"[ValidateCommand] Duplicate cage Id '{cage.Id}' in file {file}.");
+                }
+
+                var cageErrors = ValidateCage(cage, enemiesFolder);
+                errors += cageErrors.Count;
+                foreach (var err in cageErrors)
+                {
+                    Debug.LogError($"[ValidateCommand] Cage '{cage.Id}' validation error: {err}");
+                }
+            }
+            return errors;
+        }
+
+        public static List<string> ValidateCage(CageDefinition cage, string enemiesFolder = "Assets/_Game/Data/Enemies")
+        {
+            var errors = new List<string>();
+            if (cage == null)
+            {
+                errors.Add("Cage definition is null.");
+                return errors;
+            }
+
+            if (string.IsNullOrWhiteSpace(cage.Id))
+            {
+                errors.Add("Cage Id is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(cage.DisplayName))
+            {
+                errors.Add("Cage DisplayName is required.");
+            }
+
+            if (cage.MaxHp <= 0)
+            {
+                errors.Add($"Cage '{cage.Id}' MaxHp must be greater than zero (was {cage.MaxHp}).");
+            }
+
+            if (cage.SurvivorCount <= 0)
+            {
+                errors.Add($"Cage '{cage.Id}' SurvivorCount must be greater than zero (was {cage.SurvivorCount}).");
+            }
+
+            if (string.IsNullOrWhiteSpace(cage.LostEnemyArchetypeId))
+            {
+                errors.Add($"Cage '{cage.Id}' LostEnemyArchetypeId is required.");
+            }
+            else
+            {
+                string catalogPath = $"{enemiesFolder}/EnemyCatalog.asset";
+                var catalog = AssetDatabase.LoadAssetAtPath<EnemyCatalog>(catalogPath);
+                if (catalog == null)
+                {
+                    errors.Add($"Cage '{cage.Id}' cannot validate enemy archetype: EnemyCatalog not found at '{catalogPath}'.");
+                }
+                else if (!catalog.TryGet(cage.LostEnemyArchetypeId, out _))
+                {
+                    errors.Add($"Cage '{cage.Id}' references missing enemy archetype '{cage.LostEnemyArchetypeId}'.");
+                }
+            }
+
             return errors;
         }
     }

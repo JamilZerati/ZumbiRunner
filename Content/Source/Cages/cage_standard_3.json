@@ -1,0 +1,7 @@
+{
+  "id": "cage_standard_3",
+  "displayName": "Jaula de Sobreviventes",
+  "maxHp": 60,
+  "survivorCount": 3,
+  "lostEnemyArchetypeId": "walker"
+}

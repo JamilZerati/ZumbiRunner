@@ -7,7 +7,8 @@ namespace Game.Data
         Warmup,
         Gate,
         Horde,
-        Multiplier
+        Multiplier,
+        Cage
     }
 
     [Serializable]
@@ -27,5 +28,6 @@ namespace Game.Data
         public float Length;
         public SegmentEvent[] Events;
         public int[] CoveredLanes;
+        public CageSpawnSpec[] Cages;
     }
 }

@@ -14,7 +14,7 @@ namespace Game.Editor.Tools
     [Serializable]
     public class SimulationRunResult
     {
-        public int runIndex, finalSquad, multiplierReached, kills;
+        public int runIndex, finalSquad, multiplierReached, kills, rescued;
         public string botType;
         public bool victory;
         public float distanceReached;
@@ -26,14 +26,15 @@ namespace Game.Editor.Tools
         public int FinalSquad => finalSquad;
         public int MultiplierReached => multiplierReached;
         public int Kills => kills;
+        public int Rescued => rescued;
     }
 
     [Serializable]
     public class SimulationSummary
     {
         public string botType;
-        public int totalRuns, victories;
-        public float winRate, averageDistance, averageFinalSquad, averageMultiplier;
+        public int totalRuns, victories, totalRescued;
+        public float winRate, averageDistance, averageFinalSquad, averageMultiplier, averageRescued;
         public List<SimulationRunResult> runs = new List<SimulationRunResult>();
 
         public BotType Bot => (BotType)Enum.Parse(typeof(BotType), botType);
@@ -43,6 +44,8 @@ namespace Game.Editor.Tools
         public float AverageDistance => averageDistance;
         public float AverageFinalSquad => averageFinalSquad;
         public float AverageMultiplier => averageMultiplier;
+        public float AverageRescued => averageRescued;
+        public int TotalRescued => totalRescued;
         public IReadOnlyList<SimulationRunResult> Runs => runs;
     }
 
@@ -108,7 +111,7 @@ namespace Game.Editor.Tools
             if (level == null) throw new ArgumentNullException(nameof(level));
             var summary = new SimulationSummary { botType = botType.ToString(), totalRuns = runs };
             float totalDistance = 0f;
-            int totalSquad = 0, totalMultiplier = 0;
+            int totalSquad = 0, totalMultiplier = 0, totalRescued = 0;
 
             for (int i = 0; i < runs; i++)
             {
@@ -118,12 +121,15 @@ namespace Game.Editor.Tools
                 totalDistance += r.distanceReached;
                 totalSquad += r.finalSquad;
                 totalMultiplier += r.multiplierReached;
+                totalRescued += r.rescued;
             }
 
+            summary.totalRescued = totalRescued;
             summary.winRate = runs > 0 ? (float)summary.victories / runs : 0f;
             summary.averageDistance = runs > 0 ? totalDistance / runs : 0f;
             summary.averageFinalSquad = runs > 0 ? (float)totalSquad / runs : 0f;
             summary.averageMultiplier = runs > 0 ? (float)totalMultiplier / runs : 0f;
+            summary.averageRescued = runs > 0 ? (float)totalRescued / runs : 0f;
             return summary;
         }
 
@@ -157,11 +163,12 @@ namespace Game.Editor.Tools
             var rng = new System.Random(seed + runIndex * 10007);
             int squad = level.InitialTroops > 0 ? level.InitialTroops : 5;
             float currentDist = 0f, fireRate = 2f, speed = level.Speed > 0f ? level.Speed : 8f;
-            int damage = 2, kills = 0, mult = 0;
+            int damage = 2, kills = 0, mult = 0, rescued = 0;
             bool isAlive = true;
             int abilityKillsAccumulator = 0;
             int abilityCharges = 0;
             var stageModifiers = new StageModifierController();
+            var pendingBonusZombiesByLane = new Dictionary<int, int>();
 
             if (level.Segments != null)
             {
@@ -176,9 +183,20 @@ namespace Game.Editor.Tools
                         currentDist = seg.StartDistance + seg.Length;
                     }
                     else if (seg.SegmentType == SegmentType.Horde)
-                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges, stageModifiers);
+                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges, stageModifiers, pendingBonusZombiesByLane);
                     else if (seg.SegmentType == SegmentType.Multiplier)
                         ProcessMultiplierSegment(seg, ref squad, ref mult, ref currentDist);
+                    else if (seg.SegmentType == SegmentType.Cage)
+                    {
+                        ProcessCageSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                        currentDist = seg.StartDistance + seg.Length;
+                    }
+
+                    bool hasCageEvents = seg.Events != null && Array.Exists(seg.Events, e => e != null && string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase));
+                    if (seg.SegmentType != SegmentType.Cage && ((seg.Cages != null && seg.Cages.Length > 0) || hasCageEvents))
+                    {
+                        ProcessCageSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                    }
                 }
             }
 
@@ -186,7 +204,8 @@ namespace Game.Editor.Tools
             return new SimulationRunResult
             {
                 runIndex = runIndex, botType = bot.ToString(), victory = isAlive,
-                distanceReached = currentDist, finalSquad = squad, multiplierReached = mult, kills = kills
+                distanceReached = currentDist, finalSquad = squad, multiplierReached = mult, kills = kills,
+                rescued = rescued
             };
         }
 
@@ -332,7 +351,8 @@ namespace Game.Editor.Tools
         private static void ProcessHordeSegment(
             SegmentDefinition seg, LevelDefinition level, BotType bot, ref int squad, float fireRate, int damage,
             float speed, ref int kills, ref float currentDist, ref bool isAlive, System.Random rng,
-            ref int abilityKillsAccumulator, ref int abilityCharges, StageModifierController stageModifiers = null)
+            ref int abilityKillsAccumulator, ref int abilityCharges, StageModifierController stageModifiers = null,
+            Dictionary<int, int> pendingBonusZombiesByLane = null)
         {
             float hpMultiplier = level != null ? level.GetHpMultiplier() : 1f;
             var waves = new List<(float distance, int count, string archetype)>();
@@ -344,13 +364,23 @@ namespace Game.Editor.Tools
                     if (e == null || e.Type != "HordeSpawn") continue;
                     int count = 5;
                     string archetype = "walker";
+                    int lane = e.Lane >= 0 ? e.Lane : 0;
                     if (!string.IsNullOrEmpty(e.Data))
                     {
                         var mCount = Regex.Match(e.Data, @"count\s*=\s*(\d+)");
                         if (mCount.Success) count = int.Parse(mCount.Groups[1].Value);
                         var mArch = Regex.Match(e.Data, @"archetype\s*=\s*([a-zA-Z]+)");
                         if (mArch.Success) archetype = mArch.Groups[1].Value;
+                        var mLane = Regex.Match(e.Data, @"lane\s*=\s*(\d+)");
+                        if (mLane.Success) lane = int.Parse(mLane.Groups[1].Value);
                     }
+
+                    if (pendingBonusZombiesByLane != null && pendingBonusZombiesByLane.TryGetValue(lane, out int bonus) && bonus > 0)
+                    {
+                        count += bonus;
+                        pendingBonusZombiesByLane[lane] = 0;
+                    }
+
                     waves.Add((seg.StartDistance + e.DistanceOffset, count, archetype));
                 }
             }
@@ -362,6 +392,24 @@ namespace Game.Editor.Tools
                 for (int w = 0; w < waves.Count; w++) if (Math.Abs(waves[w].distance - wDist) < 20f) { near = true; break; }
                 if (!near) waves.Add((wDist, 8 + rng.Next(0, 3), "walker"));
             }
+
+            if (pendingBonusZombiesByLane != null && pendingBonusZombiesByLane.Count > 0)
+            {
+                int remainingBonus = 0;
+                foreach (var value in pendingBonusZombiesByLane.Values)
+                {
+                    if (value > 0) remainingBonus += value;
+                }
+
+                if (remainingBonus > 0 && waves.Count > 0)
+                {
+                    var first = waves[0];
+                    waves[0] = (first.distance, first.count + remainingBonus, first.archetype);
+                }
+
+                pendingBonusZombiesByLane.Clear();
+            }
+
             waves.Sort((a, b) => a.distance.CompareTo(b.distance));
 
             for (int i = 0; i < waves.Count; i++)
@@ -416,6 +464,133 @@ namespace Game.Editor.Tools
                 mult = i + 1;
                 currentDist += 15f;
             }
+        }
+
+        private static void ProcessCageSegment(
+            SegmentDefinition seg, BotType bot, ref int squad, float fireRate, int damage,
+            float speed, ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
+        {
+            bool processed = false;
+            if (seg.Cages != null && seg.Cages.Length > 0)
+            {
+                for (int i = 0; i < seg.Cages.Length; i++)
+                {
+                    var cage = seg.Cages[i];
+                    if (cage != null)
+                    {
+                        ProcessSingleCage(cage.CageId, cage.LaneIndex, cage.CustomHp, cage.CustomSurvivors, seg.Length, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                        processed = true;
+                    }
+                }
+            }
+
+            if (seg.Events != null && seg.Events.Length > 0)
+            {
+                for (int i = 0; i < seg.Events.Length; i++)
+                {
+                    var e = seg.Events[i];
+                    if (e != null && (string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrEmpty(e.Type) && seg.SegmentType == SegmentType.Cage)))
+                    {
+                        ParseAndProcessCageEvent(e.Data, e.Lane, seg.Length, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                        processed = true;
+                    }
+                }
+            }
+
+            if (!processed && seg.SegmentType == SegmentType.Cage)
+            {
+                ProcessSingleCage("cage_standard_3", 0, 0, 0, seg.Length, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+            }
+        }
+
+        private static void ParseAndProcessCageEvent(
+            string data, int eventLane, float segmentLength, BotType bot, ref int squad,
+            float fireRate, int damage, float speed, ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
+        {
+            string cageId = "cage_standard_3";
+            int customHp = 0;
+            int customSurvivors = 0;
+            int lane = eventLane >= 0 ? eventLane : 0;
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                var mId = Regex.Match(data, @"(?:cageId|cage|id)\s*=\s*([a-zA-Z0-9_-]+)", RegexOptions.IgnoreCase);
+                if (mId.Success) cageId = mId.Groups[1].Value;
+                else if (!data.Contains("=")) cageId = data.Trim();
+
+                var mHp = Regex.Match(data, @"(?:hp|maxHp)\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+                if (mHp.Success) customHp = int.Parse(mHp.Groups[1].Value);
+
+                var mSurv = Regex.Match(data, @"(?:survivors|count)\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+                if (mSurv.Success) customSurvivors = int.Parse(mSurv.Groups[1].Value);
+
+                var mLane = Regex.Match(data, @"lane\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+                if (mLane.Success) lane = int.Parse(mLane.Groups[1].Value);
+            }
+
+            ProcessSingleCage(cageId, lane, customHp, customSurvivors, segmentLength, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+        }
+
+        private static void ProcessSingleCage(
+            string cageId, int lane, int customHp, int customSurvivors, float segmentLength,
+            BotType bot, ref int squad, float fireRate, int damage, float speed,
+            ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
+        {
+            var def = ResolveCageDefinition(cageId);
+            if (def == null && customHp <= 0 && customSurvivors <= 0)
+            {
+                Debug.LogWarning($"[SimulateCommand] Cage definition '{cageId}' could not be resolved. Falling back to default stats (60 HP, 3 survivors).");
+            }
+
+            int hp = customHp > 0 ? customHp : (def != null && def.MaxHp > 0 ? def.MaxHp : 60);
+            int survivors = customSurvivors > 0 ? customSurvivors : (def != null && def.SurvivorCount > 0 ? def.SurvivorCount : 3);
+            int cageLane = lane >= 0 ? lane : 0;
+
+            float approachDist = segmentLength > 0f ? segmentLength : 20f;
+            float approachTime = speed > 0f ? approachDist / speed : 2.5f;
+            float potentialDamage = fireRate * damage * squad * approachTime;
+
+            if (bot == BotType.Guloso && potentialDamage >= hp)
+            {
+                squad += survivors;
+                rescued += survivors;
+            }
+            else
+            {
+                if (pendingBonusZombiesByLane != null)
+                {
+                    pendingBonusZombiesByLane.TryGetValue(cageLane, out int cur);
+                    pendingBonusZombiesByLane[cageLane] = cur + survivors;
+                }
+            }
+        }
+
+        private static CageDefinition ResolveCageDefinition(string cageId)
+        {
+            if (string.IsNullOrEmpty(cageId)) return null;
+
+            var definition = AssetDatabase.LoadAssetAtPath<CageDefinition>($"Assets/_Game/Data/Cages/{cageId}.asset");
+            if (definition != null) return definition;
+
+            var catalog = AssetDatabase.LoadAssetAtPath<CageCatalog>("Assets/_Game/Data/Cages/CageCatalog.asset");
+            if (catalog != null && catalog.TryGet(cageId, out var catDef)) return catDef;
+
+            string jsonPath = Path.Combine("Content", "Source", "Cages", $"{cageId}.json");
+            if (File.Exists(jsonPath))
+            {
+                try
+                {
+                    var def = ScriptableObject.CreateInstance<CageDefinition>();
+                    JsonUtility.FromJsonOverwrite(File.ReadAllText(jsonPath), def);
+                    return def;
+                }
+                catch
+                {
+                    // Fall through to null if file is malformed
+                }
+            }
+
+            return null;
         }
 
         public static int ExecuteFromCommandLine(string[] args = null)
