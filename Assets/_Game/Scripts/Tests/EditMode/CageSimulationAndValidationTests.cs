@@ -182,5 +182,26 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0, fSummary.totalRescued);
             Assert.AreEqual(0f, fSummary.averageRescued);
         }
+
+        [Test]
+        public void Simulate_WithTypedCageSpawnSpecs_GulosoRescuesSurvivors()
+        {
+            var specs = new[]
+            {
+                new CageSpawnSpec
+                {
+                    CageId = "cage_standard_3",
+                    LaneIndex = 0,
+                    CustomHp = 60,
+                    CustomSurvivors = 3
+                }
+            };
+            var level = CreateLevelWithCage(cages: specs, initialTroops: 10);
+            var gSummary = SimulateCommand.RunSimulation(level, BotType.Guloso, 1, 42);
+
+            Assert.IsNotNull(gSummary);
+            Assert.AreEqual(3, gSummary.totalRescued);
+            Assert.AreEqual(3f, gSummary.averageRescued);
+        }
     }
 }

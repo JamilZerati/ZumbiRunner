@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Game.Data;
 using Game.Editor;
 using NUnit.Framework;
@@ -43,7 +44,7 @@ namespace Game.Tests.EditMode
             Assert.GreaterOrEqual(count, 1);
 
             var catalog = CageImporter.LoadCatalog();
-            Assert.IsNotNull(catalog, "CageCatalog should exist at default path.");
+            Assert.IsNotNull(catalog, "CageCatalog deve existir no caminho padrão.");
             Assert.GreaterOrEqual(catalog.Cages.Count, 1);
 
             Assert.IsTrue(catalog.TryGet("cage_standard_3", out var cage));
@@ -112,6 +113,43 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(1, count);
             Assert.AreEqual(1, errors.Count);
             StringAssert.Contains("Duplicate cage id 'duplicate_cage'", errors[0]);
+        }
+
+        [Test]
+        public void ImportAll_MalformedJson_ReportsErrorAndSkips()
+        {
+            _tempSourceFolder = Path.Combine(Path.GetTempPath(), "HordeRunner_CageTests_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(_tempSourceFolder);
+
+            File.WriteAllText(Path.Combine(_tempSourceFolder, "corrupt.json"), "{ invalid_json: true, ");
+
+            var errors = new List<string>();
+            int count = CageImporter.ImportAll(_tempSourceFolder, TempTargetFolder, errors);
+
+            Assert.AreEqual(0, count);
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("Failed to parse JSON", errors[0]);
+        }
+
+        [Test]
+        public void ImportAll_InvalidEnemyArchetype_ReportsErrorAndSkips()
+        {
+            _tempSourceFolder = Path.Combine(Path.GetTempPath(), "HordeRunner_CageTests_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(_tempSourceFolder);
+
+            File.WriteAllText(Path.Combine(_tempSourceFolder, "unknown_enemy_cage.json"), @"{
+                ""id"": ""unknown_enemy_cage"",
+                ""maxHp"": 50,
+                ""survivorCount"": 2,
+                ""lostEnemyArchetypeId"": ""non_existent_archetype_xyz""
+            }");
+
+            var errors = new List<string>();
+            int count = CageImporter.ImportAll(_tempSourceFolder, TempTargetFolder, errors);
+
+            Assert.AreEqual(0, count);
+            Assert.GreaterOrEqual(errors.Count, 1);
+            Assert.IsTrue(errors.Any(e => e.Contains("non_existent_archetype_xyz") || e.Contains("EnemyCatalog")));
         }
     }
 }

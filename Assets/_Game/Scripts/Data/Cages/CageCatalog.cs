@@ -13,26 +13,36 @@ namespace Game.Data
 
         public bool TryGet(string id, out CageDefinition definition)
         {
-            if (!string.IsNullOrEmpty(id) && cages != null)
+            definition = null;
+            if (string.IsNullOrEmpty(id) || cages == null)
             {
-                for (int i = 0; i < cages.Count; i++)
+                return false;
+            }
+
+            for (int i = 0; i < cages.Count; i++)
+            {
+                var cage = cages[i];
+                if (cage != null && string.Equals(cage.Id, id, StringComparison.OrdinalIgnoreCase))
                 {
-                    var cage = cages[i];
-                    if (cage != null && string.Equals(cage.Id, id, StringComparison.OrdinalIgnoreCase))
-                    {
-                        definition = cage;
-                        return true;
-                    }
+                    definition = cage;
+                    return true;
                 }
             }
 
-            definition = null;
             return false;
         }
 
         public void SetCages(IEnumerable<CageDefinition> newCages)
         {
-            cages = new List<CageDefinition>();
+            if (cages == null)
+            {
+                cages = new List<CageDefinition>();
+            }
+            else
+            {
+                cages.Clear();
+            }
+
             if (newCages == null)
             {
                 return;
@@ -46,5 +56,21 @@ namespace Game.Data
                 }
             }
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (cages == null) return;
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < cages.Count; i++)
+            {
+                var cage = cages[i];
+                if (cage != null && !string.IsNullOrEmpty(cage.Id) && !seen.Add(cage.Id))
+                {
+                    Debug.LogError($"[CageCatalog] Duplicate cage ID '{cage.Id}' in catalog '{name}'.", this);
+                }
+            }
+        }
+#endif
     }
 }

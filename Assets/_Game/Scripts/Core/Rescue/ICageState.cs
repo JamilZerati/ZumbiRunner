@@ -19,8 +19,5 @@ namespace Game.Core.Rescue
         bool IsOpen { get; }
         bool IsLost { get; }
         bool IsIntact { get; }
-
-        bool TakeDamage(int damage);
-        bool MarkLost();
     }
 }

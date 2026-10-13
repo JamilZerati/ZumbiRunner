@@ -559,7 +559,8 @@ namespace Game.Editor.Tools
             {
                 if (pendingBonusZombiesByLane != null)
                 {
-                    pendingBonusZombiesByLane[cageLane] = pendingBonusZombiesByLane.TryGetValue(cageLane, out int cur) ? cur + survivors : survivors;
+                    pendingBonusZombiesByLane.TryGetValue(cageLane, out int cur);
+                    pendingBonusZombiesByLane[cageLane] = cur + survivors;
                 }
             }
         }

@@ -238,6 +238,9 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(3, receivedEvent.Count);
             Assert.AreEqual(2, receivedEvent.LaneIndex);
             Assert.IsTrue(lostCallbackFired);
+
+            bool escapedAgain = cage.CheckEscape(25f);
+            Assert.IsFalse(escapedAgain);
         }
 
         [Test]
@@ -335,10 +338,10 @@ namespace Game.Tests.EditMode
 
             director.Tick(20f);
 
-            var trackedCagesField = typeof(LevelDirector).GetField("_trackedCages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var trackedCages = (List<Cage>)trackedCagesField.GetValue(director);
+            Assert.IsFalse(lostEventFired);
+            Assert.AreEqual(0, director.GetPendingBonusZombies(0));
 
-            Assert.IsFalse(trackedCages.Contains(cage));
+            director.Tick(30f);
             Assert.IsFalse(lostEventFired);
             Assert.AreEqual(0, director.GetPendingBonusZombies(0));
         }

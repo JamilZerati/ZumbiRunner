@@ -28,9 +28,31 @@ namespace Game.Editor.Tools
             int gateCount = 0;
             int cageCount = 0;
 
-            if (Directory.Exists(levelsFolder))
+            if (!Directory.Exists(levelsFolder))
             {
-                string[] assetFiles = Directory.GetFiles(levelsFolder, "*.asset");
+                Debug.LogError($"[ValidateCommand] Levels folder not found: {levelsFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(abilitiesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Abilities folder not found: {abilitiesFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(gatesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Gates folder not found: {gatesFolder}");
+                return 1;
+            }
+
+            if (!Directory.Exists(cagesFolder))
+            {
+                Debug.LogError($"[ValidateCommand] Cages folder not found: {cagesFolder}");
+                return 1;
+            }
+
+            string[] assetFiles = Directory.GetFiles(levelsFolder, "*.asset");
                 for (int i = 0; i < assetFiles.Length; i++)
                 {
                     string assetPath = assetFiles[i].Replace('\\', '/');
@@ -51,11 +73,6 @@ namespace Game.Editor.Tools
                         }
                     }
                 }
-            }
-            else
-            {
-                Debug.LogWarning($"[ValidateCommand] Levels folder not found: {levelsFolder}");
-            }
 
             errorCount += ValidateAbilities(abilitiesFolder, out abilityCount);
             errorCount += ValidateGates(gatesFolder, out gateCount);
@@ -197,13 +214,10 @@ namespace Game.Editor.Tools
                 }
                 cageCount++;
 
-                if (!string.IsNullOrWhiteSpace(cage.Id))
+                if (!string.IsNullOrWhiteSpace(cage.Id) && !seenIds.Add(cage.Id))
                 {
-                    if (!seenIds.Add(cage.Id))
-                    {
-                        errors++;
-                        Debug.LogError($"[ValidateCommand] Duplicate cage Id '{cage.Id}' in file {file}.");
-                    }
+                    errors++;
+                    Debug.LogError($"[ValidateCommand] Duplicate cage Id '{cage.Id}' in file {file}.");
                 }
 
                 var cageErrors = ValidateCage(cage, enemiesFolder);
@@ -256,7 +270,6 @@ namespace Game.Editor.Tools
                 if (catalog == null)
                 {
                     errors.Add($"Cage '{cage.Id}' cannot validate enemy archetype: EnemyCatalog not found at '{catalogPath}'.");
-                    Debug.LogError($"[ValidateCommand] Cage '{cage.Id}' cannot validate enemy archetype: EnemyCatalog not found at '{catalogPath}'.");
                 }
                 else if (!catalog.TryGet(cage.LostEnemyArchetypeId, out _))
                 {

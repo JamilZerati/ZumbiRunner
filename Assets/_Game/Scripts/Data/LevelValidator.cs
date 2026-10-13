@@ -69,6 +69,7 @@ namespace Game.Data
                 var spec = segment.Cages[c];
                 if (spec == null)
                 {
+                    errors.Add($"Cage spec at index {c} in segment at {segment.StartDistance:F1}m is null.");
                     continue;
                 }
 
@@ -80,6 +81,16 @@ namespace Game.Data
                 if (spec.LaneIndex < 0 || spec.LaneIndex >= totalLanes)
                 {
                     errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has invalid LaneIndex {spec.LaneIndex}. Total lanes: {totalLanes}.");
+                }
+
+                if (spec.CustomHp < 0)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has negative CustomHp ({spec.CustomHp}).");
+                }
+
+                if (spec.CustomSurvivors < 0)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has negative CustomSurvivors ({spec.CustomSurvivors}).");
                 }
             }
         }

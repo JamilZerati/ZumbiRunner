@@ -50,6 +50,13 @@
 ```csharp
 namespace Game.Core.Rescue
 {
+    public enum CageStatus
+    {
+        Intact = 0,
+        Opened = 1,
+        Lost = 2
+    }
+
     public interface ICageState
     {
         string CageId { get; }
@@ -58,10 +65,10 @@ namespace Game.Core.Rescue
         int CurrentHp { get; }
         int SurvivorCount { get; }
         string LostEnemyArchetypeId { get; }
+        CageStatus Status { get; }
         bool IsOpen { get; }
         bool IsLost { get; }
-        bool TakeDamage(int damage);
-        bool MarkLost();
+        bool IsIntact { get; }
     }
 
     public sealed class CageRuntimeState : ICageState
@@ -72,8 +79,10 @@ namespace Game.Core.Rescue
         public int CurrentHp { get; private set; }
         public int SurvivorCount { get; }
         public string LostEnemyArchetypeId { get; }
-        public bool IsOpen { get; private set; }
-        public bool IsLost { get; private set; }
+        public CageStatus Status { get; private set; }
+        public bool IsOpen => Status == CageStatus.Opened;
+        public bool IsLost => Status == CageStatus.Lost;
+        public bool IsIntact => Status == CageStatus.Intact;
 
         public CageRuntimeState(string cageId, int laneIndex, int maxHp, int survivorCount, string lostEnemyArchetypeId = "walker");
         public bool TakeDamage(int damage);
@@ -89,7 +98,7 @@ namespace Game.Core.Events
         public int LaneIndex { get; }
         public string CageId { get; }
 
-        public SurvivorsRescuedEvent(int count, int laneIndex, string cageId);
+        public SurvivorsRescuedEvent(int count, int laneIndex, string cageId = null);
     }
 
     public readonly struct SurvivorsLostEvent
@@ -97,8 +106,9 @@ namespace Game.Core.Events
         public int Count { get; }
         public int LaneIndex { get; }
         public string CageId { get; }
+        public string LostEnemyArchetypeId { get; }
 
-        public SurvivorsLostEvent(int count, int laneIndex, string cageId);
+        public SurvivorsLostEvent(int count, int laneIndex, string cageId = null, string lostEnemyArchetypeId = "walker");
     }
 }
 
@@ -106,11 +116,12 @@ namespace Game.Data
 {
     public class CageDefinition : UnityEngine.ScriptableObject
     {
-        public string Id;
-        public string DisplayName;
-        public int MaxHp;
-        public int SurvivorCount;
-        public string LostEnemyArchetypeId;
+        public string Id { get; }
+        public string DisplayName { get; }
+        public int MaxHp { get; }
+        public int SurvivorCount { get; }
+        public string LostEnemyArchetypeId { get; }
+        public void SetData(string cageId, string name, int hp, int survivors, string archetypeId = "walker");
     }
 
     [System.Serializable]

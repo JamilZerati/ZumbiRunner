@@ -121,5 +121,113 @@ namespace Game.Tests.EditMode
             var validResult = LevelValidator.Validate(levelDef);
             Assert.IsTrue(validResult.IsValid);
         }
+
+        [Test]
+        public void Validate_LevelWithCage_InvalidLane_ShouldReject()
+        {
+            var levelDef = CreateScriptableObject<LevelDefinition>();
+            levelDef.LevelId = "cage_invalid_lane";
+            levelDef.TotalDistance = 100f;
+            levelDef.LaneCount = 2;
+            levelDef.Segments = new[]
+            {
+                new SegmentDefinition
+                {
+                    SegmentType = SegmentType.Cage,
+                    StartDistance = 20f,
+                    Length = 20f,
+                    Cages = new[]
+                    {
+                        new CageSpawnSpec { CageId = "cage_01", LaneIndex = -1 },
+                        new CageSpawnSpec { CageId = "cage_02", LaneIndex = 2 }
+                    }
+                }
+            };
+
+            var result = LevelValidator.Validate(levelDef);
+            Assert.IsFalse(result.IsValid);
+            Assert.AreEqual(2, result.Errors.Count(e => e.Contains("invalid LaneIndex") || e.Contains("LaneIndex")));
+        }
+
+        [Test]
+        public void Validate_LevelWithCage_EmptyCageIdOrNullSpec_ShouldReject()
+        {
+            var levelDef = CreateScriptableObject<LevelDefinition>();
+            levelDef.LevelId = "cage_empty_id";
+            levelDef.TotalDistance = 100f;
+            levelDef.LaneCount = 2;
+            levelDef.Segments = new[]
+            {
+                new SegmentDefinition
+                {
+                    SegmentType = SegmentType.Cage,
+                    StartDistance = 20f,
+                    Length = 20f,
+                    Cages = new[]
+                    {
+                        new CageSpawnSpec { CageId = "", LaneIndex = 0 },
+                        null
+                    }
+                }
+            };
+
+            var result = LevelValidator.Validate(levelDef);
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Any(e => e.Contains("empty CageId")));
+            Assert.IsTrue(result.Errors.Any(e => e.Contains("is null")));
+        }
+
+        [Test]
+        public void Validate_LevelWithCage_NegativeOverrides_ShouldReject()
+        {
+            var levelDef = CreateScriptableObject<LevelDefinition>();
+            levelDef.LevelId = "cage_negative_overrides";
+            levelDef.TotalDistance = 100f;
+            levelDef.LaneCount = 2;
+            levelDef.Segments = new[]
+            {
+                new SegmentDefinition
+                {
+                    SegmentType = SegmentType.Cage,
+                    StartDistance = 20f,
+                    Length = 20f,
+                    Cages = new[]
+                    {
+                        new CageSpawnSpec { CageId = "cage_01", LaneIndex = 0, CustomHp = -10, CustomSurvivors = -1 }
+                    }
+                }
+            };
+
+            var result = LevelValidator.Validate(levelDef);
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Any(e => e.Contains("negative CustomHp")));
+            Assert.IsTrue(result.Errors.Any(e => e.Contains("negative CustomSurvivors")));
+        }
+
+        [Test]
+        public void Validate_LevelWithCage_ValidSpec_ShouldPass()
+        {
+            var levelDef = CreateScriptableObject<LevelDefinition>();
+            levelDef.LevelId = "cage_valid_spec";
+            levelDef.TotalDistance = 100f;
+            levelDef.LaneCount = 2;
+            levelDef.Segments = new[]
+            {
+                new SegmentDefinition
+                {
+                    SegmentType = SegmentType.Cage,
+                    StartDistance = 20f,
+                    Length = 20f,
+                    Cages = new[]
+                    {
+                        new CageSpawnSpec { CageId = "cage_01", LaneIndex = 0, CustomHp = 60, CustomSurvivors = 3 },
+                        new CageSpawnSpec { CageId = "cage_02", LaneIndex = 1 }
+                    }
+                }
+            };
+
+            var result = LevelValidator.Validate(levelDef);
+            Assert.IsTrue(result.IsValid);
+        }
     }
 }

@@ -29,7 +29,18 @@ namespace Game.Editor
         {
             var errors = new List<string>();
             int count = ImportAll(errors: errors);
-            Debug.Log($"[Game.Editor.CageImporter] Imported {count} cages, {errors.Count} errors.");
+            for (int i = 0; i < errors.Count; i++)
+            {
+                Debug.LogError($"[Game.Editor.CageImporter] {errors[i]}");
+            }
+            if (errors.Count > 0)
+            {
+                Debug.LogError($"[Game.Editor.CageImporter] Cage import completed with {errors.Count} errors across {count} imported cages.");
+            }
+            else
+            {
+                Debug.Log($"[Game.Editor.CageImporter] Successfully imported {count} cages (0 errors).");
+            }
         }
 
         public static int ImportAll(string sourceFolder = null, string targetFolder = null, List<string> errors = null, string enemiesFolder = null)
@@ -147,21 +158,32 @@ namespace Game.Editor
             }
 
             string lostArchetype = string.IsNullOrWhiteSpace(dto.lostEnemyArchetypeId) ? "walker" : dto.lostEnemyArchetypeId;
+            int errorCountBefore = errors.Count;
             ValidateEnemyArchetype(dto.id, lostArchetype, enemiesFolder, errors);
+            if (errors.Count > errorCountBefore)
+            {
+                return null;
+            }
 
             string assetPath = $"{targetFolder}/{dto.id}.asset";
-            var definition = AssetDatabase.LoadAssetAtPath<CageDefinition>(assetPath);
-            if (definition == null)
-            {
-                definition = ScriptableObject.CreateInstance<CageDefinition>();
-                AssetDatabase.CreateAsset(definition, assetPath);
-            }
+            var definition = GetOrCreateAsset<CageDefinition>(assetPath);
 
             string displayName = string.IsNullOrEmpty(dto.displayName) ? dto.id : dto.displayName;
             definition.SetData(dto.id, displayName, dto.maxHp, dto.survivorCount, lostArchetype);
             EditorUtility.SetDirty(definition);
 
             return definition;
+        }
+
+        private static T GetOrCreateAsset<T>(string assetPath) where T : ScriptableObject
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (asset == null)
+            {
+                asset = ScriptableObject.CreateInstance<T>();
+                AssetDatabase.CreateAsset(asset, assetPath);
+            }
+            return asset;
         }
 
         private static void ValidateEnemyArchetype(string cageId, string archetypeId, string enemiesFolder, List<string> errors)
@@ -188,12 +210,7 @@ namespace Game.Editor
         private static void WriteCatalog(string targetFolder, List<CageDefinition> cages)
         {
             string catalogPath = $"{targetFolder}/{CatalogAssetName}.asset";
-            var catalog = AssetDatabase.LoadAssetAtPath<CageCatalog>(catalogPath);
-            if (catalog == null)
-            {
-                catalog = ScriptableObject.CreateInstance<CageCatalog>();
-                AssetDatabase.CreateAsset(catalog, catalogPath);
-            }
+            var catalog = GetOrCreateAsset<CageCatalog>(catalogPath);
 
             catalog.SetCages(cages);
             EditorUtility.SetDirty(catalog);

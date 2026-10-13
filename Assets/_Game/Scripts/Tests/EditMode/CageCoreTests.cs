@@ -147,5 +147,25 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0, state.CurrentHp);
             Assert.IsTrue(state.IsOpen);
         }
+
+        [Test]
+        public void State_IsIntact_FollowsLifecycleTransitions()
+        {
+            var state = new CageRuntimeState("cage_01", 0, 40, 2);
+            Assert.IsTrue(state.IsIntact);
+
+            state.TakeDamage(10);
+            Assert.IsTrue(state.IsIntact);
+
+            state.TakeDamage(30);
+            Assert.IsFalse(state.IsIntact);
+            Assert.IsTrue(state.IsOpen);
+
+            var lostState = new CageRuntimeState("cage_02", 0, 40, 2);
+            Assert.IsTrue(lostState.IsIntact);
+            lostState.MarkLost();
+            Assert.IsFalse(lostState.IsIntact);
+            Assert.IsTrue(lostState.IsLost);
+        }
     }
 }

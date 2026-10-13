@@ -25,5 +25,15 @@ namespace Game.Data
             survivorCount = survivors;
             lostEnemyArchetypeId = archetypeId;
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (string.IsNullOrWhiteSpace(id)) id = name;
+            if (maxHp < 1) maxHp = 1;
+            if (survivorCount < 1) survivorCount = 1;
+            if (string.IsNullOrWhiteSpace(lostEnemyArchetypeId)) lostEnemyArchetypeId = "walker";
+        }
+#endif
     }
 }

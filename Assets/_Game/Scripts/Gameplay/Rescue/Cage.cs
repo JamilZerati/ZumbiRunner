@@ -28,8 +28,16 @@ namespace Game.Gameplay
             get => definition;
             set
             {
-                definition = value;
-                _runtimeState = null;
+                if (definition != value)
+                {
+                    if (_runtimeState != null && !_runtimeState.IsIntact)
+                    {
+                        Debug.LogWarning($"[Cage] Changing Definition on '{name}' while cage is not intact will not reset completed state.", this);
+                        return;
+                    }
+                    definition = value;
+                    _runtimeState = null;
+                }
             }
         }
 
@@ -40,13 +48,19 @@ namespace Game.Gameplay
             {
                 if (laneIndex != value)
                 {
+                    if (_runtimeState != null && !_runtimeState.IsIntact)
+                    {
+                        Debug.LogWarning($"[Cage] Changing LaneIndex on '{name}' while cage is not intact will not reset completed state.", this);
+                        return;
+                    }
                     laneIndex = value;
                     _runtimeState = null;
                 }
             }
         }
 
-        public CageRuntimeState RuntimeState => EnsureRuntimeState();
+        public ICageState RuntimeState => EnsureRuntimeState();
+        public ICageState State => EnsureRuntimeState();
         public string CageId => RuntimeState.CageId;
         public int SurvivorCount => RuntimeState.SurvivorCount;
         public string LostEnemyArchetypeId => RuntimeState.LostEnemyArchetypeId;
@@ -54,7 +68,9 @@ namespace Game.Gameplay
         public int MaxHealth => RuntimeState.MaxHp;
         public bool IsOpen => RuntimeState.IsOpen;
         public bool IsLost => RuntimeState.IsLost;
-        public bool IsAlive => !IsOpen && !IsLost && CurrentHealth > 0;
+
+        // Invariante: Projectile.HandleTrigger consome tiros apenas enquanto IsAlive for true. Apos aberta ou perdida, projeteis devem atravessar livremente.
+        public bool IsAlive => (_runtimeState ?? EnsureRuntimeState()).IsIntact;
 
         public Collider CageCollider
         {
@@ -134,7 +150,7 @@ namespace Game.Gameplay
             if (cageCollider != null)
             {
                 cageCollider.isTrigger = true;
-                cageCollider.enabled = IsAlive;
+                cageCollider.enabled = _runtimeState == null || IsAlive;
             }
         }
 
@@ -159,10 +175,18 @@ namespace Game.Gameplay
                 {
                     _squad.Add(state.SurvivorCount);
                 }
+                else
+                {
+                    Debug.LogWarning($"[Cage] '{name}' opened but _squad reference is null. Rescued survivors ({state.SurvivorCount}) were not added to squad.", this);
+                }
 
                 if (_eventBus != null)
                 {
                     _eventBus.Publish(new SurvivorsRescuedEvent(state.SurvivorCount, state.LaneIndex, state.CageId));
+                }
+                else
+                {
+                    Debug.LogWarning($"[Cage] '{name}' opened but _eventBus is null. SurvivorsRescuedEvent could not be published.", this);
                 }
 
                 OnOpened?.Invoke(this);
@@ -171,6 +195,7 @@ namespace Game.Gameplay
             OnStateChanged?.Invoke(this);
         }
 
+        // Invariante de resgate: a jaula e perdida no instante em que o General cruza seu Z (sem margem de 5m dos zumbis), pois a tropa nao atira para tras.
         public bool CheckEscape(float generalZ)
         {
             if (!IsAlive || generalZ < transform.position.z)
@@ -178,7 +203,7 @@ namespace Game.Gameplay
                 return false;
             }
 
-            var state = RuntimeState;
+            var state = _runtimeState ?? EnsureRuntimeState();
             if (!state.MarkLost())
             {
                 return false;
@@ -189,7 +214,15 @@ namespace Game.Gameplay
                 cageCollider.enabled = false;
             }
 
-            _eventBus?.Publish(new SurvivorsLostEvent(state.SurvivorCount, state.LaneIndex, state.CageId, state.LostEnemyArchetypeId));
+            if (_eventBus != null)
+            {
+                _eventBus.Publish(new SurvivorsLostEvent(state.SurvivorCount, state.LaneIndex, state.CageId, state.LostEnemyArchetypeId));
+            }
+            else
+            {
+                Debug.LogWarning($"[Cage] '{name}' escaped but _eventBus is null. SurvivorsLostEvent could not be published.", this);
+            }
+
             OnLost?.Invoke(this);
             OnStateChanged?.Invoke(this);
             return true;

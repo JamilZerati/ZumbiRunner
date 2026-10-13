@@ -88,6 +88,7 @@ namespace Game.Gameplay
 
             if (enemyPrefab == null)
             {
+                Debug.LogError($"[HordeSpawner] Cannot initialize pool on '{gameObject.name}': No EnemyController prefab assigned or found in scene.", this);
                 return;
             }
 
@@ -112,9 +113,11 @@ namespace Game.Gameplay
 
             if (Pool == null)
             {
+                Debug.LogWarning($"[HordeSpawner] SpawnWave called with null Pool on '{gameObject.name}'.", this);
                 return new List<EnemyController>();
             }
 
+            // Invariante de pacing: sobreviventes perdidos sao injetados exclusivamente na proxima horda da mesma lane para nao descompassar o ritmo da pista.
             int bonusCount = LevelDirector != null ? LevelDirector.ConsumePendingBonusZombies(laneIndex) : 0;
             int totalCount = count + bonusCount;
 
@@ -125,7 +128,8 @@ namespace Game.Gameplay
 
             var spawned = new List<EnemyController>(totalCount);
             float x = Layout.GetLaneCenterX(laneIndex);
-            var recycleCallback = _onEnemyRecycled ?? OnEnemyRecycled;
+            _onEnemyRecycled ??= OnEnemyRecycled;
+            var recycleCallback = _onEnemyRecycled;
 
             for (int i = 0; i < totalCount; i++)
             {
