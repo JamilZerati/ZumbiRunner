@@ -1,3 +1,4 @@
+using Game.Core.Gates;
 using Game.Core.Perks;
 using Game.Data;
 using Game.Gameplay;
@@ -10,6 +11,7 @@ namespace Game.Presentation
     {
         public static readonly Color PositiveColor = new Color(0.1f, 0.6f, 1f, 1f);
         public static readonly Color NegativeColor = new Color(0.9f, 0.2f, 0.2f, 1f);
+        public static readonly Color CursedColor = new Color(0.6f, 0.1f, 0.9f, 1f);
         public static readonly Color ConsumedColor = new Color(0.3f, 0.3f, 0.3f, 0.4f);
         public static readonly Color ActiveTextColor = Color.white;
         public static readonly Color ConsumedTextColor = new Color(1f, 1f, 1f, 0.4f);
@@ -52,15 +54,27 @@ namespace Game.Presentation
                 registeredGate = GetComponent<Gate>();
             }
 
-            if (registeredGate != null && registeredPair == null && registeredGate.ParentPair != null)
+            if (registeredGate != null)
             {
-                registeredPair = registeredGate.ParentPair;
-                registeredPair.OnGateTriggered += HandleGatePairTriggered;
+                registeredGate.OnGateStateChanged -= HandleGateStateChanged;
+                registeredGate.OnGateStateChanged += HandleGateStateChanged;
+
+                if (registeredPair == null && registeredGate.ParentPair != null)
+                {
+                    registeredPair = registeredGate.ParentPair;
+                    registeredPair.OnGateTriggered -= HandleGatePairTriggered;
+                    registeredPair.OnGateTriggered += HandleGatePairTriggered;
+                }
             }
 
             if (currentPerk == null && registeredGate != null && registeredGate.Perk != null)
             {
                 SetPerk(registeredGate.Perk);
+            }
+
+            if (registeredGate != null)
+            {
+                RefreshFromGate();
             }
         }
 
@@ -72,11 +86,20 @@ namespace Game.Presentation
                 registeredPair = null;
             }
 
-            registeredGate = gate;
-            if (gate != null && gate.ParentPair != null)
+            if (registeredGate != null)
             {
-                registeredPair = gate.ParentPair;
-                registeredPair.OnGateTriggered += HandleGatePairTriggered;
+                registeredGate.OnGateStateChanged -= HandleGateStateChanged;
+            }
+
+            registeredGate = gate;
+            if (gate != null)
+            {
+                gate.OnGateStateChanged += HandleGateStateChanged;
+                if (gate.ParentPair != null)
+                {
+                    registeredPair = gate.ParentPair;
+                    registeredPair.OnGateTriggered += HandleGatePairTriggered;
+                }
             }
 
             if (perk == null && gate != null)
@@ -85,11 +108,27 @@ namespace Game.Presentation
             }
 
             SetPerk(perk);
+
+            if (registeredGate != null)
+            {
+                RefreshFromGate();
+            }
+        }
+
+        public void Initialize(Gate gate)
+        {
+            Initialize(gate != null ? gate.Perk : null, gate);
         }
 
         public void SetPerk(PerkDefinition perk)
         {
             currentPerk = perk;
+
+            if (registeredGate != null && registeredGate.RuntimeState != null)
+            {
+                RefreshFromGate();
+                return;
+            }
 
             if (labelText != null)
             {
@@ -111,11 +150,63 @@ namespace Game.Presentation
             ApplyColor(CurrentColor);
         }
 
+        public void RefreshFromGate()
+        {
+            if (registeredGate == null)
+            {
+                return;
+            }
+
+            var state = registeredGate.RuntimeState ?? registeredGate.EnsureRuntimeState();
+            if (state != null)
+            {
+                if (labelText != null && !string.IsNullOrEmpty(state.DisplayText))
+                {
+                    labelText.text = state.DisplayText;
+                }
+
+                if (state.IsCursed)
+                {
+                    activeColor = CursedColor;
+                }
+                else if (state.VariantType == GateVariantType.ShootToUpgrade)
+                {
+                    activeColor = state.IsNegative ? NegativeColor : PositiveColor;
+                }
+                else
+                {
+                    bool isPositive = true;
+                    string display = !string.IsNullOrEmpty(state.DisplayText)
+                        ? state.DisplayText
+                        : (currentPerk != null ? currentPerk.DisplayName : string.Empty);
+
+                    if (!string.IsNullOrEmpty(display))
+                    {
+                        string name = display.Trim();
+                        if (name.StartsWith("-") || name.StartsWith("÷") || name.StartsWith("/"))
+                        {
+                            isPositive = false;
+                        }
+                    }
+
+                    activeColor = isPositive ? PositiveColor : NegativeColor;
+                }
+            }
+
+            CurrentColor = IsConsumed ? ConsumedColor : activeColor;
+            ApplyColor(CurrentColor);
+        }
+
         public void SetConsumed(bool consumed)
         {
             IsConsumed = consumed;
             CurrentColor = consumed ? ConsumedColor : activeColor;
             ApplyColor(CurrentColor);
+        }
+
+        private void HandleGateStateChanged(Gate gate)
+        {
+            RefreshFromGate();
         }
 
         private void HandleGatePairTriggered(int laneIndex, Gate triggeredGate)
@@ -159,6 +250,12 @@ namespace Game.Presentation
 
         private void OnDestroy()
         {
+            if (registeredGate != null)
+            {
+                registeredGate.OnGateStateChanged -= HandleGateStateChanged;
+                registeredGate = null;
+            }
+
             if (registeredPair != null)
             {
                 registeredPair.OnGateTriggered -= HandleGatePairTriggered;

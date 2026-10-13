@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Events;
+using Game.Core.Gates;
 using Game.Core.Perks;
 using Game.Core.Stats;
 using UnityEngine;
@@ -13,11 +14,18 @@ namespace Game.Gameplay
         [SerializeField] private List<Gate> gates = new();
 
         private IEventBus eventBus;
+        private StageModifierController stageModifierController;
 
         public event Action<int, Gate> OnGateTriggered;
 
         public bool IsConsumed { get; private set; }
         public IReadOnlyList<Gate> Gates => gates;
+
+        public StageModifierController StageModifierController
+        {
+            get => stageModifierController;
+            set => stageModifierController = value;
+        }
 
         private void Awake()
         {
@@ -30,10 +38,11 @@ namespace Game.Gameplay
             }
         }
 
-        public void Initialize(IEnumerable<Gate> gateList, IEventBus bus = null)
+        public void Initialize(IEnumerable<Gate> gateList, IEventBus bus = null, StageModifierController stageModifiers = null)
         {
             gates = gateList != null ? new List<Gate>(gateList) : new List<Gate>();
             eventBus = bus;
+            stageModifierController = stageModifiers;
             for (int i = 0; i < gates.Count; i++)
             {
                 if (gates[i] != null)
@@ -58,7 +67,13 @@ namespace Game.Gameplay
             gate.ParentPair = this;
         }
 
-        public bool TryTrigger(int laneIndex, ISquad squad, IEventBus bus = null, IWeaponLoadout loadout = null)
+        public bool TryTrigger(
+            int laneIndex,
+            ISquad squad,
+            IEventBus bus = null,
+            IWeaponLoadout loadout = null,
+            StageModifierController stageModifiers = null,
+            float currentDistance = 0f)
         {
             if (IsConsumed || squad == null)
             {
@@ -82,21 +97,83 @@ namespace Game.Gameplay
 
             IsConsumed = true;
 
-            if (targetGate.Perk != null)
+            var activeBus = bus ?? eventBus;
+            var activeModifierController = stageModifiers ?? stageModifierController;
+            var runtimeState = targetGate.RuntimeState ?? targetGate.EnsureRuntimeState();
+            var variant = targetGate.Variant;
+            var variantType = runtimeState != null
+                ? runtimeState.VariantType
+                : (variant != null ? variant.VariantType : GateVariantType.Static);
+
+            int appliedValue = 0;
+
+            if (variantType == GateVariantType.ShootToUpgrade)
             {
-                var context = new PerkContext(squad, laneIndex, loadout);
-                targetGate.Perk.Apply(context);
+                appliedValue = variant != null
+                    ? variant.ApplyToSquad(squad, runtimeState)
+                    : ApplySquadDelta(squad, runtimeState != null ? runtimeState.CurrentValue : 0);
+            }
+            else
+            {
+                if (targetGate.Perk != null)
+                {
+                    var context = new PerkContext(squad, laneIndex, loadout);
+                    targetGate.Perk.Apply(context);
+                }
+
+                if (variantType == GateVariantType.Cursed)
+                {
+                    if (targetGate.BonusPerk != null)
+                    {
+                        var context = new PerkContext(squad, laneIndex, loadout);
+                        targetGate.BonusPerk.Apply(context);
+                    }
+
+                    if (variant is CursedGateVariant cursedVariant && activeModifierController != null)
+                    {
+                        float distance = currentDistance > 0f ? currentDistance : targetGate.transform.position.z;
+                        cursedVariant.ActivateModifier(activeModifierController, distance);
+                    }
+                }
+
+                appliedValue = variant != null ? variant.ApplyToSquad(squad, runtimeState, 0) : 0;
             }
 
+            string gateId = targetGate.GateId;
             string perkId = targetGate.Perk != null && targetGate.Perk.Id != null
                 ? targetGate.Perk.Id
-                : string.Empty;
+                : (targetGate.Definition != null ? targetGate.Definition.PerkId ?? string.Empty : string.Empty);
 
-            var activeBus = bus ?? eventBus;
+            activeBus?.Publish(new GatePassedEvent(gateId, perkId, variantType, laneIndex, appliedValue));
             activeBus?.Publish(new GateTriggeredEvent(laneIndex, perkId));
 
             OnGateTriggered?.Invoke(laneIndex, targetGate);
             return true;
+        }
+
+        private static int ApplySquadDelta(ISquad squad, int value)
+        {
+            if (squad == null)
+            {
+                return 0;
+            }
+
+            if (value > 0)
+            {
+                squad.Add(value);
+            }
+            else if (value < 0)
+            {
+                int penalty = -value;
+                int maxRemovable = Math.Max(0, squad.SquadCount - 1);
+                int toRemove = Math.Min(penalty, maxRemovable);
+                if (toRemove > 0)
+                {
+                    squad.Remove(toRemove);
+                }
+            }
+
+            return value;
         }
     }
 }
