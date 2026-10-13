@@ -191,11 +191,22 @@ namespace Game.Editor.Tools
                         ProcessCageSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
                         currentDist = seg.StartDistance + seg.Length;
                     }
+                    else if (seg.SegmentType == SegmentType.Holdout)
+                    {
+                        ProcessHoldoutSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                        currentDist = seg.StartDistance + seg.Length;
+                    }
 
                     bool hasCageEvents = seg.Events != null && Array.Exists(seg.Events, e => e != null && string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase));
                     if (seg.SegmentType != SegmentType.Cage && ((seg.Cages != null && seg.Cages.Length > 0) || hasCageEvents))
                     {
                         ProcessCageSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                    }
+
+                    bool hasHoldoutEvents = seg.Events != null && Array.Exists(seg.Events, e => e != null && string.Equals(e.Type, "Holdout", StringComparison.OrdinalIgnoreCase));
+                    if (seg.SegmentType != SegmentType.Holdout && ((seg.Holdout != null && !string.IsNullOrEmpty(seg.Holdout.HoldoutId)) || hasHoldoutEvents))
+                    {
+                        ProcessHoldoutSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
                     }
                 }
             }
@@ -581,6 +592,133 @@ namespace Game.Editor.Tools
                 try
                 {
                     var def = ScriptableObject.CreateInstance<CageDefinition>();
+                    JsonUtility.FromJsonOverwrite(File.ReadAllText(jsonPath), def);
+                    return def;
+                }
+                catch
+                {
+                    // Fall through to null if file is malformed
+                }
+            }
+
+            return null;
+        }
+
+        private static void ProcessHoldoutSegment(
+            SegmentDefinition seg, BotType bot, ref int squad, float fireRate, int damage,
+            float speed, ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
+        {
+            if (seg == null) return;
+
+            bool processed = false;
+            if (seg.Holdout != null && (!string.IsNullOrEmpty(seg.Holdout.HoldoutId) || seg.SegmentType == SegmentType.Holdout))
+            {
+                var h = seg.Holdout;
+                string holdoutId = !string.IsNullOrEmpty(h.HoldoutId) ? h.HoldoutId : "holdout_standard";
+                ProcessSingleHoldout(holdoutId, h.CustomMaxHp, h.CustomSurvivors, h.CustomDuration, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                processed = true;
+            }
+
+            if (seg.Events != null && seg.Events.Length > 0)
+            {
+                for (int i = 0; i < seg.Events.Length; i++)
+                {
+                    var e = seg.Events[i];
+                    if (e != null && (string.Equals(e.Type, "Holdout", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrEmpty(e.Type) && seg.SegmentType == SegmentType.Holdout)))
+                    {
+                        ParseAndProcessHoldoutEvent(e.Data, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                        processed = true;
+                    }
+                }
+            }
+
+            if (!processed && seg.SegmentType == SegmentType.Holdout)
+            {
+                ProcessSingleHoldout("holdout_standard", 0, 0, 0f, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+            }
+        }
+
+        private static void ParseAndProcessHoldoutEvent(
+            string data, BotType bot, ref int squad,
+            float fireRate, int damage, float speed, ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
+        {
+            string holdoutId = "holdout_standard";
+            int customHp = 0;
+            int customSurvivors = 0;
+            float customDuration = 0f;
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                var mId = Regex.Match(data, @"(?:holdoutId|holdout|id)\s*=\s*([a-zA-Z0-9_-]+)", RegexOptions.IgnoreCase);
+                if (mId.Success) holdoutId = mId.Groups[1].Value;
+                else if (!data.Contains("=")) holdoutId = data.Trim();
+
+                var mHp = Regex.Match(data, @"(?:hp|maxHp)\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+                if (mHp.Success) customHp = int.Parse(mHp.Groups[1].Value);
+
+                var mSurv = Regex.Match(data, @"(?:survivors|count)\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+                if (mSurv.Success) customSurvivors = int.Parse(mSurv.Groups[1].Value);
+
+                var mDur = Regex.Match(data, @"(?:duration|time)\s*=\s*([\d\.]+)", RegexOptions.IgnoreCase);
+                if (mDur.Success) float.TryParse(mDur.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out customDuration);
+            }
+
+            ProcessSingleHoldout(holdoutId, customHp, customSurvivors, customDuration, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+        }
+
+        private static void ProcessSingleHoldout(
+            string holdoutId, int customHp, int customSurvivors, float customDuration,
+            BotType bot, ref int squad, float fireRate, int damage, float speed,
+            ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
+        {
+            var def = ResolveHoldoutDefinition(holdoutId);
+            if (def == null && customHp <= 0 && customSurvivors <= 0)
+            {
+                Debug.LogWarning($"[SimulateCommand] Holdout definition '{holdoutId}' could not be resolved. Falling back to default stats (150 HP, 4 survivors).");
+            }
+
+            int maxHp = customHp > 0 ? customHp : (def != null && def.MaxHp > 0 ? def.MaxHp : 150);
+            int survivors = customSurvivors > 0 ? customSurvivors : (def != null && def.TotalSurvivors > 0 ? def.TotalSurvivors : 4);
+            float duration = customDuration > 0f ? customDuration : (def != null && def.DurationSeconds > 0f ? def.DurationSeconds : 12f);
+            float contactDps = def != null && def.ZombieContactDps > 0f ? def.ZombieContactDps : 5f;
+
+            float potentialDps = fireRate * damage * squad;
+
+            if (bot == BotType.Guloso && potentialDps >= 4f)
+            {
+                float defenseRatio = Math.Min(1.0f, potentialDps / (potentialDps + contactDps * 0.5f));
+                int remainingHp = Math.Max(1, (int)(maxHp * defenseRatio));
+                int saved = (int)Math.Ceiling(survivors * ((double)remainingHp / maxHp));
+                saved = Math.Clamp(saved, 1, survivors);
+                squad += saved;
+                rescued += saved;
+            }
+            else
+            {
+                if (pendingBonusZombiesByLane != null)
+                {
+                    pendingBonusZombiesByLane.TryGetValue(0, out int cur);
+                    pendingBonusZombiesByLane[0] = cur + survivors;
+                }
+            }
+        }
+
+        private static HoldoutDefinition ResolveHoldoutDefinition(string holdoutId)
+        {
+            if (string.IsNullOrEmpty(holdoutId)) return null;
+
+            var definition = AssetDatabase.LoadAssetAtPath<HoldoutDefinition>($"Assets/_Game/Data/Holdouts/{holdoutId}.asset");
+            if (definition != null) return definition;
+
+            var catalog = AssetDatabase.LoadAssetAtPath<HoldoutCatalog>("Assets/_Game/Data/Holdouts/HoldoutCatalog.asset");
+            if (catalog != null && catalog.TryGet(holdoutId, out var catDef)) return catDef;
+
+            string jsonPath = Path.Combine("Content", "Source", "Holdouts", $"{holdoutId}.json");
+            if (File.Exists(jsonPath))
+            {
+                try
+                {
+                    var def = ScriptableObject.CreateInstance<HoldoutDefinition>();
                     JsonUtility.FromJsonOverwrite(File.ReadAllText(jsonPath), def);
                     return def;
                 }

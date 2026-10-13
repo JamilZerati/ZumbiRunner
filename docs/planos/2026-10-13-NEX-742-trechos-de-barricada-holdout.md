@@ -230,7 +230,7 @@ flowchart TD
   - **Marco de PR**: Marco 4
   - **Effort**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Integrar trechos de barricada no SimulateCommand e regras no ValidateCommand` [NEX-959]
+- [x] **Passo 5 (Marco 5)**: `Integrar trechos de barricada no SimulateCommand e regras no ValidateCommand` [NEX-959]
   - **Ação**: Estender `SimulateCommand.cs` para suportar trechos de holdout no simulador headless e `ValidateCommand.cs` para validar integridade de níveis com barricadas, cobertos por `HoldoutSimulationAndValidationTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Garantir cobertura das ferramentas CLI exigidas pela arquitetura do projeto (`validate` e `simulate` verdes).
   - **Dependências / Pré-requisitos**: `implementação`: Marco 3.
