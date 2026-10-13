@@ -55,7 +55,12 @@ namespace Game.Gameplay
         public int DefaultEnemyHealth { get; set; } = 20;
         public float DefaultEnemySpeed { get; set; } = 2f;
         public IEventBus EventBus { get; set; }
-        public LevelDirector LevelDirector { get; set; }
+        private LevelDirector _levelDirector;
+        public LevelDirector LevelDirector
+        {
+            get => _levelDirector != null ? _levelDirector : (_levelDirector = FindFirstObjectByType<LevelDirector>());
+            set => _levelDirector = value;
+        }
         public IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
 
         private readonly List<EnemyController> _activeEnemies = new List<EnemyController>();
@@ -105,10 +110,15 @@ namespace Game.Gameplay
                 throw new ArgumentOutOfRangeException(nameof(laneIndex), $"Invalid lane index: {laneIndex}");
             }
 
+            if (Pool == null)
+            {
+                return new List<EnemyController>();
+            }
+
             int bonusCount = LevelDirector != null ? LevelDirector.ConsumePendingBonusZombies(laneIndex) : 0;
             int totalCount = count + bonusCount;
 
-            if (totalCount <= 0 || Pool == null)
+            if (totalCount <= 0)
             {
                 return new List<EnemyController>();
             }

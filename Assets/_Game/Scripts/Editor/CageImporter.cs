@@ -104,10 +104,10 @@ namespace Game.Editor
                 return null;
             }
 
-            string json = File.ReadAllText(jsonFilePath);
             CageJsonDto dto;
             try
             {
+                string json = File.ReadAllText(jsonFilePath);
                 dto = JsonUtility.FromJson<CageJsonDto>(json);
             }
             catch (Exception ex)
@@ -128,12 +128,11 @@ namespace Game.Editor
                 return null;
             }
 
-            if (seenIds.Contains(dto.id))
+            if (!seenIds.Add(dto.id))
             {
                 errors.Add($"Duplicate cage id '{dto.id}' encountered in file: {jsonFilePath}");
                 return null;
             }
-            seenIds.Add(dto.id);
 
             if (dto.maxHp <= 0)
             {
@@ -151,14 +150,8 @@ namespace Game.Editor
             ValidateEnemyArchetype(dto.id, lostArchetype, enemiesFolder, errors);
 
             string assetPath = $"{targetFolder}/{dto.id}.asset";
-            var existing = AssetDatabase.LoadAssetAtPath<CageDefinition>(assetPath);
-            CageDefinition definition;
-
-            if (existing != null)
-            {
-                definition = existing;
-            }
-            else
+            var definition = AssetDatabase.LoadAssetAtPath<CageDefinition>(assetPath);
+            if (definition == null)
             {
                 definition = ScriptableObject.CreateInstance<CageDefinition>();
                 AssetDatabase.CreateAsset(definition, assetPath);
@@ -180,7 +173,13 @@ namespace Game.Editor
 
             string catalogPath = $"{enemiesFolder}/{EnemyImporter.CatalogAssetName}.asset";
             var catalog = AssetDatabase.LoadAssetAtPath<EnemyCatalog>(catalogPath);
-            if (catalog != null && !catalog.TryGet(archetypeId, out _))
+            if (catalog == null)
+            {
+                errors.Add($"Cannot validate enemy archetype '{archetypeId}' for cage '{cageId}': EnemyCatalog not found at '{catalogPath}'.");
+                return;
+            }
+
+            if (!catalog.TryGet(archetypeId, out _))
             {
                 errors.Add($"Cage '{cageId}' references missing enemy archetype '{archetypeId}'.");
             }
@@ -189,14 +188,8 @@ namespace Game.Editor
         private static void WriteCatalog(string targetFolder, List<CageDefinition> cages)
         {
             string catalogPath = $"{targetFolder}/{CatalogAssetName}.asset";
-            var existing = AssetDatabase.LoadAssetAtPath<CageCatalog>(catalogPath);
-            CageCatalog catalog;
-
-            if (existing != null)
-            {
-                catalog = existing;
-            }
-            else
+            var catalog = AssetDatabase.LoadAssetAtPath<CageCatalog>(catalogPath);
+            if (catalog == null)
             {
                 catalog = ScriptableObject.CreateInstance<CageCatalog>();
                 AssetDatabase.CreateAsset(catalog, catalogPath);

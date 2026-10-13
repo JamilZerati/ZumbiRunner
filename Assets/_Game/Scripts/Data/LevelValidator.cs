@@ -50,11 +50,38 @@ namespace Game.Data
                 {
                     CheckHordeSegmentLanes(segment, totalLanes, result.Errors);
                 }
+
+                if (segment.Cages != null && segment.Cages.Length > 0)
+                {
+                    CheckCageSpecs(segment, totalLanes, result.Errors);
+                }
             }
 
             CheckSegmentOverlaps(level, result.Errors);
 
             return result;
+        }
+
+        private static void CheckCageSpecs(SegmentDefinition segment, int totalLanes, List<string> errors)
+        {
+            for (int c = 0; c < segment.Cages.Length; c++)
+            {
+                var spec = segment.Cages[c];
+                if (spec == null)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(spec.CageId))
+                {
+                    errors.Add($"Cage spec at index {c} in segment at {segment.StartDistance:F1}m has empty CageId.");
+                }
+
+                if (spec.LaneIndex < 0 || spec.LaneIndex >= totalLanes)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has invalid LaneIndex {spec.LaneIndex}. Total lanes: {totalLanes}.");
+                }
+            }
         }
 
         private static void CheckHordeSegmentLanes(SegmentDefinition segment, int totalLanes, List<string> errors)

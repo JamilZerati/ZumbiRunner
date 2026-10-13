@@ -10,8 +10,10 @@ namespace Game.Core.Rescue
         public int CurrentHp { get; private set; }
         public int SurvivorCount { get; }
         public string LostEnemyArchetypeId { get; }
-        public bool IsOpen { get; private set; }
-        public bool IsLost { get; private set; }
+        public CageStatus Status { get; private set; }
+        public bool IsOpen => Status == CageStatus.Opened;
+        public bool IsLost => Status == CageStatus.Lost;
+        public bool IsIntact => Status == CageStatus.Intact;
 
         public CageRuntimeState(string cageId, int laneIndex, int maxHp, int survivorCount, string lostEnemyArchetypeId = "walker")
         {
@@ -21,13 +23,12 @@ namespace Game.Core.Rescue
             CurrentHp = MaxHp;
             SurvivorCount = Math.Max(1, survivorCount);
             LostEnemyArchetypeId = string.IsNullOrEmpty(lostEnemyArchetypeId) ? "walker" : lostEnemyArchetypeId;
-            IsOpen = false;
-            IsLost = false;
+            Status = CageStatus.Intact;
         }
 
         public bool TakeDamage(int damage)
         {
-            if (IsOpen || IsLost || damage <= 0)
+            if (Status != CageStatus.Intact || damage <= 0)
             {
                 return false;
             }
@@ -35,7 +36,7 @@ namespace Game.Core.Rescue
             CurrentHp = Math.Max(0, CurrentHp - damage);
             if (CurrentHp == 0)
             {
-                IsOpen = true;
+                Status = CageStatus.Opened;
                 return true;
             }
 
@@ -44,12 +45,12 @@ namespace Game.Core.Rescue
 
         public bool MarkLost()
         {
-            if (IsOpen || IsLost)
+            if (Status != CageStatus.Intact)
             {
                 return false;
             }
 
-            IsLost = true;
+            Status = CageStatus.Lost;
             return true;
         }
     }

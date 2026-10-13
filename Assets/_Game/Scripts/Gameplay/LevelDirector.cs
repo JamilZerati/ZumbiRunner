@@ -258,13 +258,7 @@ namespace Game.Gameplay
             for (int i = _trackedCages.Count - 1; i >= 0; i--)
             {
                 var cage = _trackedCages[i];
-                if (cage == null || !cage.gameObject.activeInHierarchy || !cage.IsAlive)
-                {
-                    _trackedCages.RemoveAt(i);
-                    continue;
-                }
-
-                if (cage.CheckEscape(generalZ))
+                if (cage == null || !cage.gameObject.activeInHierarchy || !cage.IsAlive || cage.CheckEscape(generalZ))
                 {
                     _trackedCages.RemoveAt(i);
                 }
@@ -342,14 +336,8 @@ namespace Game.Gameplay
 
         private void OnSurvivorsLost(SurvivorsLostEvent evt)
         {
-            if (_pendingBonusZombiesByLane.TryGetValue(evt.LaneIndex, out int current))
-            {
-                _pendingBonusZombiesByLane[evt.LaneIndex] = current + evt.Count;
-            }
-            else
-            {
-                _pendingBonusZombiesByLane[evt.LaneIndex] = evt.Count;
-            }
+            _pendingBonusZombiesByLane.TryGetValue(evt.LaneIndex, out int current);
+            _pendingBonusZombiesByLane[evt.LaneIndex] = current + evt.Count;
         }
 
         private void CleanupSubscriptions()

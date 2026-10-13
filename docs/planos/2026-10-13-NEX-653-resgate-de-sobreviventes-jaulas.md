@@ -1,7 +1,7 @@
 # Plano de Implementação: M18 · Resgate de sobreviventes (jaulas)
 > Data: 2026-10-13
 > Issue: NEX-653
-> Status: Pronto para Execução via /executar
+> Status: Concluído / Em Revisão (PR #99)
 
 ## 1. Contexto & Arquitetura
 - **Resumo**: Implementar a mecânica de Jaula de Sobreviventes orientada a dados na pista do Horde Runner. A jaula posiciona-se na pista com HP configurável e número de ocupantes. Localizada na camada física `Pickup`, intercepta tiros da tropa (`PlayerProjectile`) implementando `IDamageable`. Quando destruída a tiros (`CurrentHp <= 0`) antes da passagem do General, resgata os sobreviventes somando `+N` à tropa (`ISquad`), emite `SurvivorsRescuedEvent` e acumula `rescued` no `RunResult` para a economia de Recrutas da meta. Quando ultrapassada intacta (`generalZ >= cageZ`), é perdida, emite `SurvivorsLostEvent` e injeta `+N` zumbis Andarilhos (`walker`) na próxima horda daquela lane. O sistema é coberto por testes EditMode e PlayMode e integrado aos comandos `SimulateCommand` e `ValidateCommand`.
@@ -40,7 +40,9 @@
 - [NOVO] `Assets/_Game/Scripts/Tests/EditMode/CageCoreTests.cs`
 - [NOVO] `Assets/_Game/Scripts/Tests/EditMode/CageImporterTests.cs`
 - [NOVO] `Assets/_Game/Scripts/Tests/EditMode/CageGameplayTests.cs`
+- [MODIFICADO] `Assets/_Game/Scripts/Tests/EditMode/LevelDirectorTests.cs`
 - [NOVO] `Assets/_Game/Scripts/Tests/PlayMode/CagePlayModeTests.cs`
+- [MODIFICADO] `Assets/_Game/Scripts/Tests/PlayMode/Game.Tests.PlayMode.asmdef`
 - [NOVO] `Assets/_Game/Scripts/Tests/EditMode/CageSimulationAndValidationTests.cs`
 
 ## 4. Contratos e Interfaces

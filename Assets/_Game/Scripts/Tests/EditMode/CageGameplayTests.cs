@@ -187,6 +187,28 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void Cage_TakeDamage_WhenAlreadyLost_DoesNotApplyDamageOrSquadChange()
+        {
+            var squad = new FakeSquad(5);
+            var cage = CreateCage(CreateDefinition(hp: 50, survivors: 3), lane: 0, squad: squad, position: new Vector3(0, 0, 10f));
+
+            bool rescuedEventFired = false;
+            _eventBus.Subscribe<SurvivorsRescuedEvent>(_ => rescuedEventFired = true);
+
+            bool escaped = cage.CheckEscape(cage.transform.position.z + 1f);
+            Assert.IsTrue(escaped);
+            Assert.IsTrue(cage.IsLost);
+            Assert.IsFalse(cage.IsOpen);
+
+            cage.TakeDamage(new DamageInfo(100));
+
+            Assert.IsFalse(cage.IsOpen);
+            Assert.IsTrue(cage.IsLost);
+            Assert.AreEqual(5, squad.SquadCount);
+            Assert.IsFalse(rescuedEventFired);
+        }
+
+        [Test]
         public void Cage_CheckEscape_WhenGeneralPasses_MarksLost_PublishesLostEvent_DisablesCollider()
         {
             var cage = CreateCage(CreateDefinition(hp: 50, survivors: 3), lane: 2, position: new Vector3(0, 0, 20f));
@@ -293,6 +315,32 @@ namespace Game.Tests.EditMode
             director.Tick(15f);
             Assert.IsTrue(cage.IsLost);
             Assert.AreEqual(3, director.GetPendingBonusZombies(0));
+        }
+
+        [Test]
+        public void LevelDirector_TrackCage_WhenCageAlreadyOpen_CheckTrackedCagesRemovesWithoutLostEvent()
+        {
+            var directorGo = Track(new GameObject("Director"));
+            var director = directorGo.AddComponent<LevelDirector>();
+            director.Initialize(new Game.Core.State.RunConfig { InitialSquad = 5 }, null, _eventBus);
+
+            var cage = CreateCage(CreateDefinition(hp: 40, survivors: 3), lane: 0, position: new Vector3(0, 0, 15f));
+            director.TrackCage(cage);
+
+            bool lostEventFired = false;
+            _eventBus.Subscribe<SurvivorsLostEvent>(_ => lostEventFired = true);
+
+            cage.TakeDamage(new DamageInfo(100));
+            Assert.IsTrue(cage.IsOpen);
+
+            director.Tick(20f);
+
+            var trackedCagesField = typeof(LevelDirector).GetField("_trackedCages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var trackedCages = (List<Cage>)trackedCagesField.GetValue(director);
+
+            Assert.IsFalse(trackedCages.Contains(cage));
+            Assert.IsFalse(lostEventFired);
+            Assert.AreEqual(0, director.GetPendingBonusZombies(0));
         }
 
         [Test]

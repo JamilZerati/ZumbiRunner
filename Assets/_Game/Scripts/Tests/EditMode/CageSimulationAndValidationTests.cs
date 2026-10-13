@@ -139,10 +139,32 @@ namespace Game.Tests.EditMode
         [Test]
         public void Simulate_Cage_FujaoBypassesCage_IncreasesSubsequentHordePenalty()
         {
-            var level = CreateLevelWithCage("cageId=cage_standard_3 survivors=5", includeHorde: true, initialTroops: 2);
-            var fujao = SimulateCommand.SimulateSingleRun(level, BotType.Fujao, 42, 0);
+            var levelWithCage = CreateLevelWithCage("cageId=cage_standard_3 survivors=5", includeHorde: true, initialTroops: 10);
+            var fujaoWithPenalty = SimulateCommand.SimulateSingleRun(levelWithCage, BotType.Fujao, 42, 0);
 
-            Assert.AreEqual(0, fujao.rescued);
+            var levelWithoutCage = Track(ScriptableObject.CreateInstance<LevelDefinition>());
+            levelWithoutCage.LevelId = "level_no_cage";
+            levelWithoutCage.TotalDistance = 200f;
+            levelWithoutCage.Speed = 8f;
+            levelWithoutCage.InitialTroops = 10;
+            levelWithoutCage.Segments = new[]
+            {
+                new SegmentDefinition
+                {
+                    SegmentType = SegmentType.Horde,
+                    StartDistance = 30f,
+                    Length = 70f,
+                    Events = new[] { new SegmentEvent { Type = "HordeSpawn", Data = "count=5 archetype=walker lane=0", DistanceOffset = 10f, Lane = 0 } }
+                }
+            };
+            var fujaoWithoutPenalty = SimulateCommand.SimulateSingleRun(levelWithoutCage, BotType.Fujao, 42, 0);
+
+            var gulosoRescued = SimulateCommand.SimulateSingleRun(levelWithCage, BotType.Guloso, 42, 0);
+
+            Assert.AreEqual(0, fujaoWithPenalty.rescued);
+            Assert.AreEqual(5, gulosoRescued.rescued);
+            Assert.Less(fujaoWithPenalty.finalSquad, fujaoWithoutPenalty.finalSquad);
+            Assert.Less(fujaoWithPenalty.finalSquad, gulosoRescued.finalSquad);
         }
 
         [Test]

@@ -42,18 +42,7 @@ namespace Game.Presentation
 
         private void Start()
         {
-            if (targetCage == null)
-            {
-                targetCage = GetComponent<Cage>();
-            }
-
-            if (targetCage != null)
-            {
-                targetCage.OnStateChanged -= HandleStateChanged;
-                targetCage.OnStateChanged += HandleStateChanged;
-            }
-
-            UpdateVisuals();
+            TargetCage = targetCage != null ? targetCage : GetComponent<Cage>();
         }
 
         private void OnDestroy()
@@ -83,30 +72,12 @@ namespace Game.Presentation
 
             if (hpText != null)
             {
-                if (targetCage.IsOpen || targetCage.IsLost)
-                {
-                    hpText.text = "0";
-                }
-                else
-                {
-                    hpText.text = $"{targetCage.CurrentHealth}/{targetCage.MaxHealth}";
-                }
+                hpText.text = targetCage.IsOpen || targetCage.IsLost ? "0" : $"{targetCage.CurrentHealth}/{targetCage.MaxHealth}";
             }
 
             if (survivorText != null)
             {
-                if (targetCage.IsOpen)
-                {
-                    survivorText.text = "RESCUED";
-                }
-                else if (targetCage.IsLost)
-                {
-                    survivorText.text = "LOST";
-                }
-                else
-                {
-                    survivorText.text = $"+{targetCage.SurvivorCount}";
-                }
+                survivorText.text = targetCage.IsOpen ? "RESCUED" : (targetCage.IsLost ? "LOST" : $"+{targetCage.SurvivorCount}");
             }
         }
     }

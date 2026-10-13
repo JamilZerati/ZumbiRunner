@@ -60,7 +60,6 @@ namespace Game.Tests.EditMode
             _tempSourceFolder = Path.Combine(Path.GetTempPath(), "HordeRunner_CageTests_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_tempSourceFolder);
 
-            // 1. Missing/zero maxHp
             File.WriteAllText(Path.Combine(_tempSourceFolder, "cage_zero_hp.json"), @"{
                 ""id"": ""cage_zero_hp"",
                 ""maxHp"": 0,
@@ -68,7 +67,6 @@ namespace Game.Tests.EditMode
                 ""lostEnemyArchetypeId"": ""walker""
             }");
 
-            // 2. Zero survivorCount
             File.WriteAllText(Path.Combine(_tempSourceFolder, "cage_zero_survivors.json"), @"{
                 ""id"": ""cage_zero_survivors"",
                 ""maxHp"": 50,
@@ -76,7 +74,6 @@ namespace Game.Tests.EditMode
                 ""lostEnemyArchetypeId"": ""walker""
             }");
 
-            // 3. Empty id
             File.WriteAllText(Path.Combine(_tempSourceFolder, "cage_no_id.json"), @"{
                 ""id"": """",
                 ""maxHp"": 50,

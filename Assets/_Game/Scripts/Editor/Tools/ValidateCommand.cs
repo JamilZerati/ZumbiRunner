@@ -177,7 +177,11 @@ namespace Game.Editor.Tools
         {
             int errors = 0;
             cageCount = 0;
-            if (!Directory.Exists(cagesFolder)) return 0;
+            if (!Directory.Exists(cagesFolder))
+            {
+                Debug.LogWarning($"[ValidateCommand] Cages folder not found: {cagesFolder}");
+                return 0;
+            }
 
             var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -185,19 +189,20 @@ namespace Game.Editor.Tools
             {
                 if (Path.GetFileNameWithoutExtension(file).Equals("CageCatalog", StringComparison.OrdinalIgnoreCase)) continue;
                 var cage = AssetDatabase.LoadAssetAtPath<CageDefinition>(file.Replace('\\', '/'));
-                if (cage == null) continue;
+                if (cage == null)
+                {
+                    errors++;
+                    Debug.LogError($"[ValidateCommand] Failed to load CageDefinition from asset: {file}");
+                    continue;
+                }
                 cageCount++;
 
                 if (!string.IsNullOrWhiteSpace(cage.Id))
                 {
-                    if (seenIds.Contains(cage.Id))
+                    if (!seenIds.Add(cage.Id))
                     {
                         errors++;
                         Debug.LogError($"[ValidateCommand] Duplicate cage Id '{cage.Id}' in file {file}.");
-                    }
-                    else
-                    {
-                        seenIds.Add(cage.Id);
                     }
                 }
 
@@ -248,7 +253,12 @@ namespace Game.Editor.Tools
             {
                 string catalogPath = $"{enemiesFolder}/EnemyCatalog.asset";
                 var catalog = AssetDatabase.LoadAssetAtPath<EnemyCatalog>(catalogPath);
-                if (catalog != null && !catalog.TryGet(cage.LostEnemyArchetypeId, out _))
+                if (catalog == null)
+                {
+                    errors.Add($"Cage '{cage.Id}' cannot validate enemy archetype: EnemyCatalog not found at '{catalogPath}'.");
+                    Debug.LogError($"[ValidateCommand] Cage '{cage.Id}' cannot validate enemy archetype: EnemyCatalog not found at '{catalogPath}'.");
+                }
+                else if (!catalog.TryGet(cage.LostEnemyArchetypeId, out _))
                 {
                     errors.Add($"Cage '{cage.Id}' references missing enemy archetype '{cage.LostEnemyArchetypeId}'.");
                 }

@@ -192,7 +192,8 @@ namespace Game.Editor.Tools
                         currentDist = seg.StartDistance + seg.Length;
                     }
 
-                    if (seg.SegmentType != SegmentType.Cage && seg.Cages != null && seg.Cages.Length > 0)
+                    bool hasCageEvents = seg.Events != null && Array.Exists(seg.Events, e => e != null && string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase));
+                    if (seg.SegmentType != SegmentType.Cage && ((seg.Cages != null && seg.Cages.Length > 0) || hasCageEvents))
                     {
                         ProcessCageSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
                     }
@@ -392,20 +393,21 @@ namespace Game.Editor.Tools
                 if (!near) waves.Add((wDist, 8 + rng.Next(0, 3), "walker"));
             }
 
-            if (pendingBonusZombiesByLane != null)
+            if (pendingBonusZombiesByLane != null && pendingBonusZombiesByLane.Count > 0)
             {
-                foreach (var kvp in new List<KeyValuePair<int, int>>(pendingBonusZombiesByLane))
+                int remainingBonus = 0;
+                foreach (var value in pendingBonusZombiesByLane.Values)
                 {
-                    if (kvp.Value > 0)
-                    {
-                        if (waves.Count > 0)
-                        {
-                            var first = waves[0];
-                            waves[0] = (first.distance, first.count + kvp.Value, first.archetype);
-                        }
-                        pendingBonusZombiesByLane[kvp.Key] = 0;
-                    }
+                    if (value > 0) remainingBonus += value;
                 }
+
+                if (remainingBonus > 0 && waves.Count > 0)
+                {
+                    var first = waves[0];
+                    waves[0] = (first.distance, first.count + remainingBonus, first.archetype);
+                }
+
+                pendingBonusZombiesByLane.Clear();
             }
 
             waves.Sort((a, b) => a.distance.CompareTo(b.distance));
@@ -487,7 +489,7 @@ namespace Game.Editor.Tools
                 for (int i = 0; i < seg.Events.Length; i++)
                 {
                     var e = seg.Events[i];
-                    if (e != null && (string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase) || seg.SegmentType == SegmentType.Cage))
+                    if (e != null && (string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrEmpty(e.Type) && seg.SegmentType == SegmentType.Cage)))
                     {
                         ParseAndProcessCageEvent(e.Data, e.Lane, seg.Length, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
                         processed = true;
@@ -535,6 +537,11 @@ namespace Game.Editor.Tools
             ref int rescued, Dictionary<int, int> pendingBonusZombiesByLane)
         {
             var def = ResolveCageDefinition(cageId);
+            if (def == null && customHp <= 0 && customSurvivors <= 0)
+            {
+                Debug.LogWarning($"[SimulateCommand] Cage definition '{cageId}' could not be resolved. Falling back to default stats (60 HP, 3 survivors).");
+            }
+
             int hp = customHp > 0 ? customHp : (def != null && def.MaxHp > 0 ? def.MaxHp : 60);
             int survivors = customSurvivors > 0 ? customSurvivors : (def != null && def.SurvivorCount > 0 ? def.SurvivorCount : 3);
             int cageLane = lane >= 0 ? lane : 0;
@@ -562,12 +569,12 @@ namespace Game.Editor.Tools
             if (string.IsNullOrEmpty(cageId)) return null;
 
             var definition = AssetDatabase.LoadAssetAtPath<CageDefinition>($"Assets/_Game/Data/Cages/{cageId}.asset");
-            if (definition == null)
-            {
-                var catalog = AssetDatabase.LoadAssetAtPath<CageCatalog>("Assets/_Game/Data/Cages/CageCatalog.asset");
-                if (catalog != null && catalog.TryGet(cageId, out var catDef)) definition = catDef;
-            }
-            return definition;
+            if (definition != null) return definition;
+
+            var catalog = AssetDatabase.LoadAssetAtPath<CageCatalog>("Assets/_Game/Data/Cages/CageCatalog.asset");
+            if (catalog != null && catalog.TryGet(cageId, out var catDef)) return catDef;
+
+            return null;
         }
 
         public static int ExecuteFromCommandLine(string[] args = null)

@@ -36,28 +36,25 @@ namespace Game.Gameplay
         public int LaneIndex
         {
             get => laneIndex;
-            set => laneIndex = value;
+            set
+            {
+                if (laneIndex != value)
+                {
+                    laneIndex = value;
+                    _runtimeState = null;
+                }
+            }
         }
 
-        public string CageId => definition != null && !string.IsNullOrEmpty(definition.Id)
-            ? definition.Id
-            : (_runtimeState != null ? _runtimeState.CageId : "cage_default");
-
-        public int SurvivorCount => _runtimeState != null
-            ? _runtimeState.SurvivorCount
-            : (customSurvivors > 0 ? customSurvivors : (definition != null ? definition.SurvivorCount : 3));
-
-        public string LostEnemyArchetypeId => _runtimeState != null
-            ? _runtimeState.LostEnemyArchetypeId
-            : (definition != null && !string.IsNullOrEmpty(definition.LostEnemyArchetypeId) ? definition.LostEnemyArchetypeId : "walker");
-
         public CageRuntimeState RuntimeState => EnsureRuntimeState();
-
-        public int CurrentHealth => EnsureRuntimeState().CurrentHp;
-        public int MaxHealth => EnsureRuntimeState().MaxHp;
-        public bool IsAlive => !EnsureRuntimeState().IsOpen && !EnsureRuntimeState().IsLost && EnsureRuntimeState().CurrentHp > 0;
-        public bool IsOpen => EnsureRuntimeState().IsOpen;
-        public bool IsLost => EnsureRuntimeState().IsLost;
+        public string CageId => RuntimeState.CageId;
+        public int SurvivorCount => RuntimeState.SurvivorCount;
+        public string LostEnemyArchetypeId => RuntimeState.LostEnemyArchetypeId;
+        public int CurrentHealth => RuntimeState.CurrentHp;
+        public int MaxHealth => RuntimeState.MaxHp;
+        public bool IsOpen => RuntimeState.IsOpen;
+        public bool IsLost => RuntimeState.IsLost;
+        public bool IsAlive => !IsOpen && !IsLost && CurrentHealth > 0;
 
         public Collider CageCollider
         {
@@ -99,6 +96,11 @@ namespace Game.Gameplay
         {
             if (_runtimeState == null)
             {
+                if (definition == null && customHp <= 0)
+                {
+                    Debug.LogWarning($"[Cage] '{name}' has no CageDefinition assigned. Using fallback stats.", this);
+                }
+
                 string id = definition != null && !string.IsNullOrEmpty(definition.Id) ? definition.Id : "cage_default";
                 int hp = customHp > 0 ? customHp : (definition != null ? definition.MaxHp : 100);
                 int survivors = customSurvivors > 0 ? customSurvivors : (definition != null ? definition.SurvivorCount : 3);
@@ -131,6 +133,7 @@ namespace Game.Gameplay
             }
             if (cageCollider != null)
             {
+                cageCollider.isTrigger = true;
                 cageCollider.enabled = IsAlive;
             }
         }
@@ -170,34 +173,26 @@ namespace Game.Gameplay
 
         public bool CheckEscape(float generalZ)
         {
-            if (!IsAlive)
+            if (!IsAlive || generalZ < transform.position.z)
             {
                 return false;
             }
 
-            if (generalZ >= transform.position.z)
+            var state = RuntimeState;
+            if (!state.MarkLost())
             {
-                var state = EnsureRuntimeState();
-                bool lost = state.MarkLost();
-                if (lost)
-                {
-                    if (cageCollider != null)
-                    {
-                        cageCollider.enabled = false;
-                    }
-
-                    if (_eventBus != null)
-                    {
-                        _eventBus.Publish(new SurvivorsLostEvent(state.SurvivorCount, state.LaneIndex, state.CageId));
-                    }
-
-                    OnLost?.Invoke(this);
-                    OnStateChanged?.Invoke(this);
-                    return true;
-                }
+                return false;
             }
 
-            return false;
+            if (cageCollider != null)
+            {
+                cageCollider.enabled = false;
+            }
+
+            _eventBus?.Publish(new SurvivorsLostEvent(state.SurvivorCount, state.LaneIndex, state.CageId, state.LostEnemyArchetypeId));
+            OnLost?.Invoke(this);
+            OnStateChanged?.Invoke(this);
+            return true;
         }
     }
 }
