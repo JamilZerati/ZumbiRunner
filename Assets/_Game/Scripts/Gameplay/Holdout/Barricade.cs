@@ -64,9 +64,17 @@ namespace Game.Gameplay
             rb.isKinematic = true;
             rb.useGravity = false;
 
+            Physics.IgnoreLayerCollision(CollisionLayers.EnemyLayer, CollisionLayers.PickupLayer, false);
+
             if (barricadeCollider == null)
             {
                 barricadeCollider = GetComponent<Collider>();
+            }
+            if (barricadeCollider == null)
+            {
+                var box = gameObject.AddComponent<BoxCollider>();
+                box.size = new Vector3(10f, 2f, 2f);
+                barricadeCollider = box;
             }
             if (barricadeCollider != null)
             {

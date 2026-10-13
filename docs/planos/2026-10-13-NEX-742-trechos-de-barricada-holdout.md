@@ -221,7 +221,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Teste PlayMode de ciclo de defesa e física de zumbis contra barricada` [NEX-958]
+- [x] **Passo 4 (Marco 4)**: `Teste PlayMode de ciclo de defesa e física de zumbis contra barricada` [NEX-958]
   - **Ação**: Criar suíte PlayMode `HoldoutPlayModeTests.cs` exercitando colisão física, marcha de zumbis em lanes desguarnecidas ferindo a barricada e defesa com a tropa.
   - **Lógica de Negócios / Responsabilidade**: Comprovar a integração em runtime no Unity com física real e ciclo de vida de MonoBehaviours.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 3.
