@@ -185,7 +185,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Barricada e Holdout` [NEX-954]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Barricada e Holdout` [NEX-954]
   - **Ação**: Criar contratos puros em `Game.Core.Holdout`, eventos `HoldoutStartedEvent` e `HoldoutEndedEvent`, e testes unitários Red em `HoldoutCoreTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Definir modelo puro `HoldoutRuntimeState`, transições entre `Defense`, `Victory` e `BarricadeDestroyed`, cálculo de sobreviventes salvos com `(int)Math.Ceiling`, garantindo pureza C# (zero referências a UnityEngine).
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
