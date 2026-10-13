@@ -81,6 +81,15 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void ValidateCages_NonExistentFolder_ReportsError()
+        {
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex(".*Cages folder not found.*"));
+            int errors = ValidateCommand.ValidateCages("Assets/_Game/Data/NonExistent_Cages_Dir_XYZ", out int count);
+            Assert.AreEqual(1, errors);
+            Assert.AreEqual(0, count);
+        }
+
+        [Test]
         public void ValidateCage_NullOrMissingFields_ReturnsErrors()
         {
             var nullErrors = ValidateCommand.ValidateCage(null);

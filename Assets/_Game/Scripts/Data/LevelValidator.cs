@@ -83,6 +83,11 @@ namespace Game.Data
                     errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has invalid LaneIndex {spec.LaneIndex}. Total lanes: {totalLanes}.");
                 }
 
+                if (spec.DistanceOffset < 0f || spec.DistanceOffset > segment.Length)
+                {
+                    errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has invalid DistanceOffset ({spec.DistanceOffset:F1}m). Must be between 0 and {segment.Length:F1}m.");
+                }
+
                 if (spec.CustomHp < 0)
                 {
                     errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has negative CustomHp ({spec.CustomHp}).");

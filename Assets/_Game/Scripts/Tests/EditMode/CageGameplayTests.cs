@@ -142,6 +142,22 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void Cage_TakeDamage_ZeroOrNegativeDamage_DoesNotFireStateChangedOrReduceHp()
+        {
+            var cage = CreateCage(CreateDefinition(hp: 80));
+            bool stateChangedFired = false;
+            cage.OnStateChanged += _ => stateChangedFired = true;
+
+            cage.TakeDamage(new DamageInfo(0));
+            Assert.AreEqual(80, cage.CurrentHealth);
+            Assert.IsFalse(stateChangedFired);
+
+            cage.TakeDamage(new DamageInfo(-15));
+            Assert.AreEqual(80, cage.CurrentHealth);
+            Assert.IsFalse(stateChangedFired);
+        }
+
+        [Test]
         public void Cage_TakeDamage_LethalDamage_OpensCage_AddsSurvivorsToSquad_PublishesRescuedEvent_DisablesCollider()
         {
             var squad = new FakeSquad(5);

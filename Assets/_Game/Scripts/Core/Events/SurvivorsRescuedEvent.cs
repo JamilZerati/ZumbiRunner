@@ -8,8 +8,8 @@ namespace Game.Core.Events
 
         public SurvivorsRescuedEvent(int count, int laneIndex, string cageId = null)
         {
-            Count = count;
-            LaneIndex = laneIndex;
+            Count = System.Math.Max(0, count);
+            LaneIndex = System.Math.Max(0, laneIndex);
             CageId = cageId ?? string.Empty;
         }
     }

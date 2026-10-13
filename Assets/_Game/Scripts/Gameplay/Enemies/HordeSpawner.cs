@@ -119,7 +119,7 @@ namespace Game.Gameplay
 
             // Invariante de pacing: sobreviventes perdidos sao injetados exclusivamente na proxima horda da mesma lane para nao descompassar o ritmo da pista.
             int bonusCount = LevelDirector != null ? LevelDirector.ConsumePendingBonusZombies(laneIndex) : 0;
-            int totalCount = count + bonusCount;
+            int totalCount = Math.Max(0, count) + bonusCount;
 
             if (totalCount <= 0)
             {

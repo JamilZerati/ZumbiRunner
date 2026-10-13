@@ -18,7 +18,7 @@ namespace Game.Core.Rescue
         public CageRuntimeState(string cageId, int laneIndex, int maxHp, int survivorCount, string lostEnemyArchetypeId = "walker")
         {
             CageId = cageId ?? string.Empty;
-            LaneIndex = laneIndex;
+            LaneIndex = Math.Max(0, laneIndex);
             MaxHp = Math.Max(1, maxHp);
             CurrentHp = MaxHp;
             SurvivorCount = Math.Max(1, survivorCount);

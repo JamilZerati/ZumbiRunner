@@ -52,7 +52,8 @@ namespace Game.Editor
 
             if (!Directory.Exists(source))
             {
-                Debug.LogWarning($"[Game.Editor.CageImporter] Source directory does not exist: {source}");
+                errorSink.Add($"Source directory does not exist: {source}");
+                PublishErrors(errorSink, errors);
                 return 0;
             }
 

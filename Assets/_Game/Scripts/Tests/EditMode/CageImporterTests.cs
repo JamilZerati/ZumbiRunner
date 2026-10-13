@@ -151,5 +151,18 @@ namespace Game.Tests.EditMode
             Assert.GreaterOrEqual(errors.Count, 1);
             Assert.IsTrue(errors.Any(e => e.Contains("non_existent_archetype_xyz") || e.Contains("EnemyCatalog")));
         }
+
+        [Test]
+        public void ImportAll_MissingSourceFolder_ReportsErrorAndReturnsZero()
+        {
+            string nonExistentSource = Path.Combine(Path.GetTempPath(), "NonExistent_" + Guid.NewGuid().ToString("N"));
+            var errors = new List<string>();
+
+            int count = CageImporter.ImportAll(nonExistentSource, TempTargetFolder, errors);
+
+            Assert.AreEqual(0, count);
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("Source directory does not exist", errors[0]);
+        }
     }
 }

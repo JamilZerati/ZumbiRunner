@@ -205,6 +205,33 @@ namespace Game.Tests.EditMode
         }
 
         [Test]
+        public void Validate_LevelWithCage_InvalidDistanceOffset_ShouldReject()
+        {
+            var levelDef = CreateScriptableObject<LevelDefinition>();
+            levelDef.LevelId = "cage_invalid_offset";
+            levelDef.TotalDistance = 100f;
+            levelDef.LaneCount = 2;
+            levelDef.Segments = new[]
+            {
+                new SegmentDefinition
+                {
+                    SegmentType = SegmentType.Cage,
+                    StartDistance = 20f,
+                    Length = 20f,
+                    Cages = new[]
+                    {
+                        new CageSpawnSpec { CageId = "cage_01", LaneIndex = 0, DistanceOffset = -5f },
+                        new CageSpawnSpec { CageId = "cage_02", LaneIndex = 1, DistanceOffset = 25f }
+                    }
+                }
+            };
+
+            var result = LevelValidator.Validate(levelDef);
+            Assert.IsFalse(result.IsValid);
+            Assert.AreEqual(2, result.Errors.Count(e => e.Contains("DistanceOffset")));
+        }
+
+        [Test]
         public void Validate_LevelWithCage_ValidSpec_ShouldPass()
         {
             var levelDef = CreateScriptableObject<LevelDefinition>();

@@ -575,6 +575,21 @@ namespace Game.Editor.Tools
             var catalog = AssetDatabase.LoadAssetAtPath<CageCatalog>("Assets/_Game/Data/Cages/CageCatalog.asset");
             if (catalog != null && catalog.TryGet(cageId, out var catDef)) return catDef;
 
+            string jsonPath = Path.Combine("Content", "Source", "Cages", $"{cageId}.json");
+            if (File.Exists(jsonPath))
+            {
+                try
+                {
+                    var def = ScriptableObject.CreateInstance<CageDefinition>();
+                    JsonUtility.FromJsonOverwrite(File.ReadAllText(jsonPath), def);
+                    return def;
+                }
+                catch
+                {
+                    // Fall through to null if file is malformed
+                }
+            }
+
             return null;
         }
 

@@ -196,8 +196,8 @@ namespace Game.Editor.Tools
             cageCount = 0;
             if (!Directory.Exists(cagesFolder))
             {
-                Debug.LogWarning($"[ValidateCommand] Cages folder not found: {cagesFolder}");
-                return 0;
+                Debug.LogError($"[ValidateCommand] Cages folder not found: {cagesFolder}");
+                return 1;
             }
 
             var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

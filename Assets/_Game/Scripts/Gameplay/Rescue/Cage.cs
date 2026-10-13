@@ -118,7 +118,7 @@ namespace Game.Gameplay
                 }
 
                 string id = definition != null && !string.IsNullOrEmpty(definition.Id) ? definition.Id : "cage_default";
-                int hp = customHp > 0 ? customHp : (definition != null ? definition.MaxHp : 100);
+                int hp = customHp > 0 ? customHp : (definition != null ? definition.MaxHp : 60);
                 int survivors = customSurvivors > 0 ? customSurvivors : (definition != null ? definition.SurvivorCount : 3);
                 string archetype = definition != null && !string.IsNullOrEmpty(definition.LostEnemyArchetypeId) ? definition.LostEnemyArchetypeId : "walker";
                 _runtimeState = new CageRuntimeState(id, laneIndex, hp, survivors, archetype);
@@ -156,7 +156,7 @@ namespace Game.Gameplay
 
         public void TakeDamage(DamageInfo damage)
         {
-            if (!IsAlive)
+            if (!IsAlive || damage.Amount <= 0)
             {
                 return;
             }

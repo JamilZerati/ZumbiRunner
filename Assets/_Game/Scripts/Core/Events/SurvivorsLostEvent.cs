@@ -11,8 +11,8 @@ namespace Game.Core.Events
 
         public SurvivorsLostEvent(int count, int laneIndex, string cageId = null, string lostEnemyArchetypeId = "walker")
         {
-            Count = count;
-            LaneIndex = laneIndex;
+            Count = System.Math.Max(0, count);
+            LaneIndex = System.Math.Max(0, laneIndex);
             CageId = cageId ?? string.Empty;
             _lostEnemyArchetypeId = string.IsNullOrEmpty(lostEnemyArchetypeId) ? "walker" : lostEnemyArchetypeId;
         }

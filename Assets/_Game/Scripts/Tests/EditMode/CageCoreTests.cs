@@ -25,9 +25,10 @@ namespace Game.Tests.EditMode
         [Test]
         public void InitialState_InvalidOrBoundaryParameters_ClampsToSafeDefaults()
         {
-            var state = new CageRuntimeState(cageId: null, laneIndex: 0, maxHp: 0, survivorCount: -5, lostEnemyArchetypeId: null);
+            var state = new CageRuntimeState(cageId: null, laneIndex: -2, maxHp: 0, survivorCount: -5, lostEnemyArchetypeId: null);
 
             Assert.AreEqual(string.Empty, state.CageId);
+            Assert.AreEqual(0, state.LaneIndex);
             Assert.AreEqual(1, state.MaxHp);
             Assert.AreEqual(1, state.CurrentHp);
             Assert.AreEqual(1, state.SurvivorCount);
@@ -118,6 +119,15 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(2, lostEvt.Count);
             Assert.AreEqual(0, lostEvt.LaneIndex);
             Assert.AreEqual("cage_lost", lostEvt.CageId);
+
+            var clampedRescued = new SurvivorsRescuedEvent(count: -3, laneIndex: -1);
+            Assert.AreEqual(0, clampedRescued.Count);
+            Assert.AreEqual(0, clampedRescued.LaneIndex);
+
+            var clampedLost = new SurvivorsLostEvent(count: -2, laneIndex: -1);
+            Assert.AreEqual(0, clampedLost.Count);
+            Assert.AreEqual(0, clampedLost.LaneIndex);
+            Assert.AreEqual("walker", clampedLost.LostEnemyArchetypeId);
         }
 
         [Test]
