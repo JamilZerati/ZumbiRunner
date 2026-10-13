@@ -170,7 +170,7 @@ flowchart TD
   - **Marco de PR**: Marco 0 + `NEX-936`
   - **Runtime**: hard
 
-- [ ] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Rescue/CageRuntimeState.cs` [NEX-937]
+- [x] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Rescue/CageRuntimeState.cs` [NEX-937]
   - **Ação**: Implementar completamente `CageRuntimeState.cs` tornando verdes todos os testes de `CageCoreTests.cs`, e adicionar acúmulo de sobreviventes resgatados em `RunResult`.
   - **Lógica de Negócios / Responsabilidade**: Processar `TakeDamage(damage)`, transição irreversível para `IsOpen` ao zerar HP, transição para `IsLost` ao ser marcada como perdida e proteção contra dano após abertura/perda.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-936`). `interface`: nenhuma.

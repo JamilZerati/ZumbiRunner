@@ -119,5 +119,33 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0, lostEvt.LaneIndex);
             Assert.AreEqual("cage_lost", lostEvt.CageId);
         }
+
+        [Test]
+        public void RunResult_RescuedProperty_DefaultsToZeroAndCanBeSet()
+        {
+            var result = new Game.Core.State.RunResult();
+            Assert.AreEqual(0, result.Rescued);
+
+            result.Rescued = 7;
+            Assert.AreEqual(7, result.Rescued);
+        }
+
+        [Test]
+        public void TakeDamage_StepByStepUntilZero_ReturnsTrueOnlyOnFinalHit()
+        {
+            var state = new CageRuntimeState("cage_gradual", 0, 30, 2);
+
+            Assert.IsFalse(state.TakeDamage(10));
+            Assert.AreEqual(20, state.CurrentHp);
+            Assert.IsFalse(state.IsOpen);
+
+            Assert.IsFalse(state.TakeDamage(10));
+            Assert.AreEqual(10, state.CurrentHp);
+            Assert.IsFalse(state.IsOpen);
+
+            Assert.IsTrue(state.TakeDamage(10));
+            Assert.AreEqual(0, state.CurrentHp);
+            Assert.IsTrue(state.IsOpen);
+        }
     }
 }
