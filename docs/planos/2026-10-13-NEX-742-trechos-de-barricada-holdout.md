@@ -212,7 +212,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: hard
 
-- [ ] **Passo 3 (Marco 3)**: `HoldoutController, pausa da pista no LevelDirector e integração de fluxo` [NEX-957]
+- [x] **Passo 3 (Marco 3)**: `HoldoutController, pausa da pista no LevelDirector e integração de fluxo` [NEX-957]
   - **Ação**: Implementar `HoldoutController.cs`, estender `LevelDirector.cs` para suportar `SegmentType.Holdout`, controlar `TrackScroller.IsPaused`, publicar eventos de início/fim e atualizar o cálculo de estrelas no `RunResult` (`HoldoutsHeld`).
   - **Lógica de Negócios / Responsabilidade**: Ponto central de montagem do trecho: orquestra pausa de $Z$, ondas simultâneas, transição de estado, resgate proporcional somado à tropa na vitória, e perda de sobreviventes + perda de 3ª estrela no colapso.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1, Marco 2.
