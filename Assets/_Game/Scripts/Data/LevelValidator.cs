@@ -55,6 +55,11 @@ namespace Game.Data
                 {
                     CheckCageSpecs(segment, totalLanes, result.Errors);
                 }
+
+                if (segment.SegmentType == SegmentType.Holdout || (segment.Holdout != null && !string.IsNullOrWhiteSpace(segment.Holdout.HoldoutId)))
+                {
+                    CheckHoldoutSpec(segment, result.Errors);
+                }
             }
 
             CheckSegmentOverlaps(level, result.Errors);
@@ -96,6 +101,42 @@ namespace Game.Data
                 if (spec.CustomSurvivors < 0)
                 {
                     errors.Add($"Cage '{spec.CageId}' in segment at {segment.StartDistance:F1}m has negative CustomSurvivors ({spec.CustomSurvivors}).");
+                }
+            }
+        }
+
+        private static void CheckHoldoutSpec(SegmentDefinition segment, List<string> errors)
+        {
+            if (segment.SegmentType == SegmentType.Holdout)
+            {
+                if (segment.Holdout == null)
+                {
+                    errors.Add($"Holdout segment at {segment.StartDistance:F1}m has no Holdout spec.");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(segment.Holdout.HoldoutId))
+                {
+                    errors.Add($"Holdout spec in segment at {segment.StartDistance:F1}m has empty HoldoutId.");
+                }
+            }
+
+            if (segment.Holdout != null && !string.IsNullOrWhiteSpace(segment.Holdout.HoldoutId))
+            {
+                var spec = segment.Holdout;
+                if (spec.CustomMaxHp < 0)
+                {
+                    errors.Add($"Holdout '{spec.HoldoutId}' in segment at {segment.StartDistance:F1}m has negative CustomMaxHp ({spec.CustomMaxHp}).");
+                }
+
+                if (spec.CustomSurvivors < 0)
+                {
+                    errors.Add($"Holdout '{spec.HoldoutId}' in segment at {segment.StartDistance:F1}m has negative CustomSurvivors ({spec.CustomSurvivors}).");
+                }
+
+                if (spec.CustomDuration < 0f)
+                {
+                    errors.Add($"Holdout '{spec.HoldoutId}' in segment at {segment.StartDistance:F1}m has negative CustomDuration ({spec.CustomDuration:F1}s).");
                 }
             }
         }
