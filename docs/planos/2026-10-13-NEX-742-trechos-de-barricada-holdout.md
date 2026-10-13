@@ -203,7 +203,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: hard
 
-- [ ] **Passo 2 (Marco 2)**: `Componente Barricade, BarricadeView e dano por contato de zumbis` [NEX-956]
+- [x] **Passo 2 (Marco 2)**: `Componente Barricade, BarricadeView e dano por contato de zumbis` [NEX-956]
   - **Ação**: Implementar `Barricade.cs`, `BarricadeView.cs`, detecção de zumbis alcançando as lanes desguarnecidas e aplicação de dano contínuo à barricada.
   - **Lógica de Negócios / Responsabilidade**: Gerenciar colisores da barricada por lane, aplicar `ZombieContactDps` para zumbis ativos que atingem a coordenada $Z$ nas lanes onde o General NÃO está, cessando dano quando a tropa se move para cobrir a lane.
   - **Dependências / Pré-requisitos**: `interface`: Marco 0.
