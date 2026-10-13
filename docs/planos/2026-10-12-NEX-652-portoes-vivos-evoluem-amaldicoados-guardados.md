@@ -218,7 +218,7 @@ flowchart TD
   - **Marco de PR**: Marco 4 + `NEX-886`
   - **Runtime**: hard
 
-- [ ] **Passo 5 (Marco 5)**: `Assets/_Game/Scripts/Editor/Tools/SimulateCommand.cs` e `ValidateCommand.cs` [NEX-887]
+- [x] **Passo 5 (Marco 5)**: `Assets/_Game/Scripts/Editor/Tools/SimulateCommand.cs` e `ValidateCommand.cs` [NEX-887]
   - **Ação**: Modificar `SimulateCommand.cs` e `ValidateCommand.cs` e criar `Assets/_Game/Scripts/Tests/EditMode/LivingGatesSimulationAndValidationTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Adicionar validação de todos os `GateDefinition` em `Assets/_Game/Data/Gates` dentro de `ValidateCommand.Run`. No `SimulateCommand`, interpretar eventos de portão com variantes `ShootToUpgrade` (calculando acertos da tropa durante a aproximação e aplicando o valor evoluído para o bot `Guloso`), `Cursed` (aplicando o bônus e o multiplicador temporário de velocidade de inimigos pelos próximos `durationDistance` metros) e `Guarded` (simulando o combate contra a onda de guarda para o bot `Guloso` enquanto o bot `Fujao` desvia para o portão fraco).
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-882`), Marco 2 (`NEX-884`). `interface`: nenhuma.

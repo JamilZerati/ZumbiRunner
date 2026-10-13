@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Game.Core.Gates;
 using Game.Data;
 
 namespace Game.Editor.Tools
@@ -16,11 +18,13 @@ namespace Game.Editor.Tools
 
         public static int Run(
             string levelsFolder = "Assets/_Game/Data/Levels",
-            string abilitiesFolder = "Assets/_Game/Data/Abilities")
+            string abilitiesFolder = "Assets/_Game/Data/Abilities",
+            string gatesFolder = "Assets/_Game/Data/Gates")
         {
             int errorCount = 0;
             int levelCount = 0;
             int abilityCount = 0;
+            int gateCount = 0;
 
             if (Directory.Exists(levelsFolder))
             {
@@ -52,14 +56,15 @@ namespace Game.Editor.Tools
             }
 
             errorCount += ValidateAbilities(abilitiesFolder, out abilityCount);
+            errorCount += ValidateGates(gatesFolder, out gateCount);
 
             if (errorCount > 0)
             {
-                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels and {abilityCount} abilities.");
+                Debug.LogError($"[ValidateCommand] Validation failed with {errorCount} errors across {levelCount} levels, {abilityCount} abilities, and {gateCount} gates.");
                 return 1;
             }
 
-            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels and {abilityCount} abilities (0 errors).");
+            Debug.Log($"[ValidateCommand] Validation passed for {levelCount} levels, {abilityCount} abilities, and {gateCount} gates (0 errors).");
             return 0;
         }
 
@@ -128,6 +133,40 @@ namespace Game.Editor.Tools
                 errors.Add("Ability Effect is required.");
             }
 
+            return errors;
+        }
+
+        public static int ValidateGates(string gatesFolder, out int gateCount)
+        {
+            int errors = 0;
+            gateCount = 0;
+            if (!Directory.Exists(gatesFolder)) return 0;
+
+            foreach (var file in Directory.GetFiles(gatesFolder, "*.asset"))
+            {
+                if (Path.GetFileNameWithoutExtension(file).Equals("GateCatalog", StringComparison.OrdinalIgnoreCase)) continue;
+                var gate = AssetDatabase.LoadAssetAtPath<GateDefinition>(file.Replace('\\', '/'));
+                if (gate == null) continue;
+                gateCount++;
+                var gateErrors = ValidateGate(gate);
+                errors += gateErrors.Count;
+                foreach (var err in gateErrors) Debug.LogError($"[ValidateCommand] Gate '{gate.Id}' validation error: {err}");
+            }
+            return errors;
+        }
+
+        public static List<string> ValidateGate(GateDefinition gate)
+        {
+            var errors = new List<string>();
+            if (gate == null) { errors.Add("Gate definition is null."); return errors; }
+            if (string.IsNullOrWhiteSpace(gate.Id)) errors.Add("Gate Id is required.");
+            if (string.IsNullOrWhiteSpace(gate.DisplayName)) errors.Add("Gate DisplayName is required.");
+            if (string.IsNullOrWhiteSpace(gate.PerkId)) errors.Add("Gate PerkId is required.");
+            if (gate.Perk == null) errors.Add("Gate Perk reference is required.");
+            if (gate.Variant == null) errors.Add("Gate Variant is required.");
+            else if (gate.Variant is ShootToUpgradeGateVariant up && !up.Validate(out string upErr)) errors.Add($"Gate variant validation error: {upErr}");
+            else if (gate.Variant is CursedGateVariant cursed && !cursed.Validate(out string cErr)) errors.Add($"Gate variant validation error: {cErr}");
+            else if (gate.Variant is GuardedGateVariant guarded && !guarded.Validate(out string gErr)) errors.Add($"Gate variant validation error: {gErr}");
             return errors;
         }
     }
