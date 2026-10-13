@@ -161,7 +161,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Resgate e Jaulas` [NEX-936]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Resgate e Jaulas` [NEX-936]
   - **Ação**: Criar interfaces e stubs em `Game.Core.Rescue` (`ICageState`, `CageRuntimeState`), eventos `SurvivorsRescuedEvent` e `SurvivorsLostEvent` em `Game.Core.Events` e a suíte Red em `Assets/_Game/Scripts/Tests/EditMode/CageCoreTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Definir contratos públicos puros em C# sem UnityEngine e comprovar o estado Red dos cenários de dano, abertura de jaula, contagem de sobreviventes e detecção de perda.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
