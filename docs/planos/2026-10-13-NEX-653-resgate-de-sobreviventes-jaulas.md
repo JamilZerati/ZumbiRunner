@@ -197,7 +197,7 @@ flowchart TD
   - **Marco de PR**: Marco 3 + `NEX-939`
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Tests/PlayMode/CagePlayModeTests.cs` [NEX-940]
+- [x] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Tests/PlayMode/CagePlayModeTests.cs` [NEX-940]
   - **Ação**: Criar `Assets/_Game/Scripts/Tests/PlayMode/CagePlayModeTests.cs` exercitando colisão física real 3D (`WaitForFixedUpdate`) entre `Projectile` e `Cage` na camada `Pickup`.
   - **Lógica de Negócios / Responsabilidade**: Provar que projéteis reais colidem com a jaula na camada `Pickup`, são consumidos/reciclados, subtraem HP da jaula, abrem a jaula e integram soldados ao pelotão.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-936`), Marco 3 (`NEX-939`). `interface`: nenhuma.

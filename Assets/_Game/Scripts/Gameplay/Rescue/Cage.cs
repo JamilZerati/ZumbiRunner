@@ -111,6 +111,13 @@ namespace Game.Gameplay
         public void ConfigureComponents()
         {
             gameObject.layer = CollisionLayers.PickupLayer;
+            if (!TryGetComponent<Rigidbody>(out var rb))
+            {
+                rb = gameObject.AddComponent<Rigidbody>();
+            }
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
             if (cageCollider == null)
             {
                 cageCollider = GetComponent<Collider>();
