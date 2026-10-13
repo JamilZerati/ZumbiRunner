@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using Game.Data;
+using Game.Core.Gates;
 
 namespace Game.Editor.Tools
 {
@@ -160,6 +161,7 @@ namespace Game.Editor.Tools
             bool isAlive = true;
             int abilityKillsAccumulator = 0;
             int abilityCharges = 0;
+            var stageModifiers = new StageModifierController();
 
             if (level.Segments != null)
             {
@@ -170,11 +172,11 @@ namespace Game.Editor.Tools
                     if (seg.SegmentType == SegmentType.Warmup) currentDist = seg.StartDistance + seg.Length;
                     else if (seg.SegmentType == SegmentType.Gate)
                     {
-                        ProcessGateSegment(seg, bot, ref squad, ref fireRate, ref damage);
+                        ProcessGateSegment(seg, level, bot, ref squad, ref fireRate, ref damage, speed, stageModifiers, rng, ref isAlive, ref kills, currentDist);
                         currentDist = seg.StartDistance + seg.Length;
                     }
                     else if (seg.SegmentType == SegmentType.Horde)
-                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges);
+                        ProcessHordeSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges, stageModifiers);
                     else if (seg.SegmentType == SegmentType.Multiplier)
                         ProcessMultiplierSegment(seg, ref squad, ref mult, ref currentDist);
                 }
@@ -188,19 +190,37 @@ namespace Game.Editor.Tools
             };
         }
 
-        private static void ProcessGateSegment(SegmentDefinition seg, BotType bot, ref int squad, ref float fireRate, ref int damage)
+        private static void ProcessGateSegment(
+            SegmentDefinition seg, LevelDefinition level, BotType bot, ref int squad, ref float fireRate, ref int damage,
+            float speed, StageModifierController stageModifiers, System.Random rng, ref bool isAlive, ref int kills, float currentDist)
         {
             if (seg.Events != null && seg.Events.Length > 0)
             {
-                for (int i = 0; i < seg.Events.Length; i++)
-                    if (seg.Events[i] != null) ApplyGateEvent(seg.Events[i].Data, bot, ref squad, ref fireRate, ref damage);
+                for (int i = 0; i < seg.Events.Length && isAlive; i++)
+                {
+                    if (seg.Events[i] != null)
+                    {
+                        ApplyGateEvent(seg.Events[i].Data, bot, ref squad, ref fireRate, ref damage, seg.Length, speed, stageModifiers, rng, level, ref isAlive, ref kills, currentDist);
+                    }
+                }
             }
             else if (bot == BotType.Guloso) { squad += 5; fireRate += 1f; }
         }
 
-        private static void ApplyGateEvent(string data, BotType bot, ref int squad, ref float fireRate, ref int damage)
+        private static void ApplyGateEvent(
+            string data, BotType bot, ref int squad, ref float fireRate, ref int damage,
+            float segmentLength, float speed, StageModifierController stageModifiers, System.Random rng,
+            LevelDefinition level, ref bool isAlive, ref int kills, float currentDist)
         {
             if (string.IsNullOrEmpty(data)) { if (bot == BotType.Guloso) squad += 5; return; }
+
+            var variant = ResolveGateVariant(data);
+            if (variant != null)
+            {
+                ApplyVariantGateEvent(variant, data, bot, ref squad, ref fireRate, ref damage, segmentLength, speed, stageModifiers, rng, level, ref isAlive, ref kills, currentDist);
+                return;
+            }
+
             if (bot == BotType.Fujao)
             {
                 if (data.Contains("subtract") || data.Contains("-")) squad = Math.Max(1, squad - 3);
@@ -226,10 +246,93 @@ namespace Game.Editor.Tools
             else { squad += 5; fireRate += 2f; }
         }
 
+        private static IGateVariant ResolveGateVariant(string data)
+        {
+            if (string.IsNullOrEmpty(data)) return null;
+
+            string candidateId = data.Trim();
+            var mId = Regex.Match(data, @"(?:gateId|gate|id)\s*=\s*([a-zA-Z0-9_-]+)", RegexOptions.IgnoreCase);
+            if (mId.Success) candidateId = mId.Groups[1].Value;
+
+            var definition = AssetDatabase.LoadAssetAtPath<GateDefinition>($"Assets/_Game/Data/Gates/{candidateId}.asset");
+            if (definition == null)
+            {
+                var catalog = AssetDatabase.LoadAssetAtPath<GateCatalog>("Assets/_Game/Data/Gates/GateCatalog.asset");
+                if (catalog != null && catalog.TryGet(candidateId, out var catDef)) definition = catDef;
+            }
+
+            if (definition?.Variant != null) return definition.Variant;
+
+            if (candidateId.StartsWith("gate_upgrade", StringComparison.OrdinalIgnoreCase) || data.IndexOf("upgrade", StringComparison.OrdinalIgnoreCase) >= 0)
+                return new ShootToUpgradeGateVariant(-5, 1, 1, 15);
+            if (candidateId.StartsWith("gate_cursed", StringComparison.OrdinalIgnoreCase) || data.IndexOf("cursed", StringComparison.OrdinalIgnoreCase) >= 0)
+                return new CursedGateVariant("triple_frenzy", new StageModifierSpec("cursed", 1.35f, 1.2f), 150f);
+            if (candidateId.StartsWith("gate_guarded", StringComparison.OrdinalIgnoreCase) || data.IndexOf("guarded", StringComparison.OrdinalIgnoreCase) >= 0)
+                return new GuardedGateVariant("wave_guard", "runner", 5, 8f);
+            if (candidateId.StartsWith("gate_static", StringComparison.OrdinalIgnoreCase))
+                return new StaticGateVariant();
+
+            return null;
+        }
+
+        private static void ApplyVariantGateEvent(
+            IGateVariant variant, string data, BotType bot, ref int squad, ref float fireRate,
+            ref int damage, float segmentLength, float speed, StageModifierController stageModifiers,
+            System.Random rng, LevelDefinition level, ref bool isAlive, ref int kills, float currentDist)
+        {
+            if (variant is ShootToUpgradeGateVariant upgrade)
+            {
+                if (bot == BotType.Guloso)
+                {
+                    float approachDist = segmentLength > 0f ? segmentLength : 20f;
+                    float approachTime = speed > 0f ? approachDist / speed : 2.5f;
+                    int shots = (int)(fireRate * squad * approachTime);
+                    int evolvedValue = upgrade.EvaluateValue(shots);
+                    if (evolvedValue > 0) squad += evolvedValue;
+                    else squad -= Math.Min(-evolvedValue, Math.Max(0, squad - 1));
+                }
+                else squad = upgrade.InitialValue < 0 ? Math.Max(1, squad - 3) : squad + upgrade.InitialValue;
+            }
+            else if (variant is CursedGateVariant cursed)
+            {
+                if (bot == BotType.Guloso)
+                {
+                    squad *= 3;
+                    stageModifiers?.Activate(cursed.StageModifier, currentDist, cursed.DurationDistance);
+                }
+                else squad += 1;
+            }
+            else if (variant is GuardedGateVariant guarded)
+            {
+                if (bot == BotType.Guloso)
+                {
+                    int guardCount = guarded.GuardCount > 0 ? guarded.GuardCount : 5;
+                    var stats = Archetypes.TryGetValue(guarded.GuardArchetypeId ?? "runner", out var a) ? a : new ArchetypeStats(12, 5.0f, 1);
+                    float guardSpeed = stats.Speed * (stageModifiers != null ? stageModifiers.CurrentEnemySpeedMultiplier : 1f);
+                    float closingTime = 40f / (speed + guardSpeed);
+                    int killed = Math.Min(guardCount, (int)(fireRate * damage * squad * 0.95f * closingTime / stats.Hp));
+                    kills += killed;
+                    int reaching = guardCount - killed;
+                    if (reaching > 0)
+                    {
+                        squad -= reaching * stats.ContactDamage;
+                        if (squad <= 0) { squad = 0; isAlive = false; return; }
+                    }
+                    squad *= 2;
+                }
+                else squad += 1;
+            }
+            else
+            {
+                if (bot == BotType.Guloso) squad += 5;
+                else squad += 1;
+            }
+        }
+
         private static void ProcessHordeSegment(
             SegmentDefinition seg, LevelDefinition level, BotType bot, ref int squad, float fireRate, int damage,
             float speed, ref int kills, ref float currentDist, ref bool isAlive, System.Random rng,
-            ref int abilityKillsAccumulator, ref int abilityCharges)
+            ref int abilityKillsAccumulator, ref int abilityCharges, StageModifierController stageModifiers = null)
         {
             float hpMultiplier = level != null ? level.GetHpMultiplier() : 1f;
             var waves = new List<(float distance, int count, string archetype)>();
@@ -264,10 +367,14 @@ namespace Game.Editor.Tools
             for (int i = 0; i < waves.Count; i++)
             {
                 currentDist = waves[i].distance;
+                if (stageModifiers != null) stageModifiers.TickDistance(currentDist);
+
                 string archName = waves[i].archetype;
                 var stats = Archetypes.TryGetValue(archName, out var a) ? a : new ArchetypeStats(20, 2.0f, 1);
+                float speedMult = stageModifiers != null ? stageModifiers.CurrentEnemySpeedMultiplier : 1f;
+                float contactMult = stageModifiers != null ? stageModifiers.CurrentEnemyContactDamageMultiplier : 1f;
                 float effectiveHp = stats.Hp * hpMultiplier;
-                float closingTime = 40f / (speed + stats.Speed);
+                float closingTime = 40f / (speed + stats.Speed * speedMult);
 
                 float eff = (bot == BotType.Guloso) ? (0.95f + (float)(rng.NextDouble() * 0.08 - 0.04)) : (0.55f + (float)(rng.NextDouble() * 0.08 - 0.04));
                 int killed = Math.Min(waves[i].count, (int)(fireRate * damage * squad * eff * closingTime / effectiveHp));
@@ -290,11 +397,13 @@ namespace Game.Editor.Tools
 
                 if (reaching > 0)
                 {
-                    squad -= reaching * stats.ContactDamage;
+                    int contactDmg = (int)(stats.ContactDamage * contactMult);
+                    squad -= reaching * Math.Max(1, contactDmg);
                     if (squad <= 0) { squad = 0; isAlive = false; return; }
                 }
             }
             currentDist = seg.StartDistance + seg.Length;
+            if (stageModifiers != null) stageModifiers.TickDistance(currentDist);
         }
 
         private static void ProcessMultiplierSegment(SegmentDefinition seg, ref int squad, ref int mult, ref float currentDist)

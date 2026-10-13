@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a5136f3346159459126fb0a097f042, type: 3}
+  m_Name: GateCatalog
+  m_EditorClassIdentifier: Game.Data::Game.Data.GateCatalog
+  gates:
+  - {fileID: 11400000, guid: cea41839a44d71741afbf3853fa6a983, type: 2}
+  - {fileID: 11400000, guid: 618bd98fc144fb54795529995e57507f, type: 2}
+  - {fileID: 11400000, guid: d3fc62be436d1494eadfe5f8e26f8577, type: 2}
+  - {fileID: 11400000, guid: 6c91d637c3118d94786700e12deeaf0a, type: 2}

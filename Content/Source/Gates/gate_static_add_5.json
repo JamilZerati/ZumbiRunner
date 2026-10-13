@@ -1,0 +1,8 @@
+{
+  "id": "gate_static_add_5",
+  "displayName": "+5",
+  "perkId": "add_5",
+  "variant": {
+    "type": "Static"
+  }
+}
