@@ -209,7 +209,7 @@ flowchart TD
   - **Marco de PR**: Marco 3 + `NEX-885`
   - **Runtime**: hard
 
-- [ ] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Tests/PlayMode/LivingGatesPlayModeTests.cs` [NEX-886]
+- [x] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Tests/PlayMode/LivingGatesPlayModeTests.cs` [NEX-886]
   - **Ação**: Criar `Assets/_Game/Scripts/Tests/PlayMode/LivingGatesPlayModeTests.cs` exercitando a simulação física real (`WaitForFixedUpdate`) entre `Projectile` (`PlayerProjectileLayer`), `Gate` (`PickupLayer`) e `EnemyController` (`EnemyLayer`).
   - **Lógica de Negócios / Responsabilidade**: Provar em PlayMode que projéteis reais colidem com portões `ShootToUpgrade` na camada `Pickup`, reciclam o projétil e evoluem o valor/visual do portão, enquanto projéteis disparados na direção de portões `Static`, `Cursed`, `Guarded` ou já consumidos atravessam o portão sem reciclagem e atingem o zumbi posicionado atrás dele.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0 (`NEX-882`), Marco 3 (`NEX-885`). `interface`: nenhuma.
