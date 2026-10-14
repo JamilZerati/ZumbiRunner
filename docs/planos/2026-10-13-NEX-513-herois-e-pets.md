@@ -246,7 +246,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: high
 
-- [ ] **Passo 3 (Marco 3)**: `AbilityRunner, cooldowns temporais e política de disparo conectada à HUD` [NEX-965]
+- [x] **Passo 3 (Marco 3)**: `AbilityRunner, cooldowns temporais e política de disparo conectada à HUD` [NEX-965]
   - **Ação**: Implementar `AbilityRunner.cs`, integrar com `IHeroAbilityTriggerPolicy` (`Auto` / `Manual`) e criar `AllyHudView.cs` com indicador de recarga radial e botão de ativação manual.
   - **Lógica de Negócios / Responsabilidade**: Recarga temporal contínua por `Tick(dt)`. Em modo `Auto`, dispara assim que pronto e inimigos estão na pista. Em modo `Manual`, aguarda input do jogador via `ManualTriggerRequested()`. Toggle persistido em `PlayerPrefsAbilitySettings`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 2. `interface`: Marco 0.
