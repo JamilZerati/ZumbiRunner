@@ -15,6 +15,8 @@ Horde Runner: runner mobile (retrato, Android) em Unity. O General lidera uma tr
 
 **Editor vivo**: o CLI `unity` (pacote `com.unity.pipeline`) dirige um Editor residente, e é assim que se simula o jogo de verdade: Play mode, C# por `eval`, estado e memória em runtime, input simulado, captura de tela. Ao investigar comportamento jogando, medir memória ou capturar evidência visual: `docs/agentes/editor-vivo.md`.
 
+**Base em Engenharia Reversa (REA)**: O desenvolvimento de mecânicas e sistemas baseia-se fortemente em engenharia reversa das referências (via REA / decompilação). A diretriz obrigatória para qualquer LLM antes de planejar ou implementar uma mecânica é: **sempre decompilar e localizar a parte/código de referência correspondente para se basear fortemente nela**. É permitido e esperado adaptar nomes de variáveis, funções, classes e arquivos para a arquitetura do projeto (`Game.Core`, nomenclatura descritiva, etc.), **porém a lógica de funcionamento, fórmulas, regras de negócio e fluxos devem seguir fielmente a lógica decompilada**. Detalhes e fluxo de trabalho: `docs/agentes/rea-referencia.md`.
+
 ## Portão de verificação
 
 Tarefa pronta = o `verify` do bloco `dispatch` passou **e** você leu o resultado. Sequência padrão:
@@ -57,6 +59,7 @@ Ao escrever MonoBehaviour, física, pooling, `[SerializeReference]`, fiação do
 ## Regras de código
 
 - Até 300 linhas de mudança de comportamento por PR; scaffold gerado e movimentação pura em commit separado, declarados no PR.
+- Lógica espelhada da referência (REA): decompilar e localizar a mecânica de referência antes de desenhar ou implementar; nomes de variáveis, funções e arquivos adaptados ao padrão do projeto, lógica e algoritmos fiéis à referência.
 - Comentário só para o porquê: invariante não óbvia ou contorno de bug externo.
 - Diff cirúrgico: formatação, imports e docstrings fora do escopo ficam como estão.
 - Português do Brasil em docs, commits (`tipo(escopo): resumo [NEX-n]`) e PRs.
