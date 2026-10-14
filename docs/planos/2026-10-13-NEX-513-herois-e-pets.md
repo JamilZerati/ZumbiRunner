@@ -1,7 +1,7 @@
 # Plano de Implementação: M8 · Heróis e pets (habilidade auto/manual por toggle)
 > Data: 2026-10-13
 > Issue: NEX-513
-> Status: Pronto para Execução via /executar
+> Status: Cenários validados — Suíte Red comprovada em 2026-10-13
 
 ## 1. Contexto & Arquitetura
 - **Resumo**: Implementar o sistema de Heróis e Pets (M8) no Horde Runner. A formação do jogador passa a incorporar aliados de campo recrutados durante a corrida via portões de perk (`RecruitAllyPerkEffect`) ou recompensas de Boss, com a proibição absoluta de venda direta por dinheiro real ou medalhas (Decisão 9 do GDD). O sistema compreende: (1) Dois heróis arquétipos: **Piromante** (ataque ígneo contínuo que inflige `Burn` e habilidade ativa de área *Inferno*) e **Criomante** (ataque glacial que inflige `Freeze` escalonando para `Frozen`/Estilhaço e habilidade ativa *Nevasca Polar*); (2) Um pet: **Cão Guardião** (`guard_dog`) concedendo aura passiva contínua na formação (+15% de poder de fogo na `StatCollection`); (3) Separação rígida de dano: a tropa (`ISquad`) mantém sua contagem independente, o dano da tropa não abate HP do herói, o herói possui HP próprio e sua morte entra em nocaute sem falhar a corrida; o pet é imune a dano; (4) Gestão de recarga temporal via `AbilityRunner` acoplada à política `IHeroAbilityTriggerPolicy` (Auto/Manual por toggle persistido em `PlayerPrefsAbilitySettings`, unificado com a M16); (5) HUD de aliados (`AllyHudView`) com indicador de recarga radial, botão de acionamento manual e badge de aura do pet.
@@ -218,7 +218,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs de Heróis e Pets` [NEX-962]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs de Heróis e Pets` [NEX-962]
   - **Ação**: Criar testes comportamentais Red em `AllyScenariosTests.cs` cobrindo todos os cenários CT-1 a CT-9 e declarar os stubs de interfaces necessários.
   - **Lógica de Negócios / Responsabilidade**: Definir contratos públicos (`IAllyInstance`, `IAllyRoster`, `AbilityRunner`, `RecruitAllyPerkEffect`), garantindo pureza C# (zero referências a UnityEngine em `Game.Core`). Testes devem comprovar estado Red sem quebrar os 729 testes preexistentes.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
