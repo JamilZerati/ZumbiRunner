@@ -1,0 +1,10 @@
+# Cursor Rules — Horde Runner
+
+Consulte sempre `AGENTS.md` como índice geral de instruções do projeto.
+
+## Engenharia Reversa (REA) como Referência de Implementação
+
+Sempre decompilar e buscar a lógica no código de referência (via ferramentas REA / decompilação) antes de planejar ou implementar qualquer mecânica, sistema ou fórmula do jogo.
+- **Pode alterar:** nomes de variáveis, métodos, classes e arquivos para aderir ao padrão de arquitetura do projeto (`Game.Core`, C# puro, clean architecture, tipagem estrita).
+- **Preservar fielmente:** a lógica interna, sequências de estados, fórmulas matemáticas, curvas, gatilhos de eventos e regras de negócio da referência.
+- **Documentação de apoio:** `docs/agentes/rea-referencia.md`.
