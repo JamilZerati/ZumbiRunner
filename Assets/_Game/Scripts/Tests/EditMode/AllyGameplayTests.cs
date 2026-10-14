@@ -337,5 +337,29 @@ namespace Game.Tests.EditMode
             Assert.IsFalse(hero.IsAlive);
             Assert.AreEqual(10, squad.SquadCount);
         }
+
+        [Test]
+        public void AllyRoster_PublishesAllyRecruitedEvent_OnRecruitAndOnHealthRestore()
+        {
+            var bus = new EventBus();
+            var events = new List<AllyRecruitedEvent>();
+            bus.Subscribe<AllyRecruitedEvent>(evt => events.Add(evt));
+
+            var roster = new AllyRoster(bus: bus);
+            bool firstAdded = roster.TryRecruit("pyromancer", out var hero);
+            Assert.IsTrue(firstAdded);
+            Assert.AreEqual(1, events.Count);
+            Assert.AreEqual("pyromancer", events[0].AllyId);
+            Assert.IsFalse(events[0].IsPet);
+            Assert.IsFalse(events[0].WasRestored);
+
+            hero.TakeDamage(30);
+            bool duplicateAdded = roster.TryRecruit("pyromancer", out _);
+            Assert.IsFalse(duplicateAdded);
+            Assert.AreEqual(2, events.Count);
+            Assert.AreEqual("pyromancer", events[1].AllyId);
+            Assert.IsTrue(events[1].WasRestored);
+            Assert.AreEqual(hero.MaxHealth, hero.CurrentHealth);
+        }
     }
 }

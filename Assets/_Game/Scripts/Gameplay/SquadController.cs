@@ -81,7 +81,7 @@ namespace Game.Gameplay
             SquadCount = Mathf.Max(0, count);
             eventBus = bus;
             if (roster != null) _roster = roster;
-            else if (_roster == null && bus != null) _roster = new AllyRoster(bus: bus);
+            else if (bus != null && (_roster == null || (_roster is AllyRoster r && r.Allies.Count == 0))) _roster = new AllyRoster(bus: bus);
             isInitialized = true;
         }
 

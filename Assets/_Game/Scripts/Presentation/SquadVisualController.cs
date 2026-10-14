@@ -221,18 +221,16 @@ namespace Game.Presentation
 
         public void UpdatePositions(float deltaTime)
         {
-            if (leaderTransform == null)
+            if (leaderTransform != null)
             {
-                return;
-            }
-
-            Vector3 leaderPos = leaderTransform.position;
-            for (int i = 0; i < activeSoldiers.Count; i++)
-            {
-                var soldier = activeSoldiers[i];
-                if (soldier != null)
+                Vector3 leaderPos = leaderTransform.position;
+                for (int i = 0; i < activeSoldiers.Count; i++)
                 {
-                    soldier.UpdatePosition(leaderPos, deltaTime, followSpeed);
+                    var soldier = activeSoldiers[i];
+                    if (soldier != null)
+                    {
+                        soldier.UpdatePosition(leaderPos, deltaTime, followSpeed);
+                    }
                 }
             }
 
