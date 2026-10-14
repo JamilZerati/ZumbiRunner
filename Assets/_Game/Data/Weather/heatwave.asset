@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 858af0b1250690a4aa3db86238dd3d49, type: 3}
+  m_Name: heatwave
+  m_EditorClassIdentifier: Game.Data::Game.Data.Weather.WeatherDefinition
+  id: heatwave
+  type: 3
+  displayName: Onda de Calor
+  enemySpeedMultiplier: 1
+  enemyContactDamageMultiplier: 1.2
+  squadRangeMultiplier: 1
+  appliedStatus: 

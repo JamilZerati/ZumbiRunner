@@ -5,5 +5,6 @@ namespace Game.Core.Gates
         string SourceId { get; }
         float EnemySpeedMultiplier { get; }
         float EnemyContactDamageMultiplier { get; }
+        float SquadRangeMultiplier { get; }
     }
 }

@@ -1,0 +1,9 @@
+{
+  "id": "heatwave",
+  "type": "Heatwave",
+  "displayName": "Onda de Calor",
+  "enemySpeedMultiplier": 1.0,
+  "enemyContactDamageMultiplier": 1.2,
+  "squadRangeMultiplier": 1.0,
+  "appliedStatus": ""
+}

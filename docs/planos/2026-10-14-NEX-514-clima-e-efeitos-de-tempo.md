@@ -216,7 +216,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: high
 
-- [ ] **Passo 2 (Marco 2)**: `WeatherSystem, WeatherStageModifier, catálogo e importação de JSONs` [NEX-970]
+- [x] **Passo 2 (Marco 2)**: `WeatherSystem, WeatherStageModifier, catálogo e importação de JSONs` [NEX-970]
   - **Ação**: Implementar `WeatherSystem.cs`, `WeatherStageModifier.cs`, estender `IStageModifier`/`StageModifierSpec`/`StageModifierController` com `SquadRangeMultiplier`, criar JSONs canônicos em `Content/Source/Weather/` (`rain.json`, `blizzard.json`, `heatwave.json`, `fog.json`), `WeatherDefinition`, `WeatherCatalog` e `WeatherImporter.cs`.
   - **Lógica de Negócios / Responsabilidade**: Gestão de clima ativo com `SourceId = "clima:<tipo>"`. Multiplicadores individuais: Blizzard (EnemySpeed 0.8x), Heatwave (EnemyContactDamage 1.2x), Fog (SquadRange 0.75x), Rain (Wet baseline). Desativação automática ao ultrapassar `durationDistance`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
@@ -303,10 +303,10 @@ needs: executar
 **Cobre:** AC-3, AC-4, AC-7 (História NEX-514)
 **Seam:** `Game.Core.Weather.WeatherSystem`, `Game.Editor.WeatherImporter`
 **Pronto quando:**
-- [ ] CT-4, CT-5 e CT-9 passam 100% verde
-- [ ] Modificadores de clima operando com `SourceId = clima:<tipo>`
-- [ ] JSONs canônicos importados e validados pelo `WeatherImporter`
-- [ ] `tools/unity compile`, `import-content` e `test-edit` passam sem falhas
+- [x] CT-4, CT-5 e CT-9 passam 100% verde
+- [x] Modificadores de clima operando com `SourceId = clima:<tipo>`
+- [x] JSONs canônicos importados e validados pelo `WeatherImporter`
+- [x] `tools/unity compile`, `import-content` e `test-edit` passam sem falhas
 **Não fazer:** Não quebrar assinaturas de `IStageModifier` ou testes existentes de portões vivos.
 **Contexto:** História NEX-514 §2 RN-3, RN-4 · §5 AC-3, AC-4, AC-7 · Plano Passo 2
 
