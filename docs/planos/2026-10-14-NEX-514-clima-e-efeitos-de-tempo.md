@@ -207,7 +207,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: medium
 
-- [ ] **Passo 1 (Marco 1)**: `GameTimeService, escalas temporais desacopladas e bullet time` [NEX-969]
+- [x] **Passo 1 (Marco 1)**: `GameTimeService, escalas temporais desacopladas e bullet time` [NEX-969]
   - **Ação**: Implementar `GameTimeService.cs`, eventos `BulletTimeStartedEvent` e `BulletTimeEndedEvent` e testes unitários em `GameTimeServiceTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Cálculo determinístico de `GetDeltaTime(target, unscaledDt)`, ativação idempotente de *bullet time* com escalas parametrizadas (padrão inimigos 0.2x, aliados 1.0x), temporizador de expiração por `Tick(unscaledDt)` e restauração segura aos valores base (1.0x).
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
@@ -282,9 +282,9 @@ needs: executar
 **Cobre:** AC-1, AC-2 (História NEX-514)
 **Seam:** `Game.Core.Time.GameTimeService`
 **Pronto quando:**
-- [ ] CT-1, CT-2 e CT-3 passam 100% verde
-- [ ] Escalas temporais desacopladas e bullet time verificados com precisão
-- [ ] `tools/unity compile` e `test-edit` executam 100% verdes
+- [x] CT-1, CT-2 e CT-3 passam 100% verde
+- [x] Escalas temporais desacopladas e bullet time verificados com precisão
+- [x] `tools/unity compile` e `test-edit` executam 100% verdes
 **Não fazer:** Não tocar arquivos de gameplay (`LevelDirector`, `EnemyController`) nem referenciar `UnityEngine`.
 **Contexto:** História NEX-514 §2 RN-1, RN-2 · §5 AC-1, AC-2 · Plano Passo 1
 
