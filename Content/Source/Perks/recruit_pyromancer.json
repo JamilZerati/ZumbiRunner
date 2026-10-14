@@ -1,0 +1,7 @@
+{
+  "id": "recruit_pyromancer",
+  "displayName": "Recrutar Piromante",
+  "effects": [
+    { "type": "recruit_ally", "allyId": "pyromancer" }
+  ]
+}

@@ -77,11 +77,25 @@ namespace Game.Tests.EditMode
         public void CT_1_RecruitAlly_IdempotentRegistration_AndHealOnDuplicate()
         {
             var squad = new FakeSquad(10);
+            var roster = new AllyRoster();
             var effect = new RecruitAllyPerkEffect("pyromancer");
-            var context = new PerkContext(squad, laneIndex: 0, loadout: null, sourceId: "gate_1", roster: null);
+            var context = new PerkContext(squad, laneIndex: 0, loadout: null, sourceId: "gate_1", roster: roster);
 
-            // No Marco 0, o stub de RecruitAllyPerkEffect.Apply deve existir e falhar comprovando Red
             effect.Apply(context);
+
+            Assert.AreEqual(1, roster.Allies.Count);
+            Assert.AreEqual(1, roster.HeroCount);
+            Assert.AreEqual(0, roster.PetCount);
+            Assert.IsTrue(roster.TryGetAlly("pyromancer", out var hero));
+            Assert.AreEqual(hero.MaxHealth, hero.CurrentHealth);
+
+            hero.TakeDamage(50);
+            Assert.AreEqual(hero.MaxHealth - 50, hero.CurrentHealth);
+
+            effect.Apply(context);
+
+            Assert.AreEqual(1, roster.Allies.Count);
+            Assert.AreEqual(hero.MaxHealth, hero.CurrentHealth);
         }
 
         [Test]
@@ -158,6 +172,13 @@ namespace Game.Tests.EditMode
             var effect = new RecruitAllyPerkEffect("guard_dog");
             Assert.AreEqual("guard_dog", effect.AllyId);
             Assert.AreEqual("Recrutar aliado guard_dog", effect.Description);
+
+            var roster = new AllyRoster();
+            Assert.IsTrue(roster.TryRecruit("guard_dog", out var dog));
+            Assert.AreEqual("guard_dog", dog.Id);
+            Assert.IsTrue(dog.IsPet);
+            Assert.AreEqual(1, roster.PetCount);
+            Assert.AreEqual(0, roster.HeroCount);
         }
 
         [Test]

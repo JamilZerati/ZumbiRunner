@@ -1,0 +1,13 @@
+{
+  "id": "guard_dog",
+  "displayName": "Cão de Guarda",
+  "archetype": "Pet",
+  "maxHealth": 100,
+  "attackInterval": 0.0,
+  "attackDamage": 0,
+  "statusApplied": "",
+  "abilityName": "",
+  "abilityCooldown": 0.0,
+  "abilityDamage": 0,
+  "petStatModifierValue": 0.15
+}

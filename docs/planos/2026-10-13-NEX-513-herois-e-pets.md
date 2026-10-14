@@ -227,7 +227,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: medium
 
-- [ ] **Passo 1 (Marco 1)**: `Contratos IAllyRoster, IAllyInstance, RecruitAllyPerkEffect, JSONs e AllyImporter` [NEX-963]
+- [x] **Passo 1 (Marco 1)**: `Contratos IAllyRoster, IAllyInstance, RecruitAllyPerkEffect, JSONs e AllyImporter` [NEX-963]
   - **Ação**: Implementar `AllyInstance`, `AllyRoster`, `RecruitAllyPerkEffect`, estender `PerkContext` com `IAllyRoster`, criar JSONs canônicos em `Content/Source/Allies/` e `Content/Source/Perks/`, `AllyDefinition`, `AllyImporter.cs` e estender `PerkImporter.cs`.
   - **Lógica de Negócios / Responsabilidade**: Recrutamento de aliados idempotente (segundo recrutamento cura o aliado existente sem duplicar slot), importação automatizada de dados e validação de schema.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
