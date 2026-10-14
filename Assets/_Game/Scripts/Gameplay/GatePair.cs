@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Allies;
 using Game.Core.Events;
 using Game.Core.Gates;
 using Game.Core.Perks;
@@ -73,7 +74,8 @@ namespace Game.Gameplay
             IEventBus bus = null,
             IWeaponLoadout loadout = null,
             StageModifierController stageModifiers = null,
-            float currentDistance = 0f)
+            float currentDistance = 0f,
+            IAllyRoster roster = null)
         {
             if (IsConsumed || squad == null)
             {
@@ -115,9 +117,10 @@ namespace Game.Gameplay
             }
             else
             {
+                var activeRoster = roster ?? (squad as IAllyRoster);
                 if (targetGate.Perk != null)
                 {
-                    var context = new PerkContext(squad, laneIndex, loadout);
+                    var context = new PerkContext(squad, laneIndex, loadout, roster: activeRoster);
                     targetGate.Perk.Apply(context);
                 }
 
@@ -125,7 +128,7 @@ namespace Game.Gameplay
                 {
                     if (targetGate.BonusPerk != null)
                     {
-                        var context = new PerkContext(squad, laneIndex, loadout);
+                        var context = new PerkContext(squad, laneIndex, loadout, roster: activeRoster);
                         targetGate.BonusPerk.Apply(context);
                     }
 

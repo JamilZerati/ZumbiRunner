@@ -1,18 +1,54 @@
 using System;
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Allies;
 using Game.Core.Events;
 using UnityEngine;
 
 namespace Game.Gameplay
 {
-    public class SquadController : MonoBehaviour, ISquad
+    public class SquadController : MonoBehaviour, ISquad, IAllyRoster
     {
         [SerializeField] private int initialCount = 1;
 
         private IEventBus eventBus;
         private bool isInitialized;
+        private IAllyRoster _roster;
 
         public event Action<SquadSizeChangedEvent> SquadSizeChanged;
+
+        public IAllyRoster Roster
+        {
+            get => _roster ??= new AllyRoster(bus: eventBus);
+            set => _roster = value;
+        }
+
+        public IReadOnlyList<IAllyInstance> Allies => Roster.Allies;
+        public int HeroCount => Roster.HeroCount;
+        public int PetCount => Roster.PetCount;
+
+        public bool TryAddAlly(IAllyInstance ally, out IAllyInstance registeredAlly) => Roster.TryAddAlly(ally, out registeredAlly);
+        public bool TryRecruit(string allyId, out IAllyInstance registeredAlly) => Roster.TryRecruit(allyId, out registeredAlly);
+        public bool TryGetAlly(string id, out IAllyInstance ally) => Roster.TryGetAlly(id, out ally);
+        public bool ContainsAlly(string id) => Roster.ContainsAlly(id);
+        public void Clear() => Roster.Clear();
+
+        public static Vector3 GetAllyFlankOffset(int allyIndex, float lateralSpacing = 1.8f)
+        {
+            float side = (allyIndex % 2 == 0) ? -1f : 1f;
+            int rank = allyIndex / 2;
+            float x = side * (lateralSpacing + (rank * 0.4f));
+            float z = -0.5f - (rank * 0.7f);
+            return new Vector3(x, 0f, z);
+        }
+
+        public void PositionAlly(Transform allyTransform, int allyIndex)
+        {
+            if (allyTransform != null)
+            {
+                allyTransform.position = transform.position + GetAllyFlankOffset(allyIndex);
+            }
+        }
 
         private int _squadCount;
         public int SquadCount
@@ -40,10 +76,12 @@ namespace Game.Gameplay
             }
         }
 
-        public void Initialize(int count, IEventBus bus = null)
+        public void Initialize(int count, IEventBus bus = null, IAllyRoster roster = null)
         {
             SquadCount = Mathf.Max(0, count);
             eventBus = bus;
+            if (roster != null) _roster = roster;
+            else if (bus != null && (_roster == null || (_roster is AllyRoster r && r.Allies.Count == 0))) _roster = new AllyRoster(bus: bus);
             isInitialized = true;
         }
 

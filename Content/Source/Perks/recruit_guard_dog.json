@@ -1,0 +1,7 @@
+{
+  "id": "recruit_guard_dog",
+  "displayName": "Recrutar Cão de Guarda",
+  "effects": [
+    { "type": "recruit_ally", "allyId": "guard_dog" }
+  ]
+}

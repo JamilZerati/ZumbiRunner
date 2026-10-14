@@ -181,6 +181,39 @@ namespace Game.Presentation
             }
         }
 
+        private readonly List<Transform> activeAllies = new List<Transform>();
+        public IReadOnlyList<Transform> ActiveAllies => activeAllies;
+
+        public void RegisterAlly(Transform allyTransform)
+        {
+            if (allyTransform != null && !activeAllies.Contains(allyTransform))
+            {
+                activeAllies.Add(allyTransform);
+                UpdateAllyPositions();
+            }
+        }
+
+        public void UnregisterAlly(Transform allyTransform)
+        {
+            if (allyTransform != null)
+            {
+                activeAllies.Remove(allyTransform);
+                UpdateAllyPositions();
+            }
+        }
+
+        public void UpdateAllyPositions()
+        {
+            Vector3 anchorPos = leaderTransform != null ? leaderTransform.position : transform.position;
+            for (int i = 0; i < activeAllies.Count; i++)
+            {
+                if (activeAllies[i] != null)
+                {
+                    activeAllies[i].position = anchorPos + SquadController.GetAllyFlankOffset(i);
+                }
+            }
+        }
+
         private void Update()
         {
             UpdatePositions(Time.deltaTime);
@@ -188,20 +221,20 @@ namespace Game.Presentation
 
         public void UpdatePositions(float deltaTime)
         {
-            if (leaderTransform == null)
+            if (leaderTransform != null)
             {
-                return;
-            }
-
-            Vector3 leaderPos = leaderTransform.position;
-            for (int i = 0; i < activeSoldiers.Count; i++)
-            {
-                var soldier = activeSoldiers[i];
-                if (soldier != null)
+                Vector3 leaderPos = leaderTransform.position;
+                for (int i = 0; i < activeSoldiers.Count; i++)
                 {
-                    soldier.UpdatePosition(leaderPos, deltaTime, followSpeed);
+                    var soldier = activeSoldiers[i];
+                    if (soldier != null)
+                    {
+                        soldier.UpdatePosition(leaderPos, deltaTime, followSpeed);
+                    }
                 }
             }
+
+            UpdateAllyPositions();
         }
 
         private void OnDestroy()
@@ -232,6 +265,7 @@ namespace Game.Presentation
             }
 
             activeSoldiers.Clear();
+            activeAllies.Clear();
         }
     }
 }

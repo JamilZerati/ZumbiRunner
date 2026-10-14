@@ -1,0 +1,7 @@
+{
+  "id": "recruit_cryomancer",
+  "displayName": "Recrutar Criomante",
+  "effects": [
+    { "type": "recruit_ally", "allyId": "cryomancer" }
+  ]
+}
