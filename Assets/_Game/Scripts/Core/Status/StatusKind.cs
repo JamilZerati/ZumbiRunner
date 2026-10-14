@@ -7,6 +7,7 @@ namespace Game.Core.Status
         Frozen,
         Slow,
         Shock,
-        Poison
+        Poison,
+        Wet
     }
 }
