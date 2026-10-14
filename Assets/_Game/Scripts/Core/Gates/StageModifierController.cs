@@ -17,6 +17,7 @@ namespace Game.Core.Gates
         public float CurrentDistance { get; private set; }
         public float CurrentEnemySpeedMultiplier { get; private set; } = 1f;
         public float CurrentEnemyContactDamageMultiplier { get; private set; } = 1f;
+        public float CurrentSquadRangeMultiplier { get; private set; } = 1f;
 
         public void Activate(IStageModifier modifier, float startDistance, float durationDistance)
         {
@@ -49,6 +50,31 @@ namespace Game.Core.Gates
             RecalculateMultipliers();
         }
 
+        public bool RemoveBySourceId(string sourceId)
+        {
+            if (string.IsNullOrEmpty(sourceId))
+            {
+                return false;
+            }
+
+            bool removed = false;
+            for (int i = activeModifiers.Count - 1; i >= 0; i--)
+            {
+                if (string.Equals(activeModifiers[i].Modifier.SourceId, sourceId, StringComparison.OrdinalIgnoreCase))
+                {
+                    activeModifiers.RemoveAt(i);
+                    removed = true;
+                }
+            }
+
+            if (removed)
+            {
+                RecalculateMultipliers();
+            }
+
+            return removed;
+        }
+
         public void Clear()
         {
             activeModifiers.Clear();
@@ -59,15 +85,18 @@ namespace Game.Core.Gates
         {
             float speed = 1f;
             float contact = 1f;
+            float range = 1f;
 
             for (int i = 0; i < activeModifiers.Count; i++)
             {
                 speed *= activeModifiers[i].Modifier.EnemySpeedMultiplier;
                 contact *= activeModifiers[i].Modifier.EnemyContactDamageMultiplier;
+                range *= activeModifiers[i].Modifier.SquadRangeMultiplier;
             }
 
             CurrentEnemySpeedMultiplier = speed;
             CurrentEnemyContactDamageMultiplier = contact;
+            CurrentSquadRangeMultiplier = range;
         }
     }
 }

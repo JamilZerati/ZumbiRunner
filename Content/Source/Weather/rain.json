@@ -1,0 +1,9 @@
+{
+  "id": "rain",
+  "type": "Rain",
+  "displayName": "Chuva",
+  "enemySpeedMultiplier": 1.0,
+  "enemyContactDamageMultiplier": 1.0,
+  "squadRangeMultiplier": 1.0,
+  "appliedStatus": "wet"
+}
