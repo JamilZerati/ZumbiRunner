@@ -1,7 +1,7 @@
 # Plano de Implementação: M9 · Clima e efeitos de tempo
 > Data: 2026-10-14
 > Issue: NEX-514
-> Status: Pronto para Execução via /executar
+> Status: Cenários validados — Suíte Red comprovada em 2026-10-14
 
 ## 1. Contexto & Arquitetura
 - **Resumo**: Implementar o sistema de Clima e Efeitos Temporais (Story M9 · NEX-514) no Horde Runner. A corrida passa a apresentar variações atmosféricas e temporais dinâmicas por segmento de pista: (1) O `GameTimeService` desacopla as escalas temporais de aliados (`AllyTimeScale`) e inimigos (`EnemyTimeScale`), permitindo a mecânica cinematográfica de *bullet time* (onde inimigos são desacelerados para 0.2x enquanto aliados mantêm tempo regular de 1.0x); (2) O `WeatherSystem` gerencia o ciclo climático de 4 climas canônicos (`Rain`, `Blizzard`, `Heatwave`, `Fog`) aplicando e removendo modificadores globais via `StageModifierController` com `SourceId = "clima:<tipo>"`; (3) A chuva interage com a física e status do combate através do status persistente `Wet` (Molhado); quando alvos molhados recebem dano elétrico (`DamageType.Lightning` ou `ShockStatus`), a sinergia `electrocute` dobra a propagação da cadeia de choque (`ChainCount * 2`), multiplica o dano por 2.0x e consome o status `Wet`; (4) Todos os contratos e modelos de domínio residem estritamente em `Game.Core` sem dependências do namespace `UnityEngine`.
@@ -198,7 +198,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs de Clima e Efeitos de Tempo` [NEX-968]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs de Clima e Efeitos de Tempo` [NEX-968]
   - **Ação**: Criar testes comportamentais Red em `WeatherScenariosTests.cs` cobrindo todos os cenários CT-1 a CT-10 e declarar stubs dos contratos e enums em `Game.Core.Time` e `Game.Core.Weather`.
   - **Lógica de Negócios / Responsabilidade**: Definir contratos públicos (`IGameTimeService`, `IWeatherSystem`, `WeatherStageModifier`, `WetStatus`), garantindo pureza C# (zero referências a UnityEngine em `Game.Core`). Testes devem comprovar estado Red sem quebrar os 754 testes preexistentes.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
@@ -261,9 +261,9 @@ needs: cenarios
 **Cobre:** AC-1 a AC-8 (História NEX-514)
 **Seam:** `Game.Core.Time.IGameTimeService`, `Game.Core.Weather.IWeatherSystem`, `Game.Core.Status.StatusKind.Wet`
 **Pronto quando:**
-- [ ] CT-1 a CT-10 comprovados em estado Red controlado
-- [ ] Stubs dos contratos compilam sem quebrar os 754 testes preexistentes
-- [ ] `tools/unity compile` e `test-edit` executam sem erros
+- [x] CT-1 a CT-10 comprovados em estado Red controlado
+- [x] Stubs dos contratos compilam sem quebrar os 754 testes preexistentes
+- [x] `tools/unity compile` e `test-edit` executam sem erros
 **Não fazer:** Não implementar a lógica final dos serviços nem tocar arquivos fora de `Game.Core` e `Tests/EditMode`.
 **Contexto:** História NEX-514 §2 RN-1 a RN-6 · §5 AC-1 a AC-8 · Plano Passo 0
 
