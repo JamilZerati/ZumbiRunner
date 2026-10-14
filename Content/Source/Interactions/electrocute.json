@@ -1,0 +1,7 @@
+{
+  "id": "electrocute",
+  "requires": "Wet",
+  "trigger": "ShockHit",
+  "minHitDamage": 1,
+  "damageMultiplier": 2
+}

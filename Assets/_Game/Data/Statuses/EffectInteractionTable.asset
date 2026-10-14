@@ -13,6 +13,11 @@ MonoBehaviour:
   m_Name: EffectInteractionTable
   m_EditorClassIdentifier: Game.Data::Game.Data.EffectInteractionTable
   entries:
+  - id: electrocute
+    requires: 6
+    trigger: 1
+    minHitDamage: 1
+    damageMultiplier: 2
   - id: shatter
     requires: 2
     trigger: 0

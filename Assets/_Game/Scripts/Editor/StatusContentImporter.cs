@@ -200,6 +200,17 @@ namespace Game.Editor
                         }
                         break;
 
+                    case StatusKind.Wet:
+                        RequirePositive(dto.duration, "duration", fileName, errorSink);
+                        if (errorSink.Count == errBefore)
+                        {
+                            importedEffects.Add(new WetStatus
+                            {
+                                Duration = dto.duration
+                            });
+                        }
+                        break;
+
                     default:
                         errorSink.Add($"{fileName}: kind '{kind}' sem importador implementado");
                         break;

@@ -13,31 +13,32 @@ MonoBehaviour:
   m_Name: StatusCatalog
   m_EditorClassIdentifier: Game.Data::Game.Data.StatusCatalog
   effects:
-  - rid: 5800860180349714432
-  - rid: 5800860180349714433
-  - rid: 5800860180349714434
-  - rid: 5800860180349714435
-  - rid: 5800860180349714436
-  - rid: 5800860180349714437
+  - rid: 6580925973988376576
+  - rid: 6580925973988376577
+  - rid: 6580925973988376578
+  - rid: 6580925973988376579
+  - rid: 6580925973988376580
+  - rid: 6580925973988376581
+  - rid: 6580925973988376582
   references:
     version: 2
     RefIds:
-    - rid: 5800860180349714432
+    - rid: 6580925973988376576
       type: {class: BurnStatus, ns: Game.Core.Status, asm: Game.Core}
       data:
         Duration: 3
         TickInterval: 0.5
         DamagePerTick: 3
-    - rid: 5800860180349714433
+    - rid: 6580925973988376577
       type: {class: FreezeStatus, ns: Game.Core.Status, asm: Game.Core}
       data:
         Duration: 3
         Threshold: 2
-    - rid: 5800860180349714434
+    - rid: 6580925973988376578
       type: {class: FrozenStatus, ns: Game.Core.Status, asm: Game.Core}
       data:
         Duration: 1.5
-    - rid: 5800860180349714435
+    - rid: 6580925973988376579
       type: {class: PoisonStatus, ns: Game.Core.Status, asm: Game.Core}
       data:
         Duration: 4
@@ -46,14 +47,18 @@ MonoBehaviour:
         MaxStacks: 5
         ExplosionDamagePerStack: 4
         ExplosionRadius: 2.5
-    - rid: 5800860180349714436
+    - rid: 6580925973988376580
       type: {class: ShockStatus, ns: Game.Core.Status, asm: Game.Core}
       data:
         ChainCount: 2
         ChainRadius: 4
         ChainDamage: 6
-    - rid: 5800860180349714437
+    - rid: 6580925973988376581
       type: {class: SlowStatus, ns: Game.Core.Status, asm: Game.Core}
       data:
         Duration: 2
         SlowPercent: 0.4
+    - rid: 6580925973988376582
+      type: {class: WetStatus, ns: Game.Core.Status, asm: Game.Core}
+      data:
+        Duration: 5

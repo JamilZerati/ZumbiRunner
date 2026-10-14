@@ -225,7 +225,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: high
 
-- [ ] **Passo 3 (Marco 3)**: `Status Wet, sinergia electrocute com choque e consumo de status` [NEX-971]
+- [x] **Passo 3 (Marco 3)**: `Status Wet, sinergia electrocute com choque e consumo de status` [NEX-971]
   - **Ação**: Implementar `WetStatus.cs`, adicionar `StatusKind.Wet`, adicionar `InteractionTrigger.ShockHit` em `EffectInteraction.cs`, estender `ShockStatus.cs` para dobrar `ChainCount` e dano na presença de `Wet`, estender `StatusEffectController.ResolveHit` para suportar detonação de sinergia de choque, criar JSONs `Content/Source/Statuses/wet.json` e `Content/Source/Interactions/electrocute.json` e testes em `WeatherStatusTests.cs`.
   - **Lógica de Negócios / Responsabilidade**: Status persistente `Wet` potencializado em alvos na chuva. Ao receber impacto elétrico, ativa a sinergia `electrocute`, dobra o dano (2.0x), dobra o número de alvos da cadeia de raios e consome atômica e irreversivelmente o status `Wet`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
@@ -325,9 +325,9 @@ needs: executar
 **Cobre:** AC-5 (História NEX-514)
 **Seam:** `Game.Core.Status.Effects.WetStatus`, `Game.Core.Status.Effects.ShockStatus`, `Game.Core.Status.StatusEffectController`
 **Pronto quando:**
-- [ ] CT-6 e CT-7 passam 100% verde
-- [ ] Impacto de choque em alvo com status Wet dobra a cadeia de saltos e o dano, consumindo Wet
-- [ ] `tools/unity compile` e `test-edit` passam 100% verde
+- [x] CT-6 e CT-7 passam 100% verde
+- [x] Impacto de choque em alvo com status Wet dobra a cadeia de saltos e o dano, consumindo Wet
+- [x] `tools/unity compile` e `test-edit` passam 100% verde
 **Não fazer:** Não propagar dano infinito recursivo na cadeia de choque nem referenciar `UnityEngine`.
 **Contexto:** História NEX-514 §2 RN-5 · §5 AC-5 · Plano Passo 3
 
