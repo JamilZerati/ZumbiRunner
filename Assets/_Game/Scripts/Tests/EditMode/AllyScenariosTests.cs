@@ -91,7 +91,6 @@ namespace Game.Tests.EditMode
             squad.Remove(4);
 
             Assert.AreEqual(6, squad.SquadCount, "Tropa deve ter 6 soldados apos sofrer 4 de dano.");
-            // Validacao direta com stub do contrato de heroi
             IAllyInstance hero = null;
             Assert.IsNotNull(hero, "HeroUnit deve estar instanciado no Marco 2.");
         }
@@ -156,7 +155,6 @@ namespace Game.Tests.EditMode
         [Test]
         public void CT_8_DataPipeline_AllyJsonDefinition_ParsesCorrectly()
         {
-            // Valida parsing de AllyDefinition e RecruitAllyPerkEffect no pipeline de dados
             var effect = new RecruitAllyPerkEffect("guard_dog");
             Assert.AreEqual("guard_dog", effect.AllyId);
             Assert.AreEqual("Recrutar aliado guard_dog", effect.Description);
