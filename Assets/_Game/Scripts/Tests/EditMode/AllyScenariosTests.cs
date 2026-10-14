@@ -4,16 +4,35 @@ using Game.Core;
 using Game.Core.Abilities;
 using Game.Core.Abilities.Policies;
 using Game.Core.Allies;
+using Game.Core.Events;
 using Game.Core.Perks;
 using Game.Core.Perks.Effects;
 using Game.Core.Stats;
 using Game.Core.Status;
+using Game.Gameplay.Allies;
 using NUnit.Framework;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Game.Tests.EditMode
 {
     public class AllyScenariosTests
     {
+        private readonly List<Object> _toDestroy = new List<Object>();
+
+        [TearDown]
+        public void TearDown()
+        {
+            for (int i = 0; i < _toDestroy.Count; i++)
+                if (_toDestroy[i] != null) Object.DestroyImmediate(_toDestroy[i]);
+            _toDestroy.Clear();
+        }
+
+        private T Track<T>(T obj) where T : Object
+        {
+            if (obj != null) _toDestroy.Add(obj);
+            return obj;
+        }
         private sealed class FakeSquad : ISquad
         {
             public int SquadCount { get; private set; }
@@ -103,26 +122,45 @@ namespace Game.Tests.EditMode
         {
             var squad = new FakeSquad(10);
             squad.Remove(4);
-
-            Assert.AreEqual(6, squad.SquadCount, "Tropa deve ter 6 soldados apos sofrer 4 de dano.");
-            IAllyInstance hero = null;
-            Assert.IsNotNull(hero, "HeroUnit deve estar instanciado no Marco 2.");
+            Assert.AreEqual(6, squad.SquadCount);
+            var hero = Track(new GameObject("Hero_CT2")).AddComponent<HeroUnit>();
+            hero.Initialize("pyromancer", "Piromante", maxHealth: 100);
+            Assert.AreEqual(100, hero.CurrentHealth);
+            hero.TakeDamage(25);
+            Assert.AreEqual(75, hero.CurrentHealth);
+            Assert.AreEqual(6, squad.SquadCount);
         }
 
         [Test]
         public void CT_3_Pyromancer_BasicAttackAndInferno_AppliesBurnStatus()
         {
             var receiver = new FakeStatusReceiver();
-            IAllyInstance pyromancer = null;
-            Assert.IsNotNull(pyromancer, "Piromante deve ser implementado no Marco 2.");
+            var pyromancer = Track(new GameObject("Hero_CT3")).AddComponent<HeroUnit>();
+            pyromancer.Initialize("pyromancer", "Piromante", maxHealth: 100, attackDamage: 25, statusApplied: "burn", abilityDamage: 40);
+            Assert.IsTrue(pyromancer.PerformAttack(receiver));
+            Assert.AreEqual(1, receiver.Received.Count);
+            Assert.AreEqual(StatusKind.Burn, receiver.Received[0].Kind);
+            Assert.AreEqual(1, receiver.Received[0].Stacks);
+            Assert.IsTrue(pyromancer.FireAbility(receiver));
+            Assert.AreEqual(2, receiver.Received.Count);
+            Assert.AreEqual(StatusKind.Burn, receiver.Received[1].Kind);
+            Assert.AreEqual(2, receiver.Received[1].Stacks);
         }
 
         [Test]
         public void CT_4_Cryomancer_BasicAttackAndBlizzard_AppliesFreezeStatus()
         {
             var receiver = new FakeStatusReceiver();
-            IAllyInstance cryomancer = null;
-            Assert.IsNotNull(cryomancer, "Criomante deve ser implementado no Marco 2.");
+            var cryomancer = Track(new GameObject("Hero_CT4")).AddComponent<HeroUnit>();
+            cryomancer.Initialize("cryomancer", "Criomante", maxHealth: 90, attackDamage: 20, statusApplied: "freeze", abilityDamage: 35);
+            Assert.IsTrue(cryomancer.PerformAttack(receiver));
+            Assert.AreEqual(1, receiver.Received.Count);
+            Assert.AreEqual(StatusKind.Freeze, receiver.Received[0].Kind);
+            Assert.AreEqual(1, receiver.Received[0].Stacks);
+            Assert.IsTrue(cryomancer.FireAbility(receiver));
+            Assert.AreEqual(2, receiver.Received.Count);
+            Assert.AreEqual(StatusKind.Freeze, receiver.Received[1].Kind);
+            Assert.AreEqual(2, receiver.Received[1].Stacks);
         }
 
         [Test]
@@ -130,10 +168,14 @@ namespace Game.Tests.EditMode
         {
             var stats = new StatCollection();
             stats.SetBase(StatId.Damage, 100f);
-            Assert.AreEqual(100f, stats.GetValue(StatId.Damage));
-
-            IAllyInstance pet = null;
-            Assert.IsNotNull(pet, "Pet GuardDog deve ser implementado no Marco 2.");
+            var pet = Track(new GameObject("Pet_CT5")).AddComponent<PetUnit>();
+            pet.Initialize("guard_dog", "Cão de Guarda", maxHealth: 100, bonus: 0.15f);
+            Assert.IsTrue(pet.IsPet);
+            Assert.IsFalse(pet.TakeDamage(50));
+            pet.AttachAura(stats);
+            Assert.AreEqual(115f, stats.GetValue(StatId.Damage), 0.001f);
+            pet.DetachAura();
+            Assert.AreEqual(100f, stats.GetValue(StatId.Damage), 0.001f);
         }
 
         [Test]
@@ -185,10 +227,22 @@ namespace Game.Tests.EditMode
         public void CT_9_HeroUnit_HpDepletionTransitionsToKnockout_WithoutFailingRun()
         {
             var squad = new FakeSquad(15);
-            IAllyInstance hero = null;
-
-            Assert.IsNotNull(hero, "HeroUnit deve suportar HP independente e transicao para nocaute no Marco 2.");
-            Assert.AreEqual(15, squad.SquadCount, "Tropa permanece com 15 soldados mesmo se o heroi for nocauteado.");
+            var bus = new EventBus();
+            bool damagedPublished = false, knockedOutPublished = false;
+            bus.Subscribe<AllyDamagedEvent>(_ => damagedPublished = true);
+            bus.Subscribe<AllyKnockedOutEvent>(_ => knockedOutPublished = true);
+            var hero = Track(new GameObject("Hero_CT9")).AddComponent<HeroUnit>();
+            hero.Initialize("pyromancer", "Piromante", maxHealth: 100, bus: bus);
+            hero.TakeDamage(40);
+            Assert.IsTrue(damagedPublished);
+            Assert.IsFalse(knockedOutPublished);
+            Assert.IsTrue(hero.IsAlive);
+            Assert.AreEqual(60, hero.CurrentHealth);
+            hero.TakeDamage(60);
+            Assert.IsTrue(knockedOutPublished);
+            Assert.IsFalse(hero.IsAlive);
+            Assert.AreEqual(0, hero.CurrentHealth);
+            Assert.AreEqual(15, squad.SquadCount);
         }
     }
 }

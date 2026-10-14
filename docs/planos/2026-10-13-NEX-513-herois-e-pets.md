@@ -236,7 +236,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: high
 
-- [ ] **Passo 2 (Marco 2)**: `Arquétipos Pyromancer, Cryomancer e GuardDog, ataques elementais e aura passiva` [NEX-964]
+- [x] **Passo 2 (Marco 2)**: `Arquétipos Pyromancer, Cryomancer e GuardDog, ataques elementais e aura passiva` [NEX-964]
   - **Ação**: Implementar `HeroUnit.cs`, `PetUnit.cs`, aplicação de status `Burn` e `Freeze` no ataque e aura passiva contínua na `StatCollection` (+15% de dano da tropa).
   - **Lógica de Negócios / Responsabilidade**: Separação estrita de dano (dano da tropa não fere herói; herói com HP zerado entra em nocaute sem falhar a corrida; pet imune a dano). Piromante aplica `BurnStatus`, Criomante aplica `FreezeStatus` compatível com Estilhaço.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1. `interface`: Marco 0.
