@@ -188,11 +188,12 @@ namespace Game.Tests.EditMode
             var triggerContext = new AbilityTriggerContext(currentCharges: 1, hasTargetsInLane: true, manualTriggerRequested: false);
 
             bool fired = false;
-            // No Marco 0, AbilityRunner.TryTrigger lanca NotImplementedException comprovando Red
-            runner.TryTrigger(triggerContext, policy, () => fired = true);
+            bool result = runner.TryTrigger(triggerContext, policy, () => fired = true);
 
+            Assert.IsTrue(result);
             Assert.IsTrue(fired);
             Assert.IsFalse(runner.IsReady);
+            Assert.AreEqual(12f, runner.CooldownRemaining, 0.001f);
         }
 
         [Test]
@@ -204,8 +205,18 @@ namespace Game.Tests.EditMode
             var policy = new ManualHeroAbilityTriggerPolicy();
             var unrequestedContext = new AbilityTriggerContext(currentCharges: 1, hasTargetsInLane: true, manualTriggerRequested: false);
 
-            // No Marco 0, AbilityRunner.TryTrigger lanca NotImplementedException comprovando Red
-            runner.TryTrigger(unrequestedContext, policy, () => { });
+            bool fired = false;
+            bool result = runner.TryTrigger(unrequestedContext, policy, () => fired = true);
+            Assert.IsFalse(result);
+            Assert.IsFalse(fired);
+            Assert.IsTrue(runner.IsReady);
+
+            var requestedContext = new AbilityTriggerContext(currentCharges: 1, hasTargetsInLane: true, manualTriggerRequested: true);
+            result = runner.TryTrigger(requestedContext, policy, () => fired = true);
+            Assert.IsTrue(result);
+            Assert.IsTrue(fired);
+            Assert.IsFalse(runner.IsReady);
+            Assert.AreEqual(14f, runner.CooldownRemaining, 0.001f);
         }
 
         [Test]

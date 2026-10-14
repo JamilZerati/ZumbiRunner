@@ -38,6 +38,24 @@ namespace Game.Gameplay.Allies
             if (!_isInitialized) Initialize(id, displayName, maxHealth, attackDamage, attackInterval, statusApplied, _ability, abilityDamage, _eventBus);
         }
 
+        private void Update()
+        {
+            if (IsAlive && _ability != null)
+            {
+                _ability.Tick(Time.deltaTime);
+            }
+        }
+
+        public void SetAbility(AbilityRunner ability) => _ability = ability;
+
+        public void TickAbility(float deltaTime)
+        {
+            if (IsAlive && _ability != null)
+            {
+                _ability.Tick(deltaTime);
+            }
+        }
+
         public void Initialize(string id, string displayName, int maxHealth, int attackDamage = 25,
                                float attackInterval = 1.2f, string statusApplied = "burn",
                                AbilityRunner ability = null, int abilityDamage = 40, IEventBus bus = null)
