@@ -255,7 +255,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: high
 
-- [ ] **Passo 4 (Marco 4)**: `Integração E2E com GatePair, formação visual e simulação` [NEX-966]
+- [x] **Passo 4 (Marco 4)**: `Integração E2E com GatePair, formação visual e simulação` [NEX-966]
   - **Ação**: Conectar `IAllyRoster` ao `GatePair.TryTrigger`, posicionar unidades de aliados nas alas laterais da formação visual (`SquadVisualController` ou controller de aliados), integrar ao loop de jogo e validar suíte completa.
   - **Lógica de Negócios / Responsabilidade**: Ponto central de montagem: travessia de portão instancia e recruta aliados, posiciona na formação, atualiza HUD e processa ataques e habilidades no combate.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1, Marco 2, Marco 3.

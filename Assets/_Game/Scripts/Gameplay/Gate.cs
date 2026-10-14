@@ -1,5 +1,6 @@
 using System;
 using Game.Core;
+using Game.Core.Allies;
 using Game.Core.Gates;
 using Game.Core.Stats;
 using Game.Data;
@@ -192,7 +193,8 @@ namespace Game.Gameplay
             if (squad != null)
             {
                 var loadout = other.GetComponentInParent<IWeaponLoadout>() ?? other.GetComponent<IWeaponLoadout>();
-                parentPair.TryTrigger(laneIndex, squad, loadout: loadout);
+                var roster = other.GetComponentInParent<IAllyRoster>() ?? other.GetComponent<IAllyRoster>();
+                parentPair.TryTrigger(laneIndex, squad, loadout: loadout, roster: roster);
             }
         }
     }
