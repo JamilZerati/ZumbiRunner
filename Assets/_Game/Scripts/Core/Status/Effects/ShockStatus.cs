@@ -14,12 +14,22 @@ namespace Game.Core.Status
 
         public void OnApply(IStatusHost host, StatusState state, int stacks)
         {
-            if (host.Neighborhood == null || host.Owner == null)
+            if (host == null || host.Neighborhood == null || host.Owner == null || !host.Owner.IsAlive)
             {
                 return;
             }
 
-            var targets = host.Neighborhood.FindNearby(host.Owner, ChainRadius, ChainCount);
+            int count = ChainCount;
+            int damage = ChainDamage;
+
+            bool wasWet = host.Remove(StatusKind.Wet) || (host is StatusEffectController sec && sec.WasWetConsumedThisHit);
+            if (wasWet)
+            {
+                count *= 2;
+                damage *= 2;
+            }
+
+            var targets = host.Neighborhood.FindNearby(host.Owner, ChainRadius, count);
             if (targets == null || targets.Count == 0)
             {
                 return;
@@ -30,7 +40,7 @@ namespace Game.Core.Status
                 var target = targets[i];
                 if (target != null && target.IsAlive)
                 {
-                    target.ReceiveHit(new DamageInfo(ChainDamage, DamageType.Lightning, this), null);
+                    target.ReceiveHit(new DamageInfo(damage, DamageType.Lightning, this), null);
                 }
             }
         }

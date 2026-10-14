@@ -141,6 +141,7 @@ namespace Game.Tests.EditMode
                 ExplosionDamagePerStack = 4,
                 ExplosionRadius = 2.5f
             });
+            catalog.Register(new WetStatus { Duration = 5f });
             return catalog;
         }
     }
@@ -154,6 +155,7 @@ namespace Game.Tests.EditMode
         {
             var table = new InMemoryInteractionTable();
             table.List.Add(new EffectInteraction("shatter", StatusKind.Frozen, InteractionTrigger.HeavyHit, 12, 2f));
+            table.List.Add(new EffectInteraction("electrocute", StatusKind.Wet, InteractionTrigger.ShockHit, 1, 2f));
             return table;
         }
     }

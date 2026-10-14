@@ -10,9 +10,22 @@ namespace Game.Core.Status
         public StatusKind Kind => StatusKind.Wet;
         public bool IsPersistent => true;
 
-        public void OnApply(IStatusHost host, StatusState state, int stacks) => throw new NotImplementedException();
-        public void OnTick(IStatusHost host, StatusState state, float deltaTime) => throw new NotImplementedException();
-        public void OnHostDied(IStatusHost host, StatusState state) { }
+        public void OnApply(IStatusHost host, StatusState state, int stacks)
+        {
+            if (state == null) return;
+            state.Remaining = Duration;
+            state.Stacks = Math.Max(1, stacks);
+        }
+
+        public void OnTick(IStatusHost host, StatusState state, float deltaTime)
+        {
+            if (state == null) return;
+            state.Remaining -= deltaTime;
+        }
+
+        public void OnHostDied(IStatusHost host, StatusState state)
+        {
+        }
         public float MoveSpeedMultiplier(StatusState state) => 1f;
     }
 }
