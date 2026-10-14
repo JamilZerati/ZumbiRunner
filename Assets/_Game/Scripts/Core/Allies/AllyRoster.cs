@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Core.Events;
 
 namespace Game.Core.Allies
 {
@@ -7,6 +8,7 @@ namespace Game.Core.Allies
     {
         private readonly List<IAllyInstance> _allies = new List<IAllyInstance>();
         private readonly Func<string, IAllyInstance> _factory;
+        private readonly IEventBus _eventBus;
 
         public IReadOnlyList<IAllyInstance> Allies => _allies;
 
@@ -36,9 +38,10 @@ namespace Game.Core.Allies
             }
         }
 
-        public AllyRoster(Func<string, IAllyInstance> factory = null)
+        public AllyRoster(Func<string, IAllyInstance> factory = null, IEventBus bus = null)
         {
             _factory = factory;
+            _eventBus = bus;
         }
 
         public bool TryAddAlly(IAllyInstance ally, out IAllyInstance registeredAlly)
@@ -53,11 +56,13 @@ namespace Game.Core.Allies
             {
                 existing.RestoreFullHealth();
                 registeredAlly = existing;
+                _eventBus?.Publish(new AllyRecruitedEvent(existing.Id, existing.DisplayName, existing.IsPet, wasRestored: true));
                 return false;
             }
 
             _allies.Add(ally);
             registeredAlly = ally;
+            _eventBus?.Publish(new AllyRecruitedEvent(ally.Id, ally.DisplayName, ally.IsPet, wasRestored: false));
             return true;
         }
 
@@ -73,12 +78,14 @@ namespace Game.Core.Allies
             {
                 existing.RestoreFullHealth();
                 registeredAlly = existing;
+                _eventBus?.Publish(new AllyRecruitedEvent(existing.Id, existing.DisplayName, existing.IsPet, wasRestored: true));
                 return false;
             }
 
             var instance = _factory != null ? _factory(allyId) : CreateDefaultInstance(allyId);
             _allies.Add(instance);
             registeredAlly = instance;
+            _eventBus?.Publish(new AllyRecruitedEvent(instance.Id, instance.DisplayName, instance.IsPet, wasRestored: false));
             return true;
         }
 
