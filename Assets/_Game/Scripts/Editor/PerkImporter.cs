@@ -38,6 +38,7 @@ namespace Game.Editor
             public float value;
             public string status;
             public int stacks;
+            public string allyId;
         }
 
         [MenuItem("Horde Runner/Content/Import Perks")]
@@ -198,10 +199,29 @@ namespace Game.Editor
                     return CreateStatEffect(dto, location, errors);
                 case "status":
                     return CreateStatusEffect(dto, location, errors);
+                case "recruit_ally":
+                    return CreateRecruitAllyEffect(dto, location, errors);
                 default:
                     errors.Add($"{location}.type '{dto.type}' inválido");
                     return null;
             }
+        }
+
+        private static IPerkEffect CreateRecruitAllyEffect(EffectJsonDto dto, string location, List<string> errors)
+        {
+            if (string.IsNullOrEmpty(dto.allyId))
+            {
+                errors.Add($"{location}.allyId ausente");
+                return null;
+            }
+
+            var allyCatalog = AllyImporter.LoadCatalog();
+            if (allyCatalog != null && !allyCatalog.TryGet(dto.allyId, out _))
+            {
+                errors.Add($"{location}.allyId '{dto.allyId}' fora do catálogo de aliados");
+            }
+
+            return new RecruitAllyPerkEffect(dto.allyId);
         }
 
         private static IPerkEffect CreateStatusEffect(EffectJsonDto dto, string location, List<string> errors)

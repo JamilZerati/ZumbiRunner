@@ -1,0 +1,13 @@
+{
+  "id": "pyromancer",
+  "displayName": "Piromante",
+  "archetype": "Hero",
+  "maxHealth": 150,
+  "attackInterval": 1.2,
+  "attackDamage": 25,
+  "statusApplied": "burn",
+  "abilityName": "Inferno",
+  "abilityCooldown": 12.0,
+  "abilityDamage": 120,
+  "petStatModifierValue": 0.0
+}

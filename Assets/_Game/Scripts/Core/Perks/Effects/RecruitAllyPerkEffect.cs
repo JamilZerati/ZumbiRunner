@@ -15,7 +15,12 @@ namespace Game.Core.Perks.Effects
 
         public void Apply(PerkContext context)
         {
-            throw new NotImplementedException("RecruitAllyPerkEffect.Apply pendente de implementação no Marco 1.");
+            if (string.IsNullOrEmpty(AllyId) || context.Roster == null)
+            {
+                return;
+            }
+
+            context.Roster.TryRecruit(AllyId, out _);
         }
     }
 }

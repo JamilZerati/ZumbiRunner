@@ -1,0 +1,13 @@
+{
+  "id": "cryomancer",
+  "displayName": "Criomante",
+  "archetype": "Hero",
+  "maxHealth": 120,
+  "attackInterval": 1.0,
+  "attackDamage": 18,
+  "statusApplied": "freeze",
+  "abilityName": "Blizzard",
+  "abilityCooldown": 14.0,
+  "abilityDamage": 80,
+  "petStatModifierValue": 0.0
+}

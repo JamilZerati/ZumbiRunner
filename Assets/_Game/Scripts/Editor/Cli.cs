@@ -27,6 +27,7 @@ namespace Game.Editor
             int weaponCount = WeaponImporter.ImportAll(errors: errors);
             int statusCount = StatusContentImporter.ImportStatuses(errors: errors);
             int interactionCount = StatusContentImporter.ImportInteractions(errors: errors);
+            int allyCount = AllyImporter.ImportAll(errors: errors);
             int perkCount = PerkImporter.ImportAll(errors: errors);
             int enemyCount = EnemyImporter.ImportAll(errors: errors);
             int gateCount = GateImporter.ImportAll(errors: errors);
@@ -38,7 +39,7 @@ namespace Game.Editor
             {
                 Debug.LogError($"[Game.Editor.Cli] ImportContent error: {errors[i]}");
             }
-            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {perkCount} perks, {enemyCount} enemies, {gateCount} gates, {cageCount} cages, {holdoutCount} holdouts, {levelCount} levels, {abilityCount} abilities imported, {errors.Count} errors.");
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {allyCount} allies, {perkCount} perks, {enemyCount} enemies, {gateCount} gates, {cageCount} cages, {holdoutCount} holdouts, {levelCount} levels, {abilityCount} abilities imported, {errors.Count} errors.");
             EditorApplication.Exit(ComputeImportExitCode(errors));
         }
 
