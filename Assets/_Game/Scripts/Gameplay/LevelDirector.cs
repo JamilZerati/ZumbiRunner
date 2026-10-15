@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Game.Core;
 using Game.Core.Events;
+using Game.Core.Gates;
 using Game.Core.State;
+using Game.Core.Weather;
 using Game.Data;
 
 namespace Game.Gameplay
@@ -54,6 +56,21 @@ namespace Game.Gameplay
         public int HoldoutsHeld => _holdoutsHeld;
         public IReadOnlyDictionary<string, int> KillsByArchetype => _killsByArchetype;
 
+        private IWeatherSystem _weatherSystem;
+        private StageModifierController _stageModifierController;
+
+        public IWeatherSystem WeatherSystem
+        {
+            get => _weatherSystem ??= new WeatherSystem(_eventBus);
+            set => _weatherSystem = value;
+        }
+
+        public StageModifierController StageModifierController
+        {
+            get => _stageModifierController ??= new StageModifierController();
+            set => _stageModifierController = value;
+        }
+
         public int GetPendingBonusZombies(int lane)
         {
             return _pendingBonusZombiesByLane.TryGetValue(lane, out int count) ? count : 0;
@@ -76,16 +93,24 @@ namespace Game.Gameplay
 
         public void Initialize(RunConfig config)
         {
-            Initialize(config, null, null);
+            Initialize(config, null, null, null, null);
         }
 
         public void Initialize(RunConfig config, LevelDefinition levelDef, IEventBus eventBus)
+        {
+            Initialize(config, levelDef, eventBus, null, null);
+        }
+
+        public void Initialize(RunConfig config, LevelDefinition levelDef, IEventBus eventBus,
+                               IWeatherSystem weatherSystem = null, StageModifierController stageModifiers = null)
         {
             CleanupSubscriptions();
 
             _config = config;
             _levelDef = levelDef;
             _eventBus = eventBus;
+            _weatherSystem = weatherSystem ?? new WeatherSystem(eventBus);
+            _stageModifierController = stageModifiers ?? new StageModifierController();
 
             _currentDistance = 0f;
             _currentSquad = config != null ? config.InitialSquad : (levelDef != null ? levelDef.InitialTroops : 10);
@@ -131,6 +156,8 @@ namespace Game.Gameplay
 
             _currentDistance = distance;
 
+            _weatherSystem?.TickDistance(distance, _stageModifierController);
+
             CheckSpawns(distance);
             CheckTrackedEnemies(distance);
             CheckTrackedCages(distance);
@@ -157,6 +184,11 @@ namespace Game.Gameplay
                 if (segment == null)
                 {
                     continue;
+                }
+
+                if (segment.Weather != WeatherType.Clear && distance >= segment.StartDistance && !_spawnedSegments.Contains(segment))
+                {
+                    _weatherSystem?.SetWeather(segment.Weather, segment.Length > 0f ? segment.Length : 50f, _stageModifierController);
                 }
 
                 if (segment.SegmentType == SegmentType.Horde)
@@ -193,6 +225,13 @@ namespace Game.Gameplay
                         if (distance >= evtTrigger)
                         {
                             _spawnedEvents.Add(evt);
+                            if (evt.Type != null && evt.Type.Equals("Weather", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (Enum.TryParse<WeatherType>(evt.Data, true, out var wType))
+                                {
+                                    _weatherSystem?.SetWeather(wType, segment.Length > 0f ? segment.Length : 50f, _stageModifierController);
+                                }
+                            }
                             OnSegmentEventTriggered?.Invoke(segment, evt);
                         }
                     }

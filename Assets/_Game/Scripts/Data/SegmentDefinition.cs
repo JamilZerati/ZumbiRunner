@@ -31,5 +31,6 @@ namespace Game.Data
         public int[] CoveredLanes;
         public CageSpawnSpec[] Cages;
         public HoldoutSegmentSpec Holdout;
+        public Game.Core.Weather.WeatherType Weather;
     }
 }

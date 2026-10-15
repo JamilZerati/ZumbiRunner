@@ -235,7 +235,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: high
 
-- [ ] **Passo 4 (Marco 4)**: `Integração E2E com LevelDirector, visual de clima e simulação de combate` [NEX-972]
+- [x] **Passo 4 (Marco 4)**: `Integração E2E com LevelDirector, visual de clima e simulação de combate` [NEX-972]
   - **Ação**: Integrar `WeatherSystem` ao `LevelDirector` (reconhecendo eventos de clima em `SegmentDefinition`), conectar `GameTimeService` aos loops de `EnemyController` e `SquadController`, aplicar `SquadRangeMultiplier` do `StageModifierController` no cálculo de alcance do `CombatDirector`, implementar `WeatherVisualController.cs` para apresentação visual/partículas e validar a simulação E2E completa.
   - **Lógica de Negócios / Responsabilidade**: Ponto central de montagem: avanço de pista dispara início e término de clima; *bullet time* desacelera zumbis em tempo real; neblina reduz alcance de tiro da tropa; sinergia molhado + choque opera no loop de gameplay sem exceções ou quebras em frame.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1, Marco 2, Marco 3.
@@ -346,8 +346,8 @@ needs: executar
 **Cobre:** AC-6, AC-8 (História NEX-514)
 **Seam:** `Game.Gameplay.LevelDirector`, `Game.Presentation.WeatherVisualController`, `Game.Tests.EditMode.WeatherGameplayTests`
 **Pronto quando:**
-- [ ] CT-8 e CT-10 passam 100% verde
-- [ ] Toda a suíte de testes (CT-1 a CT-10 e os 754 testes de regressão) passa 100% verde
-- [ ] `tools/unity compile`, `test-edit` e `test-play` executam com 0 erros
+- [x] CT-8 e CT-10 passam 100% verde
+- [x] Toda a suíte de testes (CT-1 a CT-10 e os 754 testes de regressão) passa 100% verde
+- [x] `tools/unity compile`, `test-edit` e `test-play` executam com 0 erros
 **Não fazer:** Não alterar regras das fatias anteriores (holdout, jaulas, portões) nem quebrar determinismo no simulador.
 **Contexto:** História NEX-514 §2 RN-1 a RN-6 · §5 AC-6, AC-8 · Plano Passo 4

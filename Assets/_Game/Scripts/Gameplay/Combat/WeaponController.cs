@@ -59,6 +59,8 @@ namespace Game.Gameplay
             set => stats.SetBase(StatId.Range, value);
         }
 
+        public float RangeMultiplier { get; set; } = 1f;
+
         public bool IsFiring { get; set; } = true;
         public ISquad Squad { get; private set; }
 
@@ -171,7 +173,7 @@ namespace Game.Gameplay
 
                     proj.transform.position = emitterOrigin + Vector3.right * LateralOffset(i, count, current.SpreadWidth);
                     proj.gameObject.SetActive(true);
-                    proj.Initialize(damage, current.ProjectileSpeed, current.Range, onRecycle, onHit: onHitSnapshot);
+                    proj.Initialize(damage, current.ProjectileSpeed, current.Range * RangeMultiplier, onRecycle, onHit: onHitSnapshot);
                     volley.Add(proj);
                 }
             }
