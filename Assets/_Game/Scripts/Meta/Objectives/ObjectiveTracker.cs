@@ -8,7 +8,7 @@ namespace Game.Meta.Objectives
     {
         public void RegisterObjective(ObjectiveDefinition definition) => throw new NotImplementedException();
         public ObjectiveProgress GetProgress(string objectiveId) => throw new NotImplementedException();
-        public void IngestEvent<TEvent>(TEvent evt) where TEvent : class => throw new NotImplementedException();
+        public void IngestEvent<TEvent>(TEvent evt) => throw new NotImplementedException();
         public void IngestRunResult(RunResult result) => throw new NotImplementedException();
         public IReadOnlyList<string> CheckCompletedObjectives() => throw new NotImplementedException();
     }

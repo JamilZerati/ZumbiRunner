@@ -7,7 +7,7 @@ namespace Game.Meta.Objectives
     {
         void RegisterObjective(ObjectiveDefinition definition);
         ObjectiveProgress GetProgress(string objectiveId);
-        void IngestEvent<TEvent>(TEvent evt) where TEvent : class;
+        void IngestEvent<TEvent>(TEvent evt);
         void IngestRunResult(RunResult result);
         IReadOnlyList<string> CheckCompletedObjectives();
     }

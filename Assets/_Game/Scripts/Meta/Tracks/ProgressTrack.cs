@@ -5,6 +5,8 @@ namespace Game.Meta.Tracks
 {
     public class ProgressTrack : IProgressTrack
     {
+        public ProgressTrack(ProgressTrackDefinition definition = null, IEntitlements entitlements = null) { }
+
         public string TrackId => throw new NotImplementedException();
         public int CurrentPoints => throw new NotImplementedException();
         public void AddPoints(int points) => throw new NotImplementedException();
