@@ -1,0 +1,9 @@
+{
+  "id": "fog",
+  "type": "Fog",
+  "displayName": "Neblina",
+  "enemySpeedMultiplier": 1.0,
+  "enemyContactDamageMultiplier": 1.0,
+  "squadRangeMultiplier": 0.75,
+  "appliedStatus": ""
+}

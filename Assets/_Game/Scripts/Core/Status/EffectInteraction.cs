@@ -4,7 +4,8 @@ namespace Game.Core.Status
 {
     public enum InteractionTrigger
     {
-        HeavyHit
+        HeavyHit,
+        ShockHit
     }
 
     public readonly struct EffectInteraction

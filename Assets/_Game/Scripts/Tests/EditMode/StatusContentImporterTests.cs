@@ -110,7 +110,7 @@ namespace Game.Tests.EditMode
         public void ImportInteractions_RequiresOutsideCatalog_ReturnsError()
         {
             File.WriteAllText(Path.Combine(tempSourceFolder, "interaction.json"),
-                "{ \"id\": \"shatter\", \"requires\": \"Wet\", \"trigger\": \"HeavyHit\", \"minHitDamage\": 12, \"damageMultiplier\": 2 }");
+                "{ \"id\": \"shatter\", \"requires\": \"UnknownStatus\", \"trigger\": \"HeavyHit\", \"minHitDamage\": 12, \"damageMultiplier\": 2 }");
 
             var errors = new List<string>();
             int count = StatusContentImporter.ImportInteractions(tempSourceFolder, tempTargetFolder, errors);

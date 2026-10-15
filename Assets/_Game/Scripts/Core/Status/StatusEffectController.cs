@@ -17,6 +17,7 @@ namespace Game.Core.Status
         private readonly Dictionary<StatusKind, StatusState> states = new Dictionary<StatusKind, StatusState>();
         private readonly List<StatusKind> _lastActiveStatuses = new List<StatusKind>();
         private bool diedNotified;
+        internal bool WasWetConsumedThisHit { get; private set; }
 
         public StatusEffectController(IDamageable health, IStatusReceiver owner,
                                       IStatusCatalog catalog = null, IEffectInteractionTable interactions = null,
@@ -108,6 +109,7 @@ namespace Game.Core.Status
             }
 
             int finalDamage = hit.Amount;
+            bool wetConsumedInInteraction = false;
 
             if (interactions != null && interactions.Interactions != null)
             {
@@ -115,12 +117,25 @@ namespace Game.Core.Status
                 for (int i = 0; i < list.Count; i++)
                 {
                     var interaction = list[i];
-                    if (interaction.Trigger == InteractionTrigger.HeavyHit &&
-                        Has(interaction.RequiredStatus) &&
-                        hit.Amount >= interaction.MinHitDamage)
+                    bool matches = false;
+                    if (interaction.Trigger == InteractionTrigger.HeavyHit)
+                    {
+                        matches = Has(interaction.RequiredStatus) && hit.Amount >= interaction.MinHitDamage;
+                    }
+                    else if (interaction.Trigger == InteractionTrigger.ShockHit)
+                    {
+                        bool isShock = hit.Type == DamageType.Lightning || hit.Source is ShockStatus || HasShockOnHit(onHit);
+                        matches = isShock && Has(interaction.RequiredStatus) && hit.Amount >= interaction.MinHitDamage;
+                    }
+
+                    if (matches)
                     {
                         finalDamage = (int)Math.Round((double)hit.Amount * interaction.DamageMultiplier, MidpointRounding.AwayFromZero);
                         Remove(interaction.RequiredStatus);
+                        if (interaction.RequiredStatus == StatusKind.Wet)
+                        {
+                            wetConsumedInInteraction = true;
+                        }
                         if (eventBus != null)
                         {
                             eventBus.Publish(new SynergyTriggeredEvent(interaction.Id, owner, hit.Amount, finalDamage));
@@ -138,15 +153,40 @@ namespace Game.Core.Status
                 return finalDamage;
             }
 
-            if (onHit != null && onHit.Count > 0)
+            if (wetConsumedInInteraction)
             {
-                for (int i = 0; i < onHit.Count; i++)
+                WasWetConsumedThisHit = true;
+            }
+
+            try
+            {
+                if (onHit != null && onHit.Count > 0)
                 {
-                    Apply(onHit[i]);
+                    for (int i = 0; i < onHit.Count; i++)
+                    {
+                        Apply(onHit[i]);
+                    }
                 }
+            }
+            finally
+            {
+                WasWetConsumedThisHit = false;
             }
 
             return finalDamage;
+        }
+
+        private static bool HasShockOnHit(IReadOnlyList<StatusApplication> onHit)
+        {
+            if (onHit == null || onHit.Count == 0) return false;
+            for (int i = 0; i < onHit.Count; i++)
+            {
+                if (onHit[i].Kind == StatusKind.Shock)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void Clear()
@@ -154,6 +194,7 @@ namespace Game.Core.Status
             states.Clear();
             _lastActiveStatuses.Clear();
             diedNotified = false;
+            WasWetConsumedThisHit = false;
         }
 
         public bool Has(StatusKind kind) => states.ContainsKey(kind);

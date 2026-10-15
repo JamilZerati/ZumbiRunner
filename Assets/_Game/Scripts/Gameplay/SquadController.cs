@@ -14,8 +14,20 @@ namespace Game.Gameplay
         private IEventBus eventBus;
         private bool isInitialized;
         private IAllyRoster _roster;
+        private Game.Core.Time.IGameTimeService _timeService;
 
         public event Action<SquadSizeChangedEvent> SquadSizeChanged;
+
+        public Game.Core.Time.IGameTimeService TimeService
+        {
+            get => _timeService;
+            set => _timeService = value;
+        }
+
+        public void SetTimeService(Game.Core.Time.IGameTimeService timeService)
+        {
+            _timeService = timeService;
+        }
 
         public IAllyRoster Roster
         {

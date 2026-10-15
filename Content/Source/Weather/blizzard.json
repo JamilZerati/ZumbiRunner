@@ -1,0 +1,9 @@
+{
+  "id": "blizzard",
+  "type": "Blizzard",
+  "displayName": "Nevasca",
+  "enemySpeedMultiplier": 0.8,
+  "enemyContactDamageMultiplier": 1.0,
+  "squadRangeMultiplier": 1.0,
+  "appliedStatus": ""
+}
