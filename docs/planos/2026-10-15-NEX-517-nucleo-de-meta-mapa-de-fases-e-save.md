@@ -292,3 +292,136 @@ A verificação de cada tarefa seguirá a ordem canônica:
 1. `tools/unity compile` -> 0 erros.
 2. `tools/unity test-edit` -> 100% verde (sem quebra dos 792 testes existentes).
 3. `git status` -> Somente arquivos previstos na tarefa.
+
+## 9. Fatiamento em Tarefas & Checklist de Execução
+
+### `Marco 0: Suíte de Cenários, Contratos de Game.Meta e Stubs [NEX-517]` (`NEX-989`)
+```dispatch
+effort: medium
+```
+```track
+level: tarefa
+plan: docs/planos/2026-10-15-NEX-517-nucleo-de-meta-mapa-de-fases-e-save.md
+marco: 0
+steps: Passo 0 (Marco 0)
+needs: cenarios
+```
+**Objetivo:** Criar o assembly C# puro `Game.Meta` (`noEngineReferences: true`), integrá-lo em `Game.Tests.EditMode.asmdef`, definir contratos/stubs puros das interfaces de meta e estabelecer a suíte comportamental Red em `MetaScenariosTests.cs`.
+**Cobre:** AC-1 a AC-7 (História NEX-517)
+**Seam:** `Game.Meta.Wallet.IWallet`, `Game.Meta.Rewards.IRewardSink`, `Game.Meta.Objectives.IObjectiveTracker`, `Game.Meta.Tracks.IProgressTrack`, `Game.Meta.Time.ITimeProvider`, `Game.Meta.Save.ISaveStore`, `Game.Meta.Run.IRunConfigBuilder`, `Game.Meta.Stages.IStageMapService`.
+**Pronto quando:**
+- [x] Assembly `Game.Meta` criado com `noEngineReferences: true` e referenciando apenas `Game.Core`
+- [x] Stubs dos contratos compilam sem quebrar os 792 testes existentes
+- [x] Suíte Red implementada em `MetaScenariosTests.cs` cobrindo cenários ponta a ponta
+- [x] `tools/unity compile` e `tools/unity test-edit` executam sem erros de compilação e com Red comprovado
+**Não fazer:** Não implementar a lógica concreta dos serviços de meta nesta etapa nem criar dependências com `UnityEngine`.
+**Contexto:** História NEX-517 · Plano Passo 0
+
+### `Marco 1: Carteira, Moedas e Sistema de Recompensas Idempotentes [NEX-517]` (`NEX-990`)
+```dispatch
+effort: medium
+```
+```track
+level: tarefa
+plan: docs/planos/2026-10-15-NEX-517-nucleo-de-meta-mapa-de-fases-e-save.md
+marco: 1
+steps: Passo 1 (Marco 1)
+needs: carteira-recompensas
+```
+**Objetivo:** Implementar o sistema de carteira multimoedas (`Wallet`) com registro obrigatório de `source`, emissão de `WalletChangedEvent`, e o pipeline de concessão idempotente de recompensas (`RewardBundle`, `IReward`, `IRewardSink`) por `grantId` determinístico.
+**Cobre:** AC-1, AC-2 (História NEX-517)
+**Seam:** `Game.Meta.Wallet.Wallet`, `Game.Meta.Rewards.RewardBundle`, `Game.Meta.Rewards.IRewardSink`
+**Pronto quando:**
+- [ ] CT-1 e CT-2 passam 100% verde
+- [ ] Suíte unitária em `WalletTests.cs` e `RewardTests.cs` aprovada
+- [ ] Concessão idempotente verificada com reentrância
+- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+**Não fazer:** Não implementar trackers de objetivos nem salvamento em disco.
+**Contexto:** História NEX-517 · Plano Passo 1
+
+### `Marco 2: Objetivos e Rastreador de Sinais do Gameplay [NEX-517]` (`NEX-991`)
+```dispatch
+effort: medium
+```
+```track
+level: tarefa
+plan: docs/planos/2026-10-15-NEX-517-nucleo-de-meta-mapa-de-fases-e-save.md
+marco: 2
+steps: Passo 2 (Marco 2)
+needs: objetivos-tracker
+```
+**Objetivo:** Implementar o subsistema de objetivos e missões (`ObjectiveTracker`, `ObjectiveDefinition`) com suporte a escopos `Run` e `Cumulative`, ingestão desacoplada de sinais de gameplay (`IEventBus`) e consolidação via `RunResult`.
+**Cobre:** AC-3 (História NEX-517)
+**Seam:** `Game.Meta.Objectives.ObjectiveTracker`
+**Pronto quando:**
+- [ ] CT-3 passa 100% verde
+- [ ] Suíte unitária em `ObjectiveTrackerTests.cs` aprovada
+- [ ] Suporte a escopo `Run` e `Cumulative` verificado
+- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+**Não fazer:** Não integrar com a carteira ou UI de missões.
+**Contexto:** História NEX-517 · Plano Passo 2
+
+### `Marco 3: Trilhas de Progresso e Entitlements [NEX-517]` (`NEX-992`)
+```dispatch
+effort: medium
+```
+```track
+level: tarefa
+plan: docs/planos/2026-10-15-NEX-517-nucleo-de-meta-mapa-de-fases-e-save.md
+marco: 3
+steps: Passo 3 (Marco 3)
+needs: trilhas-entitlements
+```
+**Objetivo:** Implementar o sistema de trilhas de progressão (`ProgressTrack`) com suporte a marcos, ramificação de recompensas Grátis / Premium, e o catálogo central de direitos (`Entitlements`) do jogador.
+**Cobre:** AC-4 (História NEX-517)
+**Seam:** `Game.Meta.Tracks.ProgressTrack`, `Game.Meta.Tracks.Entitlements`
+**Pronto quando:**
+- [ ] CT-4 passa 100% verde
+- [ ] Suíte unitária em `ProgressTrackTests.cs` e `EntitlementsTests.cs` aprovada
+- [ ] Bloqueio estrito de marcos premium sem entitlement verificado
+- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+**Não fazer:** Não criar serialização persistente de estado.
+**Contexto:** História NEX-517 · Plano Passo 3
+
+### `Marco 4: Tempo com Guarda Monotônica e Save Versionado com Migrações [NEX-517]` (`NEX-993`)
+```dispatch
+effort: high
+```
+```track
+level: tarefa
+plan: docs/planos/2026-10-15-NEX-517-nucleo-de-meta-mapa-de-fases-e-save.md
+marco: 4
+steps: Passo 4 (Marco 4)
+needs: tempo-save
+```
+**Objetivo:** Implementar o provedor de tempo UTC desacoplado (`MonotonicTimeProvider`) com guarda monotônica (10 min), o agregado de estado `MetaState` e o armazenamento persistente `SaveStore` com versionamento, migrações encadeadas (`ISaveMigration`) e hash de integridade (HMAC).
+**Cobre:** AC-5 (História NEX-517)
+**Seam:** `Game.Meta.Time.MonotonicTimeProvider`, `Game.Meta.Save.SaveStore`
+**Pronto quando:**
+- [ ] CT-5 passa 100% verde
+- [ ] Suíte unitária em `TimeProviderTests.cs` e `SaveStoreTests.cs` aprovada
+- [ ] Detecção de fraude de relógio (> 10 min) e rejeição de save adulterado verificadas
+- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+**Não fazer:** Não usar `PlayerPrefs` ou referências à `UnityEngine`.
+**Contexto:** História NEX-517 · Plano Passo 4
+
+### `Marco 5: Fronteira Gameplay-Meta e Mapa de Fases [NEX-517]` (`NEX-994`)
+```dispatch
+effort: high
+```
+```track
+level: tarefa
+plan: docs/planos/2026-10-15-NEX-517-nucleo-de-meta-mapa-de-fases-e-save.md
+marco: 5
+steps: Passo 5 (Marco 5)
+needs: fronteira-mapa
+```
+**Objetivo:** Implementar os componentes de fronteira entre o gameplay e a meta (`RunConfigBuilder` e `RewardCalculator`), integrando multiplicadores de pista, mutações e recibos auditáveis, além do serviço de progressão de fases (`StageMapService`) com marcação de Boss gates.
+**Cobre:** AC-6, AC-7 (História NEX-517)
+**Seam:** `Game.Meta.Run.RunConfigBuilder`, `Game.Meta.Run.RewardCalculator`, `Game.Meta.Stages.StageMapService`
+**Pronto quando:**
+- [ ] CT-6 e CT-7 passam 100% verde
+- [ ] Toda a suíte de cenários `MetaScenariosTests.cs` passa 100% verde (sem regressões)
+- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+**Não fazer:** Não referenciar `Game.Meta` dentro de `Game.Gameplay`.
+**Contexto:** História NEX-517 · Plano Passo 5
