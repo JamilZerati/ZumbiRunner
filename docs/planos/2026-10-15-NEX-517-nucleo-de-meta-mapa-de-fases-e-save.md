@@ -269,12 +269,12 @@ namespace Game.Meta.Run
 
 | Marco | Tarefa | AC Cobertos | Depende de | Escopo & Entregáveis |
 |---|---|---|---|---|
-| **Marco 0** | **NEX-973** (a criar) | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7 | — | **Suíte Red & Fundação Arquitetural**: criação do asmdef `Game.Meta` (`noEngineReferences: true`, referenciando `Game.Core`), fiação em `Game.Tests.EditMode.asmdef`, contratos e stubs puros em `Game.Meta.*`, suíte `MetaScenariosTests.cs` cobrindo cenários ponta a ponta. |
-| **Marco 1** | **NEX-974** (a criar) | AC-1, AC-2 | Marco 0 | **Carteira & Recompensas Idempotentes**: `Wallet`, transações com `source`, `WalletChangedEvent`, tipos de `IReward`, `RewardBundle` com `grantId` idempotente e testes unitários em `WalletTests` e `RewardTests`. |
-| **Marco 2** | **NEX-975** (a criar) | AC-3 | Marco 0 | **Objetivos & Tracker de Sinais**: `ObjectiveDefinition`, escopos `Run` e `Cumulative`, rastreamento por sinais do `IEventBus` e `RunResult`, eventos de conclusão e testes em `ObjectiveTrackerTests`. |
-| **Marco 3** | **NEX-976** (a criar) | AC-4 | Marco 0 | **Trilhas de Progresso & Entitlements**: `ProgressTrack`, marcos com divisão Grátis/Premium, resgate de recompensas, `Entitlements` com verificação estrita e testes em `ProgressTrackTests` e `EntitlementsTests`. |
-| **Marco 4** | **NEX-977** (a criar) | AC-5 | Marco 1, Marco 3 | **Tempo Monotônico & Save Versionado**: `MonotonicTimeProvider` com guarda monotônica (10 min), `MetaState` agregado, `ISaveStore` com migrações encadeadas (`ISaveMigration`), hash de integridade e testes em `TimeProviderTests` e `SaveStoreTests`. |
-| **Marco 5** | **NEX-978** (a criar) | AC-6, AC-7 | Marco 1, Marco 2, Marco 4 | **Fronteira Gameplay ↔ Meta & Mapa de Fases**: `RunConfigBuilder`, `RewardCalculator` com multiplicadores e mutações, `StageMapService` sequencial com Boss gates e testes em `MetaGameplayIntegrationTests` e `StageMapTests`. |
+| **Marco 0** | **NEX-989** | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7 | — | **Suíte Red & Fundação Arquitetural**: criação do asmdef `Game.Meta` (`noEngineReferences: true`, referenciando `Game.Core`), fiação em `Game.Tests.EditMode.asmdef`, contratos e stubs puros em `Game.Meta.*`, suíte `MetaScenariosTests.cs` cobrindo cenários ponta a ponta. |
+| **Marco 1** | **NEX-990** | AC-1, AC-2 | Marco 0 | **Carteira & Recompensas Idempotentes**: `Wallet`, transações com `source`, `WalletChangedEvent`, tipos de `IReward`, `RewardBundle` com `grantId` idempotente e testes unitários em `WalletTests` e `RewardTests`. |
+| **Marco 2** | **NEX-991** | AC-3 | Marco 0 | **Objetivos & Tracker de Sinais**: `ObjectiveDefinition`, escopos `Run` e `Cumulative`, rastreamento por sinais do `IEventBus` e `RunResult`, eventos de conclusão e testes em `ObjectiveTrackerTests`. |
+| **Marco 3** | **NEX-992** | AC-4 | Marco 0 | **Trilhas de Progresso & Entitlements**: `ProgressTrack`, marcos com divisão Grátis/Premium, resgate de recompensas, `Entitlements` com verificação estrita e testes em `ProgressTrackTests` e `EntitlementsTests`. |
+| **Marco 4** | **NEX-993** | AC-5 | Marco 1, Marco 3 | **Tempo Monotônico & Save Versionado**: `MonotonicTimeProvider` com guarda monotônica (10 min), `MetaState` agregado, `ISaveStore` com migrações encadeadas (`ISaveMigration`), hash de integridade e testes em `TimeProviderTests` e `SaveStoreTests`. |
+| **Marco 5** | **NEX-994** | AC-6, AC-7 | Marco 1, Marco 2, Marco 4 | **Fronteira Gameplay ↔ Meta & Mapa de Fases**: `RunConfigBuilder`, `RewardCalculator` com multiplicadores e mutações, `StageMapService` sequencial com Boss gates e testes em `MetaGameplayIntegrationTests` e `StageMapTests`. |
 
 ## 7. Critérios de Aceite (ACs)
 
