@@ -32,6 +32,18 @@ namespace Game.Gameplay
             _status = null;
         }
 
+        private Game.Core.Time.IGameTimeService _timeService;
+        public Game.Core.Time.IGameTimeService TimeService
+        {
+            get => _timeService;
+            set => _timeService = value;
+        }
+
+        public void SetTimeService(Game.Core.Time.IGameTimeService timeService)
+        {
+            _timeService = timeService;
+        }
+
         public StatusEffectController Status
         {
             get
@@ -209,7 +221,10 @@ namespace Game.Gameplay
 
         private void Update()
         {
-            Tick(Time.deltaTime);
+            float dt = _timeService != null
+                ? _timeService.GetDeltaTime(Game.Core.Time.TimeTarget.Enemy, Time.deltaTime)
+                : Time.deltaTime;
+            Tick(dt);
         }
 
         public void Engage(Transform target, Vector3 offset)

@@ -1,6 +1,7 @@
 using UnityEngine;
 using Game.Core;
 using Game.Core.Events;
+using Game.Core.Gates;
 
 namespace Game.Gameplay
 {
@@ -83,7 +84,39 @@ namespace Game.Gameplay
         public bool IsResolved { get; private set; }
         public IEventBus EventBus { get; set; }
 
-        public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null, IEventBus eventBus = null)
+        private StageModifierController _stageModifiers;
+        public StageModifierController StageModifiers
+        {
+            get => _stageModifiers;
+            set
+            {
+                _stageModifiers = value;
+                UpdateWeaponRangeMultiplier();
+            }
+        }
+
+        public void SetStageModifiers(StageModifierController modifiers)
+        {
+            StageModifiers = modifiers;
+        }
+
+        public float EffectiveSquadRangeMultiplier => _stageModifiers != null ? _stageModifiers.CurrentSquadRangeMultiplier : 1f;
+
+        public float GetModifiedRange(float baseRange)
+        {
+            return baseRange * EffectiveSquadRangeMultiplier;
+        }
+
+        public void UpdateWeaponRangeMultiplier()
+        {
+            var weapon = GetComponent<WeaponController>() ?? GetComponentInParent<WeaponController>() ?? GetComponentInChildren<WeaponController>();
+            if (weapon != null)
+            {
+                weapon.RangeMultiplier = EffectiveSquadRangeMultiplier;
+            }
+        }
+
+        public void Initialize(SquadController squad, TrackScroller scroller, IGameStateMachine stateMachine, float victoryDistance, HordeSpawner spawner = null, IEventBus eventBus = null, StageModifierController stageModifiers = null)
         {
             this.squad = squad;
             Squad = squad;
@@ -94,6 +127,8 @@ namespace Game.Gameplay
             this.spawner = spawner;
             Spawner = spawner;
             EventBus = eventBus;
+            _stageModifiers = stageModifiers;
+            UpdateWeaponRangeMultiplier();
             IsResolved = false;
         }
 
@@ -244,6 +279,7 @@ namespace Game.Gameplay
         // Victory check runs on Update tick based on distance traveled by TrackScroller
         public void Tick(float deltaTime)
         {
+            UpdateWeaponRangeMultiplier();
             if (!IsResolved && StateMachine?.CurrentState == GameState.Run)
             {
                 CheckVictory();

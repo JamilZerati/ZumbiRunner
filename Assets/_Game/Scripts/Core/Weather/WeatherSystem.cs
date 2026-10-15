@@ -12,6 +12,8 @@ namespace Game.Core.Weather
         private float _endDistance;
         private float _currentDistance;
         private WeatherStageModifier _activeModifier;
+        private bool _hasConfiguredWeather;
+        private bool _defaultTriggered;
 
         public WeatherType CurrentWeather => IsWeatherActive ? _currentWeather : WeatherType.Clear;
         public float WeatherRemainingDistance => IsWeatherActive ? Math.Max(0f, _endDistance - _currentDistance) : 0f;
@@ -24,6 +26,7 @@ namespace Game.Core.Weather
 
         public void SetWeather(WeatherType type, float durationDistance, StageModifierController stageModifiers = null)
         {
+            _hasConfiguredWeather = true;
             if (durationDistance <= 0f || type == WeatherType.Clear)
             {
                 ClearWeather(stageModifiers);
@@ -82,6 +85,13 @@ namespace Game.Core.Weather
         {
             _currentDistance = currentDistance;
             stageModifiers?.TickDistance(currentDistance);
+
+            if (!_hasConfiguredWeather && !_defaultTriggered && currentDistance >= 50f)
+            {
+                _defaultTriggered = true;
+                SetWeather(WeatherType.Rain, 50f, stageModifiers);
+                return;
+            }
 
             if (_currentWeather != WeatherType.Clear && currentDistance >= _endDistance)
             {
