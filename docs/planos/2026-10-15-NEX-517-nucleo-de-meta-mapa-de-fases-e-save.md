@@ -420,8 +420,9 @@ needs: fronteira-mapa
 **Cobre:** AC-6, AC-7 (História NEX-517)
 **Seam:** `Game.Meta.Run.RunConfigBuilder`, `Game.Meta.Run.RewardCalculator`, `Game.Meta.Stages.StageMapService`
 **Pronto quando:**
-- [ ] CT-6 e CT-7 passam 100% verde
-- [ ] Toda a suíte de cenários `MetaScenariosTests.cs` passa 100% verde (sem regressões)
-- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+- [x] CT-6 e CT-7 passam 100% verde
+- [x] Toda a suíte de cenários `MetaScenariosTests.cs` passa 100% verde (sem regressões)
+- [x] Testes de integração verdes em `MetaGameplayIntegrationTests.cs` e `StageMapTests.cs`
+- [x] `tools/unity compile` e `tools/unity test-edit` executam sem erros
 **Não fazer:** Não referenciar `Game.Meta` dentro de `Game.Gameplay`.
 **Contexto:** História NEX-517 · Plano Passo 5
