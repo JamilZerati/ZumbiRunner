@@ -354,10 +354,10 @@ needs: objetivos-tracker
 **Cobre:** AC-3 (História NEX-517)
 **Seam:** `Game.Meta.Objectives.ObjectiveTracker`
 **Pronto quando:**
-- [ ] CT-3 passa 100% verde
-- [ ] Suíte unitária em `ObjectiveTrackerTests.cs` aprovada
-- [ ] Suporte a escopo `Run` e `Cumulative` verificado
-- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+- [x] CT-3 passa 100% verde
+- [x] Suíte unitária em `ObjectiveTrackerTests.cs` aprovada
+- [x] Suporte a escopo `Run` e `Cumulative` verificado
+- [x] `tools/unity compile` e `tools/unity test-edit` executam sem erros
 **Não fazer:** Não integrar com a carteira ou UI de missões.
 **Contexto:** História NEX-517 · Plano Passo 2
 
