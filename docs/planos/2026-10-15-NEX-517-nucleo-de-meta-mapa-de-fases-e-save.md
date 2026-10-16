@@ -398,10 +398,10 @@ needs: tempo-save
 **Cobre:** AC-5 (História NEX-517)
 **Seam:** `Game.Meta.Time.MonotonicTimeProvider`, `Game.Meta.Save.SaveStore`
 **Pronto quando:**
-- [ ] CT-5 passa 100% verde
-- [ ] Suíte unitária em `TimeProviderTests.cs` e `SaveStoreTests.cs` aprovada
-- [ ] Detecção de fraude de relógio (> 10 min) e rejeição de save adulterado verificadas
-- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+- [x] CT-5 passa 100% verde
+- [x] Suíte unitária em `TimeProviderTests.cs` e `SaveStoreTests.cs` aprovada
+- [x] Detecção de fraude de relógio (> 10 min) e rejeição de save adulterado verificadas
+- [x] `tools/unity compile` e `tools/unity test-edit` executam sem erros
 **Não fazer:** Não usar `PlayerPrefs` ou referências à `UnityEngine`.
 **Contexto:** História NEX-517 · Plano Passo 4
 
