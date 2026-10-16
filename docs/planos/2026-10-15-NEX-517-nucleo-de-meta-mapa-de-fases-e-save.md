@@ -332,10 +332,10 @@ needs: carteira-recompensas
 **Cobre:** AC-1, AC-2 (História NEX-517)
 **Seam:** `Game.Meta.Wallet.Wallet`, `Game.Meta.Rewards.RewardBundle`, `Game.Meta.Rewards.IRewardSink`
 **Pronto quando:**
-- [ ] CT-1 e CT-2 passam 100% verde
-- [ ] Suíte unitária em `WalletTests.cs` e `RewardTests.cs` aprovada
-- [ ] Concessão idempotente verificada com reentrância
-- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+- [x] CT-1 e CT-2 passam 100% verde
+- [x] Suíte unitária em `WalletTests.cs` e `RewardTests.cs` aprovada
+- [x] Concessão idempotente verificada com reentrância
+- [x] `tools/unity compile` e `tools/unity test-edit` executam sem erros
 **Não fazer:** Não implementar trackers de objetivos nem salvamento em disco.
 **Contexto:** História NEX-517 · Plano Passo 1
 

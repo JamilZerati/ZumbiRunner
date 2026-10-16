@@ -17,6 +17,10 @@ namespace Game.Meta.Rewards
             TokenId = tokenId;
         }
 
-        public void Apply(IRewardSink sink) => throw new NotImplementedException();
+        public void Apply(IRewardSink sink)
+        {
+            if (sink == null) throw new ArgumentNullException(nameof(sink));
+            sink.Wallet?.Add(Currency, Amount, "reward", TokenId);
+        }
     }
 }
