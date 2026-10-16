@@ -376,10 +376,10 @@ needs: trilhas-entitlements
 **Cobre:** AC-4 (História NEX-517)
 **Seam:** `Game.Meta.Tracks.ProgressTrack`, `Game.Meta.Tracks.Entitlements`
 **Pronto quando:**
-- [ ] CT-4 passa 100% verde
-- [ ] Suíte unitária em `ProgressTrackTests.cs` e `EntitlementsTests.cs` aprovada
-- [ ] Bloqueio estrito de marcos premium sem entitlement verificado
-- [ ] `tools/unity compile` e `tools/unity test-edit` executam sem erros
+- [x] CT-4 passa 100% verde
+- [x] Suíte unitária em `ProgressTrackTests.cs` e `EntitlementsTests.cs` aprovada
+- [x] Bloqueio estrito de marcos premium sem entitlement verificado
+- [x] `tools/unity compile` e `tools/unity test-edit` executam sem erros
 **Não fazer:** Não criar serialização persistente de estado.
 **Contexto:** História NEX-517 · Plano Passo 3
 
