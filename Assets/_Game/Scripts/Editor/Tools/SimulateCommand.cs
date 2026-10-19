@@ -196,6 +196,11 @@ namespace Game.Editor.Tools
                         ProcessHoldoutSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
                         currentDist = seg.StartDistance + seg.Length;
                     }
+                    else if (seg.SegmentType == SegmentType.Boss)
+                    {
+                        ProcessBossSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges, stageModifiers);
+                        if (isAlive) currentDist = seg.StartDistance + seg.Length;
+                    }
 
                     bool hasCageEvents = seg.Events != null && Array.Exists(seg.Events, e => e != null && string.Equals(e.Type, "Cage", StringComparison.OrdinalIgnoreCase));
                     if (seg.SegmentType != SegmentType.Cage && ((seg.Cages != null && seg.Cages.Length > 0) || hasCageEvents))
@@ -207,6 +212,12 @@ namespace Game.Editor.Tools
                     if (seg.SegmentType != SegmentType.Holdout && ((seg.Holdout != null && !string.IsNullOrEmpty(seg.Holdout.HoldoutId)) || hasHoldoutEvents))
                     {
                         ProcessHoldoutSegment(seg, bot, ref squad, fireRate, damage, speed, ref rescued, pendingBonusZombiesByLane);
+                    }
+
+                    bool hasBossEvents = seg.Events != null && Array.Exists(seg.Events, e => e != null && string.Equals(e.Type, "Boss", StringComparison.OrdinalIgnoreCase));
+                    if (seg.SegmentType != SegmentType.Boss && ((seg.Boss != null && !string.IsNullOrEmpty(seg.Boss.BossId)) || hasBossEvents))
+                    {
+                        ProcessBossSegment(seg, level, bot, ref squad, fireRate, damage, speed, ref kills, ref currentDist, ref isAlive, rng, ref abilityKillsAccumulator, ref abilityCharges, stageModifiers);
                     }
                 }
             }
@@ -729,6 +740,237 @@ namespace Game.Editor.Tools
             }
 
             return null;
+        }
+
+        private class BossMinionState
+        {
+            public float Hp;
+            public float Distance;
+            public float Speed;
+            public int ContactDamage;
+        }
+
+        private static EnemyDefinition ResolveBossDefinition(string bossId)
+        {
+            if (string.IsNullOrEmpty(bossId)) return null;
+
+            var definition = AssetDatabase.LoadAssetAtPath<EnemyDefinition>($"Assets/_Game/Data/Enemies/{bossId}.asset");
+            if (definition != null) return definition;
+
+            var catalog = AssetDatabase.LoadAssetAtPath<EnemyCatalog>("Assets/_Game/Data/Enemies/EnemyCatalog.asset");
+            if (catalog != null && catalog.TryGet(bossId, out var catDef)) return catDef;
+
+            string jsonPath = Path.Combine("Content", "Source", "Enemies", $"{bossId}.json");
+            if (File.Exists(jsonPath))
+            {
+                try
+                {
+                    var def = ScriptableObject.CreateInstance<EnemyDefinition>();
+                    JsonUtility.FromJsonOverwrite(File.ReadAllText(jsonPath), def);
+                    return def;
+                }
+                catch
+                {
+                    // Fall through to null if file is malformed
+                }
+            }
+
+            return null;
+        }
+
+        private static void ProcessBossSegment(
+            SegmentDefinition seg, LevelDefinition level, BotType bot, ref int squad,
+            float fireRate, int damage, float speed, ref int kills, ref float currentDist,
+            ref bool isAlive, System.Random rng, ref int abilityKillsAccumulator,
+            ref int abilityCharges, StageModifierController stageModifiers)
+        {
+            if (!isAlive || squad <= 0) return;
+
+            string bossId = seg.Boss != null && !string.IsNullOrEmpty(seg.Boss.BossId)
+                ? seg.Boss.BossId
+                : (level != null && !string.IsNullOrEmpty(level.BossId) ? level.BossId : "boss_colossus");
+
+            var bossDef = ResolveBossDefinition(bossId);
+            int baseHp = seg.Boss != null && seg.Boss.CustomMaxHp > 0
+                ? seg.Boss.CustomMaxHp
+                : (bossDef != null && bossDef.BaseHp > 0 ? bossDef.BaseHp : 1000);
+
+            float hpMultiplier = level != null ? level.GetHpMultiplier() : 1f;
+            int bossMaxHp = (int)(baseHp * hpMultiplier);
+            int bossHp = bossMaxHp;
+
+            float arenaLength = seg.Boss != null && seg.Boss.ArenaLength > 0f
+                ? seg.Boss.ArenaLength
+                : (seg.Length > 0f ? seg.Length : 500f);
+
+            float diveInterval = 4f;
+            float telegraphDuration = 1f;
+            int diveDamage = 50;
+
+            float[] summonThresholds = new[] { 0.75f, 0.50f, 0.25f };
+            string[] summonArchetypes = new[] { "walker", "runner", "brute" };
+
+            if (bossDef != null && bossDef.Behaviors != null)
+            {
+                for (int b = 0; b < bossDef.Behaviors.Length; b++)
+                {
+                    var beh = bossDef.Behaviors[b];
+                    if (beh is BossLaneTelegraphDiveBehavior dive)
+                    {
+                        if (dive.Interval > 0f) diveInterval = dive.Interval;
+                        if (dive.TelegraphDuration > 0f) telegraphDuration = dive.TelegraphDuration;
+                        if (dive.Damage > 0) diveDamage = dive.Damage;
+                    }
+                    else if (beh is BossSummonWaveBehavior summon)
+                    {
+                        if (summon.Thresholds != null && summon.Thresholds.Length > 0) summonThresholds = summon.Thresholds;
+                        if (summon.MinionArchetypes != null && summon.MinionArchetypes.Length > 0) summonArchetypes = summon.MinionArchetypes;
+                    }
+                }
+            }
+
+            bool[] triggered = new bool[summonThresholds.Length];
+            var activeMinions = new List<BossMinionState>();
+
+            float dt = 0.5f;
+            float elapsed = 0f;
+            float maxDuration = speed > 0f ? arenaLength / speed : 60f;
+            float diveTimer = 0f;
+
+            while (elapsed < maxDuration && bossHp > 0 && isAlive && squad > 0)
+            {
+                elapsed += dt;
+                currentDist = seg.StartDistance + Math.Min(arenaLength, elapsed * speed);
+                if (stageModifiers != null) stageModifiers.TickDistance(currentDist);
+
+                float speedMult = stageModifiers != null ? stageModifiers.CurrentEnemySpeedMultiplier : 1f;
+                float contactMult = stageModifiers != null ? stageModifiers.CurrentEnemyContactDamageMultiplier : 1f;
+
+                // 1. Minion Wave Invocations by HP threshold
+                float hpPct = (float)bossHp / bossMaxHp;
+                for (int t = 0; t < summonThresholds.Length; t++)
+                {
+                    if (!triggered[t] && hpPct <= summonThresholds[t])
+                    {
+                        triggered[t] = true;
+                        if (summonArchetypes != null)
+                        {
+                            for (int a = 0; a < summonArchetypes.Length; a++)
+                            {
+                                string arch = summonArchetypes[a];
+                                var stats = Archetypes.TryGetValue(arch, out var s) ? s : new ArchetypeStats(20, 2f, 1);
+                                activeMinions.Add(new BossMinionState
+                                {
+                                    Hp = stats.Hp * hpMultiplier,
+                                    Distance = 35f,
+                                    Speed = stats.Speed * speedMult,
+                                    ContactDamage = (int)(stats.ContactDamage * contactMult)
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // 2. Firepower & Grenade
+                float eff = (bot == BotType.Guloso)
+                    ? (0.94f + (float)(rng.NextDouble() * 0.08 - 0.04))
+                    : (0.50f + (float)(rng.NextDouble() * 0.10 - 0.05));
+
+                float fireBudget = fireRate * damage * squad * eff * dt;
+
+                if (activeMinions.Count > 0)
+                {
+                    if (bot == BotType.Guloso && abilityCharges > 0)
+                    {
+                        abilityCharges--;
+                        float grenadeDmg = 150f;
+                        for (int m = 0; m < activeMinions.Count && grenadeDmg > 0f; m++)
+                        {
+                            float toDeal = Math.Min(activeMinions[m].Hp, grenadeDmg);
+                            activeMinions[m].Hp -= toDeal;
+                            grenadeDmg -= toDeal;
+                            if (activeMinions[m].Hp <= 0f) kills++;
+                        }
+                        activeMinions.RemoveAll(m => m.Hp <= 0f);
+                    }
+
+                    activeMinions.Sort((m1, m2) => m1.Distance.CompareTo(m2.Distance));
+                    float minionBudget = (bot == BotType.Guloso) ? fireBudget : fireBudget * 0.40f;
+
+                    for (int m = 0; m < activeMinions.Count && minionBudget > 0f; m++)
+                    {
+                        float toDeal = Math.Min(activeMinions[m].Hp, minionBudget);
+                        activeMinions[m].Hp -= toDeal;
+                        minionBudget -= toDeal;
+                        if (activeMinions[m].Hp <= 0f)
+                        {
+                            kills++;
+                            abilityKillsAccumulator++;
+                            while (abilityKillsAccumulator >= 25)
+                            {
+                                abilityKillsAccumulator -= 25;
+                                abilityCharges++;
+                            }
+                        }
+                    }
+                    activeMinions.RemoveAll(m => m.Hp <= 0f);
+                    fireBudget = minionBudget;
+                }
+
+                // Boss damage
+                int dealtToBoss = (int)fireBudget;
+                bossHp -= dealtToBoss;
+                if (bossHp <= 0)
+                {
+                    bossHp = 0;
+                    kills++;
+                    break;
+                }
+
+                // 3. Minion contact damage
+                for (int m = activeMinions.Count - 1; m >= 0; m--)
+                {
+                    var minion = activeMinions[m];
+                    float closingSpeed = speed + minion.Speed;
+                    minion.Distance -= closingSpeed * dt;
+                    if (minion.Distance <= 0f)
+                    {
+                        squad -= minion.ContactDamage;
+                        activeMinions.RemoveAt(m);
+                        if (squad <= 0)
+                        {
+                            squad = 0;
+                            isAlive = false;
+                            return;
+                        }
+                    }
+                }
+
+                // 4. Boss Lane Telegraph & Dive Attack
+                diveTimer += dt;
+                if (diveTimer >= diveInterval)
+                {
+                    diveTimer = 0f;
+                    float dodgeChance = (bot == BotType.Guloso) ? 0.87f : 0.15f;
+
+                    if (rng.NextDouble() > dodgeChance)
+                    {
+                        squad -= diveDamage;
+                        if (squad <= 0)
+                        {
+                            squad = 0;
+                            isAlive = false;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (bossHp > 0)
+            {
+                isAlive = false;
+                if (squad > 0) squad = 0;
+            }
         }
 
         public static int ExecuteFromCommandLine(string[] args = null)

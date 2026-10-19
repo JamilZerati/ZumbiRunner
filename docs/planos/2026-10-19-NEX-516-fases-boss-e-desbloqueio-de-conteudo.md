@@ -184,7 +184,7 @@ flowchart TD
   - **Marco de PR**: Marco 4
   - **Effort**: medium
 
-- [ ] **Passo 5 (Marco 5)**: `Simulador Headless (SimulateCommand), Balanceamento ~30% e Validação` [NEX-1099]
+- [x] **Passo 5 (Marco 5)**: `Simulador Headless (SimulateCommand), Balanceamento ~30% e Validação` [NEX-1099]
   - **Ação**: Estender `SimulateCommand.cs` para simular combates contra o Boss em modo headless e calibrar os números da Fase 5.
   - **Lógica de Negócios / Responsabilidade**:
     - Processar `SegmentType.Boss` na simulação bot (cálculo de dano de tiro da tropa vs HP do Boss vs investidas/lacaios).
