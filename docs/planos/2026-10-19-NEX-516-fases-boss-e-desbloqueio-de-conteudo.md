@@ -133,7 +133,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: high
 
-- [ ] **Passo 1 (Marco 1)**: `Comportamentos Puros do Boss em C#` [NEX-1095]
+- [x] **Passo 1 (Marco 1)**: `Comportamentos Puros do Boss em C#` [NEX-1095]
   - **Ação**: Implementar `BossPingPongBehavior.cs`, `BossLaneTelegraphDiveBehavior.cs` e `BossSummonWaveBehavior.cs` em C# puro.
   - **Lógica de Negócios / Responsabilidade**:
     - `BossPingPongBehavior`: varredura horizontal linear contínua entre `MinLane` e `MaxLane` com reversão de velocidade nas bordas.

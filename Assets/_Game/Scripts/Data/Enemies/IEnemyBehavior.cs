@@ -33,6 +33,13 @@ namespace Game.Data
 
         public ISquad Squad { get; set; }
         public List<EnemyBehaviorContext> NearbyZombies { get; set; } = new();
+
+        public bool BossTelegraphActive { get; set; }
+        public int BossTelegraphLane { get; set; }
+        public bool BossDidDive { get; set; }
+        public bool BossSummonTriggered { get; set; }
+        public List<string> BossSummonArchetypes { get; set; } = new();
+        public Game.Core.Boss.BossCombatRuntimeState BossState { get; set; }
     }
 
     public interface IEnemyBehavior
