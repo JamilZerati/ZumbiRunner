@@ -13,6 +13,8 @@ namespace Game.Data
         public int InitialTroops;
         public int LaneCount = 2;
         public int Phase = 1;
+        public bool IsBossStage;
+        public string BossId;
 
         public SegmentDefinition[] Segments;
 

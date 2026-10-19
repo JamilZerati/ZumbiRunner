@@ -37,6 +37,12 @@ namespace Game.Editor
             public float warningDuration;
             public int healPerSecond;
             public string archetypeId;
+            public float minLane;
+            public float maxLane;
+            public float speed;
+            public float telegraphDuration;
+            public float[] thresholds;
+            public string[] minionArchetypes;
         }
 
         [MenuItem("Horde Runner/Content/Import Enemies")]
@@ -175,6 +181,26 @@ namespace Game.Editor
                 case "rangedspit": return new RangedSpitBehavior { Interval = dto.interval > 0f ? dto.interval : 3f, WarningDuration = dto.warningDuration > 0f ? dto.warningDuration : 1f, Damage = dto.damage > 0 ? dto.damage : 30 };
                 case "healaura": return new HealAuraBehavior { HealPerSecond = dto.healPerSecond > 0 ? dto.healPerSecond : 5, Radius = dto.radius > 0f ? dto.radius : 4f };
                 case "resurrect": return new ResurrectBehavior { Interval = dto.interval > 0f ? dto.interval : 6f, ArchetypeId = !string.IsNullOrEmpty(dto.archetypeId) ? dto.archetypeId : "walker" };
+                case "bosspingpong":
+                    return new BossPingPongBehavior
+                    {
+                        MinLane = dto.minLane,
+                        MaxLane = dto.maxLane > 0f ? dto.maxLane : 2f,
+                        Speed = dto.speed > 0f ? dto.speed : 2f
+                    };
+                case "bosslanetelegraphdive":
+                    return new BossLaneTelegraphDiveBehavior
+                    {
+                        Interval = dto.interval > 0f ? dto.interval : 4f,
+                        TelegraphDuration = dto.telegraphDuration > 0f ? dto.telegraphDuration : (dto.warningDuration > 0f ? dto.warningDuration : 1f),
+                        Damage = dto.damage > 0 ? dto.damage : 50
+                    };
+                case "bosssummonwave":
+                    return new BossSummonWaveBehavior
+                    {
+                        Thresholds = dto.thresholds != null && dto.thresholds.Length > 0 ? dto.thresholds : new float[] { 0.75f, 0.50f, 0.25f },
+                        MinionArchetypes = dto.minionArchetypes != null && dto.minionArchetypes.Length > 0 ? dto.minionArchetypes : new string[] { "walker", "runner", "brute" }
+                    };
                 default:
                     errors.Add($"{location}.type '{dto.type}' inválido");
                     return null;

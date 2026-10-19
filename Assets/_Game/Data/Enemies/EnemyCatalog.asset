@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: EnemyCatalog
   m_EditorClassIdentifier: Game.Data::Game.Data.EnemyCatalog
   enemies:
+  - {fileID: 11400000, guid: 2a101b1cd3b4e194390eb70056aadb01, type: 2}
   - {fileID: 11400000, guid: c86b26ed03e5f204fb3d055250b1c21b, type: 2}
   - {fileID: 11400000, guid: 67f146b975f5af443ab912f0c6d4dd3c, type: 2}
   - {fileID: 11400000, guid: ee205e94d6a427c4987d235983016dad, type: 2}

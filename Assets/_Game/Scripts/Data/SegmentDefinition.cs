@@ -9,7 +9,8 @@ namespace Game.Data
         Horde,
         Multiplier,
         Cage,
-        Holdout
+        Holdout,
+        Boss = 6
     }
 
     [Serializable]
@@ -22,6 +23,15 @@ namespace Game.Data
     }
 
     [Serializable]
+    public class BossSegmentSpec
+    {
+        public string BossId;
+        public int CustomMaxHp;
+        public int InitialLane;
+        public float ArenaLength;
+    }
+
+    [Serializable]
     public class SegmentDefinition
     {
         public SegmentType SegmentType;
@@ -31,6 +41,7 @@ namespace Game.Data
         public int[] CoveredLanes;
         public CageSpawnSpec[] Cages;
         public HoldoutSegmentSpec Holdout;
+        public BossSegmentSpec Boss;
         public Game.Core.Weather.WeatherType Weather;
     }
 }

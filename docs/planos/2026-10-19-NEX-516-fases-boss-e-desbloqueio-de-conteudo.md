@@ -145,7 +145,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: medium
 
-- [ ] **Passo 2 (Marco 2)**: `Modelos de Dados, SegmentType.Boss e Importador JSON` [NEX-1096]
+- [x] **Passo 2 (Marco 2)**: `Modelos de Dados, SegmentType.Boss e Importador JSON` [NEX-1096]
   - **Ação**: Estender `SegmentDefinition.cs`, `LevelDefinition.cs`, `EnemyImporter.cs`, `LevelImporter.cs` e autorar `boss_colossus.json` e `level_05_boss.json`.
   - **Lógica de Negócios / Responsabilidade**:
     - Adicionar `SegmentType.Boss = 6` e estrutura de parâmetros do Boss no `SegmentDefinition`.
