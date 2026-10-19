@@ -159,7 +159,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: medium
 
-- [ ] **Passo 3 (Marco 3)**: `ProgressionService Puro em Game.Meta e Desbloqueio Idempotente` [NEX-1097]
+- [x] **Passo 3 (Marco 3)**: `ProgressionService Puro em Game.Meta e Desbloqueio Idempotente` [NEX-1097]
   - **Ação**: Implementar `IProgressionService`, `ProgressionService`, `ProgressionCatalog` e `ContentUnlockDefinition` em `Assets/_Game/Scripts/Meta/Progression/`.
   - **Lógica de Negócios / Responsabilidade**:
     - Processar resultados de fases Boss (`RunResult` com `Victory = true` e `IsBossStage = true`).
