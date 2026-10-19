@@ -25,6 +25,19 @@ namespace Game.Meta.Progression
                     _unlockedContent.Add(ent);
                 }
             }
+
+            if (_metaState?.ClaimedGrantIds != null)
+            {
+                foreach (var unlock in _catalog.AllUnlocks)
+                {
+                    string grantId = $"unlock_boss_{unlock.LevelId}_{unlock.ContentId}";
+                    if (_metaState.ClaimedGrantIds.Contains(grantId))
+                    {
+                        _defeatedBosses.Add(unlock.LevelId);
+                        _unlockedContent.Add(unlock.ContentId);
+                    }
+                }
+            }
         }
 
         public bool ProcessRunResult(RunResult result, IRewardSink sink, out IReward grantedReward)
@@ -41,7 +54,7 @@ namespace Game.Meta.Progression
             }
 
             string grantId = $"unlock_boss_{result.LevelId}_{def.ContentId}";
-            if (sink.HasGranted(grantId) || _metaState != null && _metaState.ClaimedGrantIds.Contains(grantId))
+            if (sink.HasGranted(grantId) || (_metaState != null && _metaState.ClaimedGrantIds != null && _metaState.ClaimedGrantIds.Contains(grantId)))
             {
                 return false;
             }
@@ -55,8 +68,8 @@ namespace Game.Meta.Progression
 
             if (_metaState != null)
             {
-                _metaState.ClaimedGrantIds.Add(grantId);
-                _metaState.Entitlements.Add(def.ContentId);
+                _metaState.ClaimedGrantIds?.Add(grantId);
+                _metaState.Entitlements?.Add(def.ContentId);
             }
 
             grantedReward = reward;

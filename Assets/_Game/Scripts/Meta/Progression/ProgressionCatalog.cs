@@ -7,6 +7,8 @@ namespace Game.Meta.Progression
     {
         private readonly Dictionary<string, ContentUnlockDefinition> _unlocksByLevel = new(StringComparer.OrdinalIgnoreCase);
 
+        public IEnumerable<ContentUnlockDefinition> AllUnlocks => _unlocksByLevel.Values;
+
         public void RegisterUnlock(string levelId, string contentId, ContentUnlockType unlockType)
         {
             var def = new ContentUnlockDefinition(levelId, contentId, unlockType);
