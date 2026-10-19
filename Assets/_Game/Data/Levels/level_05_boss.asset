@@ -1,0 +1,121 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de50fd3854657614bac5a416ecc048f6, type: 3}
+  m_Name: level_05_boss
+  m_EditorClassIdentifier: Game.Data::Game.Data.LevelDefinition
+  LevelId: level_05_boss
+  TotalDistance: 800
+  Speed: 8
+  TargetDurationSeconds: 100
+  InitialTroops: 10
+  LaneCount: 2
+  Phase: 5
+  IsBossStage: 1
+  BossId: boss_colossus
+  Segments:
+  - SegmentType: 0
+    StartDistance: 0
+    Length: 50
+    Events: []
+    CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0
+  - SegmentType: 1
+    StartDistance: 50
+    Length: 30
+    Events:
+    - DistanceOffset: 15
+      Type: GateSpawn
+      Data: add+10
+      Lane: -1
+    CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0
+  - SegmentType: 2
+    StartDistance: 80
+    Length: 120
+    Events:
+    - DistanceOffset: 10
+      Type: HordeSpawn
+      Data: lane=0;count=5
+      Lane: 0
+    - DistanceOffset: 10
+      Type: HordeSpawn
+      Data: lane=1;count=5
+      Lane: 1
+    CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0
+  - SegmentType: 6
+    StartDistance: 200
+    Length: 500
+    Events: []
+    CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: boss_colossus
+      CustomMaxHp: 1000
+      InitialLane: 0
+      ArenaLength: 500
+    Weather: 0
+  - SegmentType: 3
+    StartDistance: 700
+    Length: 100
+    Events: []
+    CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0

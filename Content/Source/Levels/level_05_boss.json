@@ -1,0 +1,68 @@
+{
+  "LevelId": "level_05_boss",
+  "TotalDistance": 800.0,
+  "Speed": 8.0,
+  "TargetDurationSeconds": 100.0,
+  "InitialTroops": 10,
+  "LaneCount": 2,
+  "Phase": 5,
+  "IsBossStage": true,
+  "BossId": "boss_colossus",
+  "Segments": [
+    {
+      "SegmentType": 0,
+      "StartDistance": 0.0,
+      "Length": 50.0,
+      "Events": []
+    },
+    {
+      "SegmentType": 1,
+      "StartDistance": 50.0,
+      "Length": 30.0,
+      "Events": [
+        {
+          "DistanceOffset": 15.0,
+          "Type": "GateSpawn",
+          "Data": "add+10"
+        }
+      ]
+    },
+    {
+      "SegmentType": 2,
+      "StartDistance": 80.0,
+      "Length": 120.0,
+      "Events": [
+        {
+          "DistanceOffset": 10.0,
+          "Type": "HordeSpawn",
+          "Data": "lane=0;count=5",
+          "Lane": 0
+        },
+        {
+          "DistanceOffset": 10.0,
+          "Type": "HordeSpawn",
+          "Data": "lane=1;count=5",
+          "Lane": 1
+        }
+      ]
+    },
+    {
+      "SegmentType": 6,
+      "StartDistance": 200.0,
+      "Length": 500.0,
+      "Boss": {
+        "BossId": "boss_colossus",
+        "CustomMaxHp": 1000,
+        "InitialLane": 0,
+        "ArenaLength": 500.0
+      },
+      "Events": []
+    },
+    {
+      "SegmentType": 3,
+      "StartDistance": 700.0,
+      "Length": 100.0,
+      "Events": []
+    }
+  ]
+}

@@ -60,6 +60,11 @@ namespace Game.Data
                 {
                     CheckHoldoutSpec(segment, result.Errors);
                 }
+
+                if (segment.SegmentType == SegmentType.Boss || (segment.Boss != null && !string.IsNullOrWhiteSpace(segment.Boss.BossId)))
+                {
+                    CheckBossSpec(segment, totalLanes, result.Errors);
+                }
             }
 
             CheckSegmentOverlaps(level, result.Errors);
@@ -137,6 +142,43 @@ namespace Game.Data
                 if (spec.CustomDuration < 0f)
                 {
                     errors.Add($"Holdout '{spec.HoldoutId}' in segment at {segment.StartDistance:F1}m has negative CustomDuration ({spec.CustomDuration:F1}s).");
+                }
+            }
+        }
+
+        private static void CheckBossSpec(SegmentDefinition segment, int totalLanes, List<string> errors)
+        {
+            if (segment.SegmentType == SegmentType.Boss)
+            {
+                if (segment.Boss == null)
+                {
+                    errors.Add($"Boss segment at {segment.StartDistance:F1}m has no Boss spec.");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(segment.Boss.BossId))
+                {
+                    errors.Add($"Boss spec in segment at {segment.StartDistance:F1}m has empty BossId.");
+                }
+            }
+
+            if (segment.Boss != null)
+            {
+                var spec = segment.Boss;
+                string bossName = string.IsNullOrWhiteSpace(spec.BossId) ? "Unknown" : spec.BossId;
+                if (spec.CustomMaxHp < 0)
+                {
+                    errors.Add($"Boss '{bossName}' in segment at {segment.StartDistance:F1}m has negative CustomMaxHp ({spec.CustomMaxHp}).");
+                }
+
+                if (spec.InitialLane < 0 || spec.InitialLane >= totalLanes)
+                {
+                    errors.Add($"Boss '{bossName}' in segment at {segment.StartDistance:F1}m has invalid InitialLane {spec.InitialLane}. Total lanes: {totalLanes}.");
+                }
+
+                if (spec.ArenaLength < 0f)
+                {
+                    errors.Add($"Boss '{bossName}' in segment at {segment.StartDistance:F1}m has negative ArenaLength ({spec.ArenaLength:F1}m).");
                 }
             }
         }

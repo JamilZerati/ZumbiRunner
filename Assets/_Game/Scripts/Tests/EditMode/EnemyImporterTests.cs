@@ -39,11 +39,11 @@ namespace Game.Tests.EditMode
             int count = EnemyImporter.ImportAll(errors: errors);
 
             Assert.IsEmpty(errors);
-            Assert.AreEqual(7, count);
+            Assert.AreEqual(8, count);
 
             var catalog = EnemyImporter.LoadCatalog();
             Assert.IsNotNull(catalog);
-            Assert.AreEqual(7, catalog.Enemies.Count);
+            Assert.AreEqual(8, catalog.Enemies.Count);
 
             AssertArchetype(catalog, "walker", 20, 2.0f, 5.0f, 1, typeof(MoveStraightBehavior));
             AssertArchetype(catalog, "runner", 12, 5.0f, 4.0f, 1, typeof(MoveStraightBehavior), typeof(ChaseLaneBehavior));
@@ -52,6 +52,7 @@ namespace Game.Tests.EditMode
             AssertArchetype(catalog, "spitter", 40, 1.0f, 5.0f, 2, typeof(StopAtBehavior), typeof(RangedSpitBehavior));
             AssertArchetype(catalog, "shielded", 80, 1.5f, 10.0f, 3, typeof(MoveStraightBehavior), typeof(FrontShieldBehavior));
             AssertArchetype(catalog, "shaman", 60, 1.0f, 5.0f, 4, typeof(StopAtBehavior), typeof(HealAuraBehavior), typeof(ResurrectBehavior));
+            AssertArchetype(catalog, "boss_colossus", 1000, 1.0f, 20.0f, 100, typeof(BossPingPongBehavior), typeof(BossLaneTelegraphDiveBehavior), typeof(BossSummonWaveBehavior));
         }
 
         [Test]

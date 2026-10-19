@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Game.Core;
+using Game.Core.Boss;
 using Game.Core.Events;
 using Game.Core.Gates;
 using Game.Core.State;
@@ -41,6 +42,7 @@ namespace Game.Gameplay
         private IDisposable _survivorsLostSub;
         private IDisposable _holdoutStartedSub;
         private IDisposable _holdoutEndedSub;
+        private IDisposable _bossDefeatedSub;
 
         public RunConfig Config => _config;
         public LevelDefinition LevelDefinition => _levelDef;
@@ -51,6 +53,10 @@ namespace Game.Gameplay
         public int EscapedEnemyCount { get; private set; }
         public int SpawnedHordeCount { get; private set; }
         public int SpawnedHoldoutCount { get; private set; }
+        public int SpawnedBossCount { get; private set; }
+        public bool IsBossFightActive { get; private set; }
+        public string ActiveBossId { get; private set; }
+        public BossCombatRuntimeState BossCombatState { get; private set; }
         public int RescuedSurvivorsCount => _rescuedSurvivorsCount;
         public int HoldoutsAttempted => _holdoutsAttempted;
         public int HoldoutsHeld => _holdoutsHeld;
@@ -88,6 +94,8 @@ namespace Game.Gameplay
 
         public event Action<SegmentDefinition> OnHordeSpawned;
         public event Action<SegmentDefinition> OnHoldoutSpawned;
+        public event Action<SegmentDefinition> OnBossSpawned;
+        public event Action<string> OnBossFightEnded;
         public event Action<SegmentDefinition, SegmentEvent> OnSegmentEventTriggered;
         public event Action<RunResult> OnRunEnded;
 
@@ -118,6 +126,10 @@ namespace Game.Gameplay
             EscapedEnemyCount = 0;
             SpawnedHordeCount = 0;
             SpawnedHoldoutCount = 0;
+            SpawnedBossCount = 0;
+            IsBossFightActive = false;
+            ActiveBossId = null;
+            BossCombatState = null;
             _holdoutsAttempted = 0;
             _holdoutsHeld = 0;
 
@@ -141,6 +153,7 @@ namespace Game.Gameplay
                 _survivorsLostSub = _eventBus.Subscribe<SurvivorsLostEvent>(OnSurvivorsLost);
                 _holdoutStartedSub = _eventBus.Subscribe<HoldoutStartedEvent>(OnHoldoutStarted);
                 _holdoutEndedSub = _eventBus.Subscribe<HoldoutEndedEvent>(OnHoldoutEnded);
+                _bossDefeatedSub = _eventBus.Subscribe<BossDefeatedEvent>(OnBossDefeated);
 
                 string levelId = _levelDef != null ? _levelDef.LevelId : (_config != null ? _config.LevelId : string.Empty);
                 _eventBus.Publish(new RunStartedEvent(levelId, _config));
@@ -164,7 +177,7 @@ namespace Game.Gameplay
 
             if (_levelDef != null && _levelDef.TotalDistance > 0f)
             {
-                if (distance >= _levelDef.TotalDistance)
+                if (distance >= _levelDef.TotalDistance && !IsBossFightActive)
                 {
                     EndRun(victory: true);
                 }
@@ -210,6 +223,27 @@ namespace Game.Gameplay
                         OnHoldoutSpawned?.Invoke(segment);
                     }
                 }
+                else if (segment.SegmentType == SegmentType.Boss)
+                {
+                    if (distance >= segment.StartDistance && !_spawnedSegments.Contains(segment))
+                    {
+                        _spawnedSegments.Add(segment);
+                        SpawnedBossCount++;
+                        IsBossFightActive = true;
+
+                        string bossId = segment.Boss?.BossId ?? (_levelDef != null ? _levelDef.BossId : null) ?? "boss_colossus";
+                        int maxHp = segment.Boss != null && segment.Boss.CustomMaxHp > 0 ? segment.Boss.CustomMaxHp : 1000;
+                        int initialLane = segment.Boss != null ? segment.Boss.InitialLane : 0;
+
+                        ActiveBossId = bossId;
+                        BossCombatState = new BossCombatRuntimeState();
+                        BossCombatState.StartArena(bossId, maxHp, initialLane);
+                        BossCombatState.OnBossDied += OnBossCombatStateDied;
+
+                        OnBossSpawned?.Invoke(segment);
+                        _eventBus?.Publish(new BossSpawnedEvent(bossId, distance, maxHp));
+                    }
+                }
 
                 if (segment.Events != null)
                 {
@@ -239,15 +273,32 @@ namespace Game.Gameplay
             }
         }
 
+        public bool IsBossArchetype(string archetypeId)
+        {
+            if (string.IsNullOrEmpty(archetypeId)) return false;
+            return string.Equals(archetypeId, ActiveBossId, StringComparison.OrdinalIgnoreCase) ||
+                   archetypeId.StartsWith("boss_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public bool CanEnemyEscape(string archetypeId, float enemyZ, float generalZ)
+        {
+            if (IsBossFightActive && IsBossArchetype(archetypeId))
+            {
+                return false;
+            }
+            return (generalZ - enemyZ) >= EnemyEscapeDistanceBehindGeneral;
+        }
+
         public bool NotifyEnemyPosition(string archetypeId, int lane, float enemyZ, float generalZ)
         {
-            if (generalZ - enemyZ >= EnemyEscapeDistanceBehindGeneral)
+            if (!CanEnemyEscape(archetypeId, enemyZ, generalZ))
             {
-                EscapedEnemyCount++;
-                _eventBus?.Publish(new EnemyEscapedEvent(archetypeId, lane, enemyZ));
-                return true;
+                return false;
             }
-            return false;
+
+            EscapedEnemyCount++;
+            _eventBus?.Publish(new EnemyEscapedEvent(archetypeId, lane, enemyZ));
+            return true;
         }
 
         public void CheckEnemyPositions(IEnumerable<EnemyController> enemies, float generalZ)
@@ -262,6 +313,11 @@ namespace Game.Gameplay
             {
                 var enemy = list[i];
                 if (enemy == null || !enemy.IsActiveInPool)
+                {
+                    continue;
+                }
+
+                if (IsBossFightActive && IsBossArchetype(enemy.ArchetypeId))
                 {
                     continue;
                 }
@@ -292,6 +348,11 @@ namespace Game.Gameplay
                 if (enemy == null || !enemy.IsActiveInPool)
                 {
                     _trackedEnemies.RemoveAt(i);
+                    continue;
+                }
+
+                if (IsBossFightActive && IsBossArchetype(enemy.ArchetypeId))
+                {
                     continue;
                 }
 
@@ -418,6 +479,53 @@ namespace Game.Gameplay
             {
                 _killsByArchetype[evt.ArchetypeId] = 1;
             }
+
+            if (IsBossFightActive && IsBossArchetype(evt.ArchetypeId))
+            {
+                ConcludeBossFight(evt.ArchetypeId);
+            }
+        }
+
+        public void ConcludeBossFight(string bossId = null)
+        {
+            if (!IsBossFightActive)
+            {
+                return;
+            }
+
+            string concludedId = bossId ?? ActiveBossId;
+            IsBossFightActive = false;
+            BossCombatState?.EndArena();
+
+            if (!string.IsNullOrEmpty(concludedId))
+            {
+                _eventBus?.Publish(new BossDefeatedEvent(concludedId, _currentDistance));
+                OnBossFightEnded?.Invoke(concludedId);
+            }
+        }
+
+        public void TickBossCombat(float deltaTime)
+        {
+            if (IsBossFightActive && BossCombatState != null && deltaTime > 0f)
+            {
+                BossCombatState.Tick(deltaTime);
+            }
+        }
+
+        private void OnBossCombatStateDied()
+        {
+            if (IsBossFightActive)
+            {
+                ConcludeBossFight(ActiveBossId);
+            }
+        }
+
+        private void OnBossDefeated(BossDefeatedEvent evt)
+        {
+            if (IsBossFightActive && string.Equals(evt.BossId, ActiveBossId, StringComparison.OrdinalIgnoreCase))
+            {
+                ConcludeBossFight(evt.BossId);
+            }
         }
 
         private void OnMultiplierReached(MultiplierReachedEvent evt)
@@ -452,6 +560,8 @@ namespace Game.Gameplay
             _holdoutStartedSub = null;
             _holdoutEndedSub?.Dispose();
             _holdoutEndedSub = null;
+            _bossDefeatedSub?.Dispose();
+            _bossDefeatedSub = null;
         }
 
         private void OnDestroy()
