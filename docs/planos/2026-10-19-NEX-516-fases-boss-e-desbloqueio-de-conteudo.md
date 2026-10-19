@@ -124,7 +124,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs de Fases Boss e Progressão` [NEX-1094]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs de Fases Boss e Progressão` [NEX-1094]
   - **Ação**: Criar cenários de teste Red em `BossScenariosTests.cs` cobrindo todos os casos de teste `CT-1` a `CT-10`.
   - **Lógica de Negócios / Responsabilidade**: Definir contratos de Seams públicos, testes comportamentais de caixa-preta para varredura de lane, telégrafo de investida, invocação por limiares de HP, ciclo de arena do `LevelDirector`, liquidação de desbloqueios no `ProgressionService` e meta de balanceamento no simulador.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
