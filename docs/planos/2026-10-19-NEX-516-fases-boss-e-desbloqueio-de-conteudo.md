@@ -172,7 +172,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: medium
 
-- [ ] **Passo 4 (Marco 4)**: `Arena Boss no LevelDirector e Ciclo de Vida do Confronto` [NEX-1098]
+- [x] **Passo 4 (Marco 4)**: `Arena Boss no LevelDirector e Ciclo de Vida do Confronto` [NEX-1098]
   - **Ação**: Atualizar `LevelDirector.cs` para orquestrar o ciclo de combate da arena Boss.
   - **Lógica de Negócios / Responsabilidade**:
     - Detectar `SegmentType.Boss`, ativando o modo de arena (`IsBossFightActive = true`).
