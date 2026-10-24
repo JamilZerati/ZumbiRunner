@@ -413,5 +413,57 @@ namespace Game.Tests.EditMode.UI
 
             Assert.DoesNotThrow(() => window.Open());
         }
+
+        [Test]
+        public void UIWindow_Awake_EnsuresInitialClosedState_EvenIfGameObjectWasActive()
+        {
+            var go = new GameObject("PrefabsActiveWindow");
+            _createdObjects.Add(go);
+            go.SetActive(true);
+
+            var window = go.AddComponent<DummyHubWindow>();
+            var awakeMethod = typeof(UIWindow).GetMethod("Awake", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            awakeMethod?.Invoke(window, null);
+
+            Assert.IsFalse(window.IsOpen);
+            Assert.IsFalse(go.activeSelf);
+
+            _uiManager.RegisterWindow(window);
+            var opened = _uiManager.OpenWindow<DummyHubWindow>();
+
+            Assert.AreSame(window, opened);
+            Assert.IsTrue(window.IsOpen);
+            Assert.IsTrue(go.activeSelf);
+            Assert.AreEqual(1, _analytics.Events.Count);
+        }
+
+        [Test]
+        public void GetWindow_WhenWindowDestroyed_ReturnsNull_InsteadOfFakeNullInstance()
+        {
+            var modal = CreateComponent<DummyModalWindow>();
+            _uiManager.RegisterWindow(modal);
+
+            Assert.AreSame(modal, _uiManager.GetWindow<DummyModalWindow>());
+
+            Object.DestroyImmediate(modal.gameObject);
+
+            Assert.IsNull(_uiManager.GetWindow<DummyModalWindow>());
+        }
+
+        [Test]
+        public void RegisterLayer_AssociatesRetroactively_AlreadyRegisteredWindows()
+        {
+            var window = CreateComponent<DummyHubWindow>();
+            _uiManager.RegisterWindow(window);
+
+            var layer = CreateComponent<UILayer>("HubLayer");
+            layer.Initialize(UILayerType.Hub);
+
+            Assert.AreEqual(0, layer.Windows.Count);
+
+            _uiManager.RegisterLayer(layer);
+
+            Assert.Contains(window, (System.Collections.ICollection)layer.Windows);
+        }
     }
 }

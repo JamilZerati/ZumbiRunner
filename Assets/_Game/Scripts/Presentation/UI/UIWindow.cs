@@ -16,7 +16,8 @@ namespace Game.Presentation.UI
 
         protected virtual void Awake()
         {
-            _isOpen = gameObject.activeSelf;
+            gameObject.SetActive(false);
+            _isOpen = false;
         }
 
         public void SetLayerType(UILayerType layerType)

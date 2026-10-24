@@ -78,6 +78,15 @@ namespace Game.Presentation.UI
             {
                 _layers.Add(layer);
             }
+
+            for (int i = 0; i < _allWindows.Count; i++)
+            {
+                var window = _allWindows[i];
+                if (window != null && window.LayerType == layer.LayerType)
+                {
+                    layer.AddWindow(window);
+                }
+            }
         }
 
         public UILayer GetLayer(UILayerType layerType)
@@ -153,7 +162,7 @@ namespace Game.Presentation.UI
 
             for (int i = 0; i < _allWindows.Count; i++)
             {
-                if (_allWindows[i] is T typed)
+                if (_allWindows[i] != null && _allWindows[i] is T typed)
                 {
                     return typed;
                 }
@@ -324,6 +333,14 @@ namespace Game.Presentation.UI
             for (int i = 0; i < layers.Length; i++)
             {
                 RegisterLayer(layers[i]);
+            }
+
+            for (int i = 0; i < _layers.Count; i++)
+            {
+                if (_layers[i] != null)
+                {
+                    RegisterLayer(_layers[i]);
+                }
             }
 
             var windows = GetComponentsInChildren<UIWindow>(true);
