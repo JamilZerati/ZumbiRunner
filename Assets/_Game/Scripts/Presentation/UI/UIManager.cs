@@ -32,6 +32,20 @@ namespace Game.Presentation.UI
         {
             _stateSubscription?.Dispose();
             _stateSubscription = null;
+
+            for (int i = 0; i < _allWindows.Count; i++)
+            {
+                var window = _allWindows[i];
+                if (window != null)
+                {
+                    window.OnOpened -= HandleWindowOpened;
+                    window.OnClosed -= HandleWindowClosed;
+                }
+            }
+
+            _allWindows.Clear();
+            _windowsByType.Clear();
+            _layersByType.Clear();
         }
 
         public void Initialize(
@@ -123,11 +137,16 @@ namespace Game.Presentation.UI
 
             window.OnOpened -= HandleWindowOpened;
             window.OnClosed -= HandleWindowClosed;
+
+            if (window.LayerType == UILayerType.Modal)
+            {
+                UpdateModalInputBlocking();
+            }
         }
 
         public T GetWindow<T>() where T : UIWindow
         {
-            if (_windowsByType.TryGetValue(typeof(T), out var window))
+            if (_windowsByType.TryGetValue(typeof(T), out var window) && window != null)
             {
                 return (T)window;
             }
@@ -198,7 +217,7 @@ namespace Game.Presentation.UI
         {
             for (int i = 0; i < _allWindows.Count; i++)
             {
-                if (_allWindows[i].LayerType == UILayerType.Modal && _allWindows[i].IsOpen)
+                if (_allWindows[i] != null && _allWindows[i].LayerType == UILayerType.Modal && _allWindows[i].IsOpen)
                 {
                     return true;
                 }
@@ -209,17 +228,20 @@ namespace Game.Presentation.UI
 
         public void CloseAllWindows()
         {
-            for (int i = 0; i < _allWindows.Count; i++)
+            for (int i = _allWindows.Count - 1; i >= 0; i--)
             {
-                _allWindows[i].Close();
+                if (i < _allWindows.Count && _allWindows[i] != null)
+                {
+                    _allWindows[i].Close();
+                }
             }
         }
 
         public void CloseWindowsInLayer(UILayerType layerType)
         {
-            for (int i = 0; i < _allWindows.Count; i++)
+            for (int i = _allWindows.Count - 1; i >= 0; i--)
             {
-                if (_allWindows[i].LayerType == layerType)
+                if (i < _allWindows.Count && _allWindows[i] != null && _allWindows[i].LayerType == layerType)
                 {
                     _allWindows[i].Close();
                 }
@@ -233,6 +255,11 @@ namespace Game.Presentation.UI
 
         private void OpenWindowInstance(UIWindow window)
         {
+            if (window.IsOpen)
+            {
+                return;
+            }
+
             SetLayerVisible(window.LayerType, true);
             window.Open();
 
@@ -262,8 +289,10 @@ namespace Game.Presentation.UI
         private void UpdateModalInputBlocking()
         {
             bool hasModal = IsModalOpen();
+            GetLayer(UILayerType.Modal)?.SetVisible(hasModal);
             GetLayer(UILayerType.Hub)?.SetInteractable(!hasModal);
             GetLayer(UILayerType.GameHud)?.SetInteractable(!hasModal);
+            GetLayer(UILayerType.TutorialOverlay)?.SetInteractable(!hasModal);
         }
 
         private void OnGameStateChanged(GameStateChangedEvent evt)
@@ -274,11 +303,13 @@ namespace Game.Presentation.UI
                     SetLayerVisible(UILayerType.Hub, true);
                     SetLayerVisible(UILayerType.GameHud, false);
                     CloseWindowsInLayer(UILayerType.Modal);
+                    SetLayerVisible(UILayerType.Modal, false);
                     break;
                 case GameState.Run:
                     SetLayerVisible(UILayerType.Hub, false);
                     SetLayerVisible(UILayerType.GameHud, true);
                     CloseWindowsInLayer(UILayerType.Modal);
+                    SetLayerVisible(UILayerType.Modal, false);
                     break;
                 case GameState.Paused:
                 case GameState.Result:

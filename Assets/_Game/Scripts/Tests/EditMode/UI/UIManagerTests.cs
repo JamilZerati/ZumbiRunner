@@ -24,6 +24,31 @@ namespace Game.Tests.EditMode.UI
             public override UILayerType LayerType => UILayerType.Modal;
         }
 
+        private class DummyModalWindow2 : UIWindow
+        {
+            public override UILayerType LayerType => UILayerType.Modal;
+        }
+
+        private class DummyTutorialWindow : UIWindow
+        {
+            public override UILayerType LayerType => UILayerType.TutorialOverlay;
+        }
+
+        private class AutoUnregisterWindow : UIWindow
+        {
+            private UIManager _manager;
+
+            public void SetManager(UIManager manager)
+            {
+                _manager = manager;
+            }
+
+            protected override void OnClose()
+            {
+                _manager?.UnregisterWindow(this);
+            }
+        }
+
         private readonly List<GameObject> _createdObjects = new();
         private UIManager _uiManager;
         private EventBus _eventBus;
@@ -140,8 +165,8 @@ namespace Game.Tests.EditMode.UI
         public void ModalInputBlocking_DisablesInteractionOnLowerLayers_WhenModalOpens_AndRestoresOnClose()
         {
             var hubLayer = CreateComponent<UILayer>("HubLayer");
-            var hubCanvasGroup = hubLayer.gameObject.AddComponent<CanvasGroup>();
-            hubLayer.Initialize(UILayerType.Hub, hubCanvasGroup);
+            hubLayer.Initialize(UILayerType.Hub);
+            var hubCanvasGroup = hubLayer.CanvasGroup;
             _uiManager.RegisterLayer(hubLayer);
 
             var modalWindow = CreateComponent<DummyModalWindow>();
@@ -224,6 +249,169 @@ namespace Game.Tests.EditMode.UI
 
             Assert.IsNull(_uiManager.GetWindow<DummyHubWindow>());
             Assert.IsFalse(((System.Collections.IList)layer.Windows).Contains(window));
+        }
+
+        [Test]
+        public void ModalStacking_ClosingOneModal_KeepsLowerLayersBlocked_UntilAllModalsClosed()
+        {
+            var hubLayer = CreateComponent<UILayer>("HubLayer");
+            hubLayer.Initialize(UILayerType.Hub);
+            _uiManager.RegisterLayer(hubLayer);
+
+            var tutorialLayer = CreateComponent<UILayer>("TutorialLayer");
+            tutorialLayer.Initialize(UILayerType.TutorialOverlay);
+            _uiManager.RegisterLayer(tutorialLayer);
+
+            var modalLayer = CreateComponent<UILayer>("ModalLayer");
+            modalLayer.Initialize(UILayerType.Modal);
+            _uiManager.RegisterLayer(modalLayer);
+
+            var modal1 = CreateComponent<DummyModalWindow>();
+            var modal2 = CreateComponent<DummyModalWindow2>();
+            _uiManager.RegisterWindow(modal1);
+            _uiManager.RegisterWindow(modal2);
+
+            _uiManager.OpenWindow<DummyModalWindow>();
+
+            Assert.IsTrue(modalLayer.IsVisible);
+            Assert.IsFalse(hubLayer.CanvasGroup.interactable);
+            Assert.IsFalse(hubLayer.CanvasGroup.blocksRaycasts);
+            Assert.IsFalse(tutorialLayer.CanvasGroup.interactable);
+            Assert.IsFalse(tutorialLayer.CanvasGroup.blocksRaycasts);
+
+            _uiManager.OpenWindow<DummyModalWindow2>();
+
+            Assert.IsFalse(hubLayer.CanvasGroup.interactable);
+            Assert.IsFalse(tutorialLayer.CanvasGroup.interactable);
+
+            _uiManager.CloseWindow<DummyModalWindow>();
+
+            Assert.IsTrue(_uiManager.IsModalOpen());
+            Assert.IsTrue(modalLayer.IsVisible);
+            Assert.IsFalse(hubLayer.CanvasGroup.interactable);
+            Assert.IsFalse(tutorialLayer.CanvasGroup.interactable);
+
+            _uiManager.CloseWindow<DummyModalWindow2>();
+
+            Assert.IsFalse(_uiManager.IsModalOpen());
+            Assert.IsFalse(modalLayer.IsVisible);
+            Assert.IsTrue(hubLayer.CanvasGroup.interactable);
+            Assert.IsTrue(hubLayer.CanvasGroup.blocksRaycasts);
+            Assert.IsTrue(tutorialLayer.CanvasGroup.interactable);
+            Assert.IsTrue(tutorialLayer.CanvasGroup.blocksRaycasts);
+        }
+
+        [Test]
+        public void UIWindow_OpenAndClose_AreIdempotent_AndDoNotDuplicateEvents()
+        {
+            var window = CreateComponent<DummyHubWindow>();
+            int openEvents = 0;
+            int closeEvents = 0;
+
+            window.OnOpened += _ => openEvents++;
+            window.OnClosed += _ => closeEvents++;
+
+            window.Open();
+            window.Open();
+
+            Assert.AreEqual(1, openEvents);
+            Assert.IsTrue(window.IsOpen);
+
+            window.Close();
+            window.Close();
+
+            Assert.AreEqual(1, closeEvents);
+            Assert.IsFalse(window.IsOpen);
+        }
+
+        [Test]
+        public void UIManager_OpenWindow_WhenAlreadyOpen_DoesNotDuplicateAnalytics()
+        {
+            var window = CreateComponent<DummyHubWindow>();
+            _uiManager.RegisterWindow(window);
+
+            _uiManager.OpenWindow<DummyHubWindow>();
+            _uiManager.OpenWindow<DummyHubWindow>();
+
+            Assert.AreEqual(1, _analytics.Events.Count);
+        }
+
+        [Test]
+        public void GameStateChanged_PausedAndResult_MakeModalLayerVisible_AndHubRunHideModalLayer()
+        {
+            var modalLayer = CreateComponent<UILayer>("ModalLayer");
+            modalLayer.Initialize(UILayerType.Modal);
+            modalLayer.SetVisible(false);
+            _uiManager.RegisterLayer(modalLayer);
+
+            _stateMachine.TryTransition(GameState.Hub);
+            Assert.IsFalse(modalLayer.IsVisible);
+
+            _stateMachine.TryTransition(GameState.Run);
+            Assert.IsFalse(modalLayer.IsVisible);
+
+            _stateMachine.TryTransition(GameState.Paused);
+            Assert.IsTrue(modalLayer.IsVisible);
+
+            _stateMachine.TryTransition(GameState.Run);
+            Assert.IsFalse(modalLayer.IsVisible);
+
+            _stateMachine.TryTransition(GameState.Result);
+            Assert.IsTrue(modalLayer.IsVisible);
+        }
+
+        [Test]
+        public void UnregisterWindow_ActiveModal_RestoresInputBlocking()
+        {
+            var hubLayer = CreateComponent<UILayer>("HubLayer");
+            hubLayer.Initialize(UILayerType.Hub);
+            _uiManager.RegisterLayer(hubLayer);
+
+            var modalLayer = CreateComponent<UILayer>("ModalLayer");
+            modalLayer.Initialize(UILayerType.Modal);
+            _uiManager.RegisterLayer(modalLayer);
+
+            var modal = CreateComponent<DummyModalWindow>();
+            _uiManager.RegisterWindow(modal);
+            _uiManager.OpenWindow<DummyModalWindow>();
+
+            Assert.IsFalse(hubLayer.CanvasGroup.interactable);
+            Assert.IsTrue(modalLayer.IsVisible);
+
+            _uiManager.UnregisterWindow(modal);
+
+            Assert.IsTrue(hubLayer.CanvasGroup.interactable);
+            Assert.IsTrue(hubLayer.CanvasGroup.blocksRaycasts);
+            Assert.IsFalse(modalLayer.IsVisible);
+        }
+
+        [Test]
+        public void CloseAllWindows_SupportsAutoUnregisteringWindows_InReverseOrder()
+        {
+            var win1 = CreateComponent<AutoUnregisterWindow>("AutoWin1");
+            win1.SetManager(_uiManager);
+            var win2 = CreateComponent<AutoUnregisterWindow>("AutoWin2");
+            win2.SetManager(_uiManager);
+
+            _uiManager.RegisterWindow(win1);
+            _uiManager.RegisterWindow(win2);
+
+            _uiManager.OpenWindow(win1);
+            _uiManager.OpenWindow(win2);
+
+            Assert.DoesNotThrow(() => _uiManager.CloseAllWindows());
+            Assert.AreEqual(0, _uiManager.Windows.Count);
+        }
+
+        [Test]
+        public void OnDestroy_UnsubscribesFromWindowEvents_AndClearsCollections()
+        {
+            var window = CreateComponent<DummyModalWindow>();
+            _uiManager.RegisterWindow(window);
+
+            Object.DestroyImmediate(_uiManager.gameObject);
+
+            Assert.DoesNotThrow(() => window.Open());
         }
     }
 }

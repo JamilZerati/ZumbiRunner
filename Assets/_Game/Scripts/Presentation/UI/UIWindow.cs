@@ -26,6 +26,11 @@ namespace Game.Presentation.UI
 
         public virtual void Open()
         {
+            if (_isOpen)
+            {
+                return;
+            }
+
             gameObject.SetActive(true);
             _isOpen = true;
             OnOpen();
@@ -34,6 +39,11 @@ namespace Game.Presentation.UI
 
         public virtual void Close()
         {
+            if (!_isOpen)
+            {
+                return;
+            }
+
             gameObject.SetActive(false);
             _isOpen = false;
             OnClose();
