@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Core.Analytics;
+using Game.Gameplay.Tutorial;
 using NUnit.Framework;
 
 namespace Game.Tests.EditMode.UI
@@ -30,29 +31,31 @@ namespace Game.Tests.EditMode.UI
         [Test]
         public void CT_5_FtueTutorial_IdentifiesExpectedGuidancePerStage_AndSkipsCompleted()
         {
-            var completedSteps = new HashSet<string>();
+            var progress = new FtueStepProgress();
 
-            string GetTutorialForStage(int stageIndex)
-            {
-                if (stageIndex == 1 && !completedSteps.Contains("swipe")) return "swipe";
-                if (stageIndex == 2 && !completedSteps.Contains("gate")) return "gate";
-                if (stageIndex == 3 && !completedSteps.Contains("cage")) return "cage";
-                return null;
-            }
+            Assert.AreEqual(FtueStepProgress.SwipeStep, progress.GetTutorialStepForStage(1));
+            Assert.IsFalse(progress.IsStepCompleted(FtueStepProgress.SwipeStep));
 
-            Assert.AreEqual("swipe", GetTutorialForStage(1));
-            completedSteps.Add("swipe");
-            Assert.IsNull(GetTutorialForStage(1));
+            Assert.IsTrue(progress.CompleteStep(FtueStepProgress.SwipeStep));
+            Assert.IsTrue(progress.IsStepCompleted(FtueStepProgress.SwipeStep));
+            Assert.IsNull(progress.GetTutorialStepForStage(1));
 
-            Assert.AreEqual("gate", GetTutorialForStage(2));
-            completedSteps.Add("gate");
-            Assert.IsNull(GetTutorialForStage(2));
+            Assert.AreEqual(FtueStepProgress.GateStep, progress.GetTutorialStepForStage(2));
+            Assert.IsTrue(progress.CompleteStep(FtueStepProgress.GateStep));
+            Assert.IsNull(progress.GetTutorialStepForStage(2));
 
-            Assert.AreEqual("cage", GetTutorialForStage(3));
-            completedSteps.Add("cage");
-            Assert.IsNull(GetTutorialForStage(3));
+            Assert.AreEqual(FtueStepProgress.CageStep, progress.GetTutorialStepForStage(3));
+            Assert.IsTrue(progress.CompleteStep(FtueStepProgress.CageStep));
+            Assert.IsNull(progress.GetTutorialStepForStage(3));
 
-            Assert.IsNull(GetTutorialForStage(4));
+            Assert.IsNull(progress.GetTutorialStepForStage(4));
+            Assert.IsNull(progress.GetTutorialStepForStage(0));
+
+            var restored = new FtueStepProgress(progress.CompletedSteps);
+            Assert.IsTrue(restored.IsStepCompleted(FtueStepProgress.SwipeStep));
+            Assert.IsTrue(restored.IsStepCompleted(FtueStepProgress.GateStep));
+            Assert.IsTrue(restored.IsStepCompleted(FtueStepProgress.CageStep));
+            Assert.IsNull(restored.GetTutorialStepForStage(1));
         }
     }
 }

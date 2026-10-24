@@ -8,6 +8,11 @@ namespace Game.Core.Analytics
 
         public void TrackEvent(string eventName, IReadOnlyDictionary<string, object> parameters = null)
         {
+            if (string.IsNullOrEmpty(eventName))
+            {
+                return;
+            }
+
             Events.Add(new AnalyticsTrackedEvent(eventName, parameters));
         }
 

@@ -49,5 +49,33 @@ namespace Game.Tests.EditMode.UI
             Assert.IsTrue(claimedDay2);
             Assert.IsTrue(sink.HasGranted("debut_day_2"));
         }
+
+        [Test]
+        public void CT_6_DebutJourney_RejectsNullArgumentsAndOutOfBoundsDaysSafely()
+        {
+            var service = new DebutJourneyService();
+            var track = new ProgressTrack(service.Definition);
+            var sink = new FakeRewardSink();
+
+            track.AddPoints(1);
+
+            Assert.IsFalse(service.CanClaimDay(null, 0, 1));
+            Assert.IsFalse(service.CanClaimDay(track, -1, 1));
+            Assert.IsFalse(service.CanClaimDay(track, 7, 7));
+
+            Assert.IsFalse(service.ClaimDay(null, 0, 1, sink));
+            Assert.IsFalse(service.ClaimDay(track, 0, 1, null));
+            Assert.IsFalse(sink.HasGranted("debut_day_1"));
+
+            Assert.IsFalse(service.ClaimDay(track, -1, 1, sink));
+            Assert.IsFalse(service.ClaimDay(track, 7, 7, sink));
+
+            var otherTrack = new ProgressTrack(new ProgressTrackDefinition("other_track", new List<MilestoneDefinition>()));
+            Assert.IsFalse(service.CanClaimDay(otherTrack, 0, 1));
+            Assert.IsFalse(service.ClaimDay(otherTrack, 0, 1, sink));
+
+            Assert.IsTrue(service.ClaimDay(track, 0, 1, sink));
+            Assert.IsTrue(sink.HasGranted("debut_day_1"));
+        }
     }
 }

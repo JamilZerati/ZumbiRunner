@@ -18,7 +18,7 @@ namespace Game.Meta.Debut
 
         public bool CanClaimDay(IProgressTrack track, int dayIndex, int currentLoginDay)
         {
-            if (track == null || dayIndex < 0 || dayIndex >= _definition.Milestones.Count)
+            if (track == null || track.TrackId != _definition.TrackId || dayIndex < 0 || dayIndex >= _definition.Milestones.Count)
             {
                 return false;
             }
@@ -33,6 +33,11 @@ namespace Game.Meta.Debut
 
         public bool ClaimDay(IProgressTrack track, int dayIndex, int currentLoginDay, IRewardSink sink)
         {
+            if (track == null || sink == null)
+            {
+                return false;
+            }
+
             if (!CanClaimDay(track, dayIndex, currentLoginDay))
             {
                 return false;

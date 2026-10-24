@@ -8,6 +8,10 @@ namespace Game.Presentation.Settings
         public const string SfxKey = "Settings.Audio.Sfx";
         public const string BgmKey = "Settings.Audio.Bgm";
 
+        private readonly string _masterKey;
+        private readonly string _sfxKey;
+        private readonly string _bgmKey;
+
         private float _masterVolume;
         private float _sfxVolume;
         private float _bgmVolume;
@@ -30,18 +34,28 @@ namespace Game.Presentation.Settings
             set => _bgmVolume = Mathf.Clamp01(value);
         }
 
-        public AudioSettings(float defaultMaster = 1.0f, float defaultSfx = 1.0f, float defaultBgm = 1.0f)
+        public AudioSettings(
+            float defaultMaster = 1.0f,
+            float defaultSfx = 1.0f,
+            float defaultBgm = 1.0f,
+            string masterKey = MasterKey,
+            string sfxKey = SfxKey,
+            string bgmKey = BgmKey)
         {
-            _masterVolume = PlayerPrefs.GetFloat(MasterKey, defaultMaster);
-            _sfxVolume = PlayerPrefs.GetFloat(SfxKey, defaultSfx);
-            _bgmVolume = PlayerPrefs.GetFloat(BgmKey, defaultBgm);
+            _masterKey = masterKey;
+            _sfxKey = sfxKey;
+            _bgmKey = bgmKey;
+
+            MasterVolume = PlayerPrefs.GetFloat(_masterKey, defaultMaster);
+            SfxVolume = PlayerPrefs.GetFloat(_sfxKey, defaultSfx);
+            BgmVolume = PlayerPrefs.GetFloat(_bgmKey, defaultBgm);
         }
 
         public void Save()
         {
-            PlayerPrefs.SetFloat(MasterKey, _masterVolume);
-            PlayerPrefs.SetFloat(SfxKey, _sfxVolume);
-            PlayerPrefs.SetFloat(BgmKey, _bgmVolume);
+            PlayerPrefs.SetFloat(_masterKey, _masterVolume);
+            PlayerPrefs.SetFloat(_sfxKey, _sfxVolume);
+            PlayerPrefs.SetFloat(_bgmKey, _bgmVolume);
             PlayerPrefs.Save();
         }
     }

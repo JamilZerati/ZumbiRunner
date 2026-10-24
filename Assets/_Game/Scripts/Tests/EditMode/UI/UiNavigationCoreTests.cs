@@ -56,6 +56,27 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(GameState.Hub, fsm.CurrentState);
 
             Assert.IsFalse(fsm.TryTransition(GameState.Result));
+            Assert.IsFalse(fsm.TryTransition(GameState.Victory));
+
+            Assert.IsTrue(fsm.TryTransition(GameState.Run));
+            Assert.IsTrue(fsm.TryTransition(GameState.Victory));
+            Assert.AreEqual(GameState.Victory, fsm.CurrentState);
+
+            Assert.IsFalse(fsm.TryTransition(GameState.Paused));
+            Assert.IsTrue(fsm.TryTransition(GameState.Result));
+            Assert.AreEqual(GameState.Result, fsm.CurrentState);
+
+            Assert.IsTrue(fsm.TryTransition(GameState.Hub));
+            Assert.IsTrue(fsm.TryTransition(GameState.Run));
+            Assert.IsTrue(fsm.TryTransition(GameState.Defeat));
+            Assert.AreEqual(GameState.Defeat, fsm.CurrentState);
+
+            Assert.IsFalse(fsm.TryTransition(GameState.Paused));
+            Assert.IsTrue(fsm.TryTransition(GameState.Result));
+            Assert.AreEqual(GameState.Result, fsm.CurrentState);
+
+            Assert.IsFalse(fsm.TryTransition(GameState.Paused));
+            Assert.IsFalse(fsm.TryTransition(GameState.Victory));
         }
 
         [Test]
@@ -86,6 +107,16 @@ namespace Game.Tests.EditMode.UI
             var sink = new FakeRewardSink();
             Assert.IsTrue(doubledBundle.Grant(sink));
             Assert.IsFalse(doubledBundle.Grant(sink));
+
+            var zeroResult = new RunResult
+            {
+                LevelId = "stage_01",
+                CoinsEarned = 0,
+                MultiplierReached = 2,
+                Stars = 1
+            };
+            var zeroBundle = calculator.Calculate(zeroResult, config, doubleReward: false);
+            Assert.AreEqual(0, ((CurrencyReward)zeroBundle.Rewards[0]).Amount);
         }
 
         [Test]
