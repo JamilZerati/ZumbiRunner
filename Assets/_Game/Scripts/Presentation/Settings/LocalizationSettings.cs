@@ -10,6 +10,7 @@ namespace Game.Presentation.Settings
 
         private readonly string _storageKey;
         private readonly List<string> _supportedLanguages;
+        private readonly IReadOnlyList<string> _supportedLanguagesReadOnly;
         private string _currentLanguage;
 
         public string CurrentLanguage
@@ -24,7 +25,7 @@ namespace Game.Presentation.Settings
             }
         }
 
-        public IReadOnlyList<string> SupportedLanguages => _supportedLanguages;
+        public IReadOnlyList<string> SupportedLanguages => _supportedLanguagesReadOnly;
 
         public LocalizationSettings(string defaultLanguage = "pt-BR", IEnumerable<string> supportedLanguages = null, string storageKey = LanguageKey)
         {
@@ -34,6 +35,7 @@ namespace Game.Presentation.Settings
             {
                 _supportedLanguages.Add(defaultLanguage);
             }
+            _supportedLanguagesReadOnly = _supportedLanguages.AsReadOnly();
 
             string saved = PlayerPrefs.GetString(_storageKey, defaultLanguage);
             if (_supportedLanguages.Contains(saved))

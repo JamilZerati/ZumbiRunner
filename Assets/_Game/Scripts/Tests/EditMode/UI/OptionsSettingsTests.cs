@@ -26,6 +26,11 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(0.0f, settings.SfxVolume, 1e-4f);
             Assert.AreEqual(1.0f, settings.BgmVolume, 1e-4f);
 
+            settings.MasterVolume = 1.5f;
+            Assert.AreEqual(1.0f, settings.MasterVolume, 1e-4f);
+            settings.SfxVolume = -0.5f;
+            Assert.AreEqual(0.0f, settings.SfxVolume, 1e-4f);
+
             settings.MasterVolume = 0.5f;
             settings.SfxVolume = 0.8f;
             settings.BgmVolume = 0.2f;
@@ -44,16 +49,32 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual("ja", fallbackSettings.CurrentLanguage);
             CollectionAssert.Contains(fallbackSettings.SupportedLanguages, fallbackSettings.CurrentLanguage);
 
+            string corruptedStorageKey = $"Test.Language.Corrupted.{Guid.NewGuid():N}";
+            PlayerPrefs.SetString(corruptedStorageKey, "invalid_corrupted_locale");
+            var corruptedSettings = new LocalizationSettings("pt-BR", null, corruptedStorageKey);
+            Assert.AreEqual("pt-BR", corruptedSettings.CurrentLanguage);
+
             string storageKey = $"Test.Language.{Guid.NewGuid():N}";
             var settings = new LocalizationSettings("pt-BR", null, storageKey);
             CollectionAssert.Contains(settings.SupportedLanguages, "pt-BR");
             CollectionAssert.Contains(settings.SupportedLanguages, "en-US");
             CollectionAssert.Contains(settings.SupportedLanguages, "es");
 
+            Assert.Throws<InvalidCastException>(() =>
+            {
+                var mutableList = (System.Collections.Generic.List<string>)settings.SupportedLanguages;
+            });
+
             settings.CurrentLanguage = "en-US";
             Assert.AreEqual("en-US", settings.CurrentLanguage);
 
             settings.CurrentLanguage = "invalid_lang";
+            Assert.AreEqual("en-US", settings.CurrentLanguage);
+
+            settings.CurrentLanguage = null;
+            Assert.AreEqual("en-US", settings.CurrentLanguage);
+
+            settings.CurrentLanguage = string.Empty;
             Assert.AreEqual("en-US", settings.CurrentLanguage);
 
             settings.Save();
