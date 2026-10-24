@@ -38,12 +38,18 @@ namespace Game.Core
             switch (from)
             {
                 case GameState.Boot:
+                    return to == GameState.Hub || to == GameState.Run;
+                case GameState.Hub:
                     return to == GameState.Run;
                 case GameState.Run:
-                    return to == GameState.Victory || to == GameState.Defeat;
+                    return to == GameState.Paused || to == GameState.Victory || to == GameState.Defeat || to == GameState.Result || to == GameState.Hub;
+                case GameState.Paused:
+                    return to == GameState.Run || to == GameState.Hub;
                 case GameState.Victory:
                 case GameState.Defeat:
-                    return to == GameState.Boot || to == GameState.Run;
+                    return to == GameState.Result || to == GameState.Boot || to == GameState.Run || to == GameState.Hub;
+                case GameState.Result:
+                    return to == GameState.Hub || to == GameState.Run;
                 default:
                     return false;
             }
