@@ -253,7 +253,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: high
 
-- [ ] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Analytics/IAnalyticsService.cs` [NEX-1129]
+- [x] **Passo 1 (Marco 1)**: `Assets/_Game/Scripts/Core/Analytics/IAnalyticsService.cs` [NEX-1129]
   - **Ação**: Criar abstração `IAnalyticsService`, `MockAnalyticsService` e eventos de telemetria em `Game.Core`.
   - **Lógica de Negócios / Responsabilidade**: Suportar métodos de rastreamento `TrackEvent` e `TrackFtueStep`, permitindo captura em mock em testes EditMode e PlayMode.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
