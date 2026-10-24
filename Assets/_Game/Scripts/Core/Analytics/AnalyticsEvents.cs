@@ -2,6 +2,7 @@ namespace Game.Core.Analytics
 {
     public static class AnalyticsEvents
     {
+        public const string ScreenView = "screen_view";
         public const string FtueStep = "ftue_step";
         public const string RunStart = "run_start";
         public const string RunEnd = "run_end";
