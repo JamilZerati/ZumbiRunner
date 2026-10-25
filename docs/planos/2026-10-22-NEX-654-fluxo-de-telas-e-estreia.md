@@ -328,7 +328,7 @@ flowchart TD
   - **Marco de PR**: Marco 8
   - **Effort**: medium
 
-- [ ] **Passo 9 (Marco 9)**: `Assets/_Game/Scripts/Editor/SceneBuilder.cs` `[TELA]` `[GAMEPLAY]` [NEX-1137]
+- [x] **Passo 9 (Marco 9)**: `Assets/_Game/Scripts/Editor/SceneBuilder.cs` `[TELA]` `[GAMEPLAY]` [NEX-1137]
   - **Ação**: Atualizar `SceneBuilder` para montar a hierarquia completa de UI uGUI (`UIManager`, `HubView`, `PauseView`, `ResultView`, `OptionsView`, `TutorialGuideView`, `DebutJourneyView`), registrar na injeção de dependência (`GameLifetimeScope` e `GreyboxRunComposer`), e criar teste PlayMode `UiFlowPlayModeTests` para validação em cena viva e captura de tela.
   - **Lógica de Negócios / Responsabilidade**: Ponto de montagem e integração final de todas as telas na cena, garantindo resolução de propriedades serializadas, funcionamento do loop em PlayMode e registro de evidência visual canônica.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 1, Marco 2, Marco 3, Marco 4, Marco 5, Marco 6, Marco 7, Marco 8.

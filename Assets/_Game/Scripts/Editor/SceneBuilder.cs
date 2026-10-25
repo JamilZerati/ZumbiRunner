@@ -10,6 +10,9 @@ using Game.Gameplay.Abilities;
 using Game.Infrastructure;
 using Game.Infrastructure.Input;
 using Game.Presentation;
+using Game.Presentation.UI;
+using TMPro;
+using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -96,6 +99,27 @@ namespace Game.Editor
             followCam.Target = generalGo.transform;
             followCam.Offset = new Vector3(0f, 7.0f, -9.0f);
             followCam.Snap();
+
+            var canvasGo = new GameObject("Canvas");
+            canvasGo.AddComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            canvasGo.AddComponent<GraphicRaycaster>();
+
+            var eventSystemGo = new GameObject("EventSystem");
+            eventSystemGo.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystemGo.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+
+            var (uiManager, pauseController) = BuildUiHierarchy(canvasGo);
+
+            var composerGo = new GameObject("GreyboxRunComposer");
+            var composer = composerGo.AddComponent<GreyboxRunComposer>();
+            composer.ConfigureUi(uiManager, pauseController);
+            var serializedComposer = new SerializedObject(composer);
+            serializedComposer.FindProperty("uiManager").objectReferenceValue = uiManager;
+            serializedComposer.FindProperty("pauseController").objectReferenceValue = pauseController;
+            serializedComposer.ApplyModifiedProperties();
 
             EditorSceneManager.SaveScene(scene, M1GreyboxScenePath);
             AssetDatabase.Refresh();
@@ -1036,6 +1060,8 @@ namespace Game.Editor
             debugOverlay.ConfigureComponents(debugTmp, panelGo);
             debugOverlay.Initialize(eventBus, squad, director, scroller, weapon, abilityController);
 
+            var (uiManager, pauseController) = BuildUiHierarchy(canvasGo);
+
             var composerGo = new GameObject("GreyboxRunComposer");
             var composer = composerGo.AddComponent<GreyboxRunComposer>();
             var serializedComposer = new SerializedObject(composer);
@@ -1047,6 +1073,9 @@ namespace Game.Editor
             serializedComposer.FindProperty("abilityAudio").objectReferenceValue = abilityAudio;
             serializedComposer.FindProperty("abilityVfx").objectReferenceValue = abilityVfx;
             serializedComposer.FindProperty("debugOverlay").objectReferenceValue = debugOverlay;
+            serializedComposer.FindProperty("uiManager").objectReferenceValue = uiManager;
+            serializedComposer.FindProperty("pauseController").objectReferenceValue = pauseController;
+            composer.ConfigureUi(uiManager, pauseController);
             serializedComposer.ApplyModifiedProperties();
 
             // FollowCamera
@@ -1408,6 +1437,267 @@ namespace Game.Editor
             gateView.Initialize(perk, gate);
 
             return gate;
+        }
+
+        public static (UIManager uiManager, PauseController pauseController) BuildUiHierarchy(GameObject canvasGo)
+        {
+            var uiManagerGo = new GameObject("UIManager", typeof(RectTransform));
+            uiManagerGo.transform.SetParent(canvasGo.transform, false);
+            var uiManager = uiManagerGo.AddComponent<UIManager>();
+
+            var hubLayerGo = CreateLayer(uiManagerGo, "HubLayer", UILayerType.Hub, uiManager, out var hubLayer);
+            var hudLayerGo = CreateLayer(uiManagerGo, "GameHudLayer", UILayerType.GameHud, uiManager, out var hudLayer);
+            var modalLayerGo = CreateLayer(uiManagerGo, "ModalLayer", UILayerType.Modal, uiManager, out var modalLayer);
+            var tutorialLayerGo = CreateLayer(uiManagerGo, "TutorialOverlayLayer", UILayerType.TutorialOverlay, uiManager, out var tutorialLayer);
+
+            // HubView
+            var hubGo = CreateRect(hubLayerGo, "HubView");
+            var hubView = hubGo.AddComponent<HubView>();
+            var coinsText = CreateTmp(hubGo, "CoinsText", "Moedas: 100", 32, TextAlignmentOptions.TopRight, new Vector2(1, 1), new Vector2(-40, -40), new Vector2(300, 60));
+            var playBtn = CreateBtn(hubGo, "PlayButton", "JOGAR", new Vector2(0.5f, 0.1f), Vector2.zero, new Vector2(320, 80));
+            var optionsBtn = CreateBtn(hubGo, "OptionsButton", "Opções", new Vector2(0.15f, 0.95f), Vector2.zero, new Vector2(160, 60));
+            var debutBtn = CreateBtn(hubGo, "DebutJourneyButton", "7 Dias", new Vector2(0.35f, 0.95f), Vector2.zero, new Vector2(160, 60));
+            var barracksBtn = CreateBtn(hubGo, "BarracksButton", "Quartel", new Vector2(0.15f, 0.05f), Vector2.zero, new Vector2(140, 60));
+            var shopBtn = CreateBtn(hubGo, "ShopButton", "Loja", new Vector2(0.35f, 0.05f), Vector2.zero, new Vector2(140, 60));
+            var passBtn = CreateBtn(hubGo, "PassButton", "Passe", new Vector2(0.85f, 0.05f), Vector2.zero, new Vector2(140, 60));
+            var feedbackText = CreateTmp(hubGo, "FeedbackText", "", 24, TextAlignmentOptions.Center, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(500, 50));
+
+            var stageWidgetGo = CreateRect(hubGo, "StageSelectionWidget");
+            var stageWidget = stageWidgetGo.AddComponent<StageSelectionWidget>();
+            var stageTitle = CreateTmp(stageWidgetGo, "StageTitle", "Fase 1", 36, TextAlignmentOptions.Center, new Vector2(0.5f, 0.6f), Vector2.zero, new Vector2(400, 60));
+            var stageStars = CreateTmp(stageWidgetGo, "StageStars", "★★★", 28, TextAlignmentOptions.Center, new Vector2(0.5f, 0.55f), Vector2.zero, new Vector2(200, 40));
+            var lockIndicator = CreateRect(stageWidgetGo, "LockIndicator");
+            var prevBtn = CreateBtn(stageWidgetGo, "PrevButton", "<", new Vector2(0.5f, 0.6f), new Vector2(-220, 0), new Vector2(60, 60));
+            var nextBtn = CreateBtn(stageWidgetGo, "NextButton", ">", new Vector2(0.5f, 0.6f), new Vector2(220, 0), new Vector2(60, 60));
+            stageWidget.BindComponents(stageTitle, stageStars, lockIndicator, prevBtn, nextBtn);
+            hubView.BindComponents(coinsText, playBtn, optionsBtn, debutBtn, barracksBtn, shopBtn, passBtn, stageWidget, feedbackText);
+            WireSerialized(hubView, ("_coinsText", coinsText), ("_playButton", playBtn), ("_optionsButton", optionsBtn), ("_debutJourneyButton", debutBtn), ("_barracksButton", barracksBtn), ("_shopButton", shopBtn), ("_passButton", passBtn), ("_stageSelectionWidget", stageWidget), ("_navigationFeedbackText", feedbackText));
+            uiManager.RegisterWindow(hubView);
+
+            // PauseView
+            var pauseGo = CreateRect(modalLayerGo, "PauseView");
+            var pauseView = pauseGo.AddComponent<PauseView>();
+            var resumeBtn = CreateBtn(pauseGo, "ResumeButton", "Retomar", new Vector2(0.5f, 0.6f), Vector2.zero, new Vector2(260, 60));
+            var restartBtn = CreateBtn(pauseGo, "RestartButton", "Reiniciar", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(260, 60));
+            var pauseOptBtn = CreateBtn(pauseGo, "OptionsButton", "Opções", new Vector2(0.5f, 0.4f), Vector2.zero, new Vector2(260, 60));
+            var quitBtn = CreateBtn(pauseGo, "QuitButton", "Sair para o Hub", new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(260, 60));
+            pauseView.SetupControls(resumeBtn, restartBtn, pauseOptBtn, quitBtn);
+            WireSerialized(pauseView, ("resumeButton", resumeBtn), ("restartButton", restartBtn), ("optionsButton", pauseOptBtn), ("quitButton", quitBtn));
+            uiManager.RegisterWindow(pauseView);
+
+            // OptionsView
+            var optionsGo = CreateRect(modalLayerGo, "OptionsView");
+            var optionsView = optionsGo.AddComponent<OptionsView>();
+            var masterSlider = CreateSlider(optionsGo, "MasterSlider", new Vector2(0.5f, 0.7f), new Vector2(300, 30));
+            var sfxSlider = CreateSlider(optionsGo, "SfxSlider", new Vector2(0.5f, 0.6f), new Vector2(300, 30));
+            var bgmSlider = CreateSlider(optionsGo, "BgmSlider", new Vector2(0.5f, 0.5f), new Vector2(300, 30));
+            var abilityToggle = CreateToggle(optionsGo, "AbilityModeToggle", new Vector2(0.5f, 0.42f), new Vector2(-80, 0), new Vector2(40, 40));
+            var abilityBtn = CreateBtn(optionsGo, "AbilityModeButton", "Modo", new Vector2(0.5f, 0.42f), new Vector2(80, 0), new Vector2(120, 50));
+            var abilityTxt = CreateTmp(optionsGo, "AbilityModeText", "Auto", 24, TextAlignmentOptions.Center, new Vector2(0.5f, 0.42f), new Vector2(80, 0), new Vector2(120, 50));
+            var dropdown = CreateDropdown(optionsGo, "LanguageDropdown", new Vector2(0.5f, 0.32f), new Vector2(200, 40), new List<string> { "pt-BR", "en-US", "es" });
+            var closeOptBtn = CreateBtn(optionsGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.2f), Vector2.zero, new Vector2(180, 50));
+            optionsView.SetupControls(masterSlider, sfxSlider, bgmSlider, abilityToggle, abilityBtn, abilityTxt, legacyLangDropdown: dropdown, closeBtn: closeOptBtn);
+            WireSerialized(optionsView, ("masterVolumeSlider", masterSlider), ("sfxVolumeSlider", sfxSlider), ("bgmVolumeSlider", bgmSlider), ("abilityModeToggle", abilityToggle), ("abilityModeButton", abilityBtn), ("abilityModeText", abilityTxt), ("legacyLanguageDropdown", dropdown), ("closeButton", closeOptBtn));
+            uiManager.RegisterWindow(optionsView);
+
+            // PauseController
+            var pauseControllerGo = new GameObject("PauseController");
+            pauseControllerGo.transform.SetParent(canvasGo.transform, false);
+            var pauseController = pauseControllerGo.AddComponent<PauseController>();
+            WireSerialized(pauseController, ("uiManager", uiManager), ("pauseView", pauseView), ("optionsView", optionsView));
+
+            // ResultView
+            var resultGo = CreateRect(modalLayerGo, "ResultView");
+            var resultView = resultGo.AddComponent<ResultView>();
+            var resTitle = CreateTmp(resultGo, "TitleText", "Vitória", 44, TextAlignmentOptions.Center, new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(400, 60));
+            var resCoins = CreateTmp(resultGo, "CoinsText", "Moedas: 100", 36, TextAlignmentOptions.Center, new Vector2(0.5f, 0.65f), Vector2.zero, new Vector2(300, 50));
+            var resMult = CreateTmp(resultGo, "MultiplierText", "x2", 30, TextAlignmentOptions.Center, new Vector2(0.5f, 0.55f), Vector2.zero, new Vector2(200, 40));
+            var resStars = CreateTmp(resultGo, "StarsText", "★★★", 32, TextAlignmentOptions.Center, new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(200, 40));
+            var doubleBtn = CreateBtn(resultGo, "DoubleRewardButton", "Dobrar Moedas (Ad)", new Vector2(0.5f, 0.35f), Vector2.zero, new Vector2(300, 70));
+            var continueBtn = CreateBtn(resultGo, "ContinueButton", "Continuar", new Vector2(0.5f, 0.22f), Vector2.zero, new Vector2(260, 60));
+            resultView.BindComponents(resTitle, resCoins, resMult, resStars, doubleBtn, continueBtn);
+            WireSerialized(resultView, ("_titleText", resTitle), ("_coinsText", resCoins), ("_multiplierText", resMult), ("_starsText", resStars), ("_doubleRewardButton", doubleBtn), ("_continueButton", continueBtn));
+            uiManager.RegisterWindow(resultView);
+
+            // DebutJourneyView
+            var debutGo = CreateRect(modalLayerGo, "DebutJourneyView");
+            var debutView = debutGo.AddComponent<DebutJourneyView>();
+            var debTitle = CreateTmp(debutGo, "TitleText", "Jornada de Estreia (7 Dias)", 36, TextAlignmentOptions.Center, new Vector2(0.5f, 0.85f), Vector2.zero, new Vector2(500, 60));
+            var debFeedback = CreateTmp(debutGo, "FeedbackText", "", 24, TextAlignmentOptions.Center, new Vector2(0.5f, 0.2f), Vector2.zero, new Vector2(400, 40));
+            var debClaimBtn = CreateBtn(debutGo, "ClaimButton", "Resgatar Dia", new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(240, 60));
+            var debCloseBtn = CreateBtn(debutGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.12f), Vector2.zero, new Vector2(200, 50));
+            var dayTexts = new TMP_Text[7];
+            for (int i = 0; i < 7; i++)
+            {
+                dayTexts[i] = CreateTmp(debutGo, $"Day_{i + 1}_Text", $"Dia {i + 1}: Bloqueado", 22, TextAlignmentOptions.Center, new Vector2(0.5f, 0.75f - (i * 0.06f)), Vector2.zero, new Vector2(350, 30));
+            }
+            debutView.BindComponents(debCloseBtn, debClaimBtn, dayTexts, debTitle, debFeedback);
+            WireSerialized(debutView, ("_titleText", debTitle), ("_feedbackText", debFeedback), ("_claimButton", debClaimBtn), ("_closeButton", debCloseBtn));
+            var serializedDebut = new SerializedObject(debutView);
+            var dayProp = serializedDebut.FindProperty("_dayStatusTexts");
+            if (dayProp != null)
+            {
+                dayProp.arraySize = 7;
+                for (int i = 0; i < 7; i++) dayProp.GetArrayElementAtIndex(i).objectReferenceValue = dayTexts[i];
+                serializedDebut.ApplyModifiedProperties();
+            }
+            uiManager.RegisterWindow(debutView);
+
+            // TutorialGuideView
+            var tutGo = CreateRect(tutorialLayerGo, "TutorialGuideView");
+            var tutView = tutGo.AddComponent<TutorialGuideView>();
+            var bannerRoot = CreateRect(tutGo, "BannerRoot");
+            var bannerRect = bannerRoot.GetComponent<RectTransform>();
+            bannerRect.anchorMin = bannerRect.anchorMax = new Vector2(0.5f, 0.8f);
+            bannerRect.sizeDelta = new Vector2(600, 100);
+            var tutText = CreateTmp(bannerRoot, "InstructionText", "Arraste para mover", 28, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(550, 80));
+            var iconGo = CreateRect(bannerRoot, "StepIcon");
+            var stepIcon = iconGo.AddComponent<Image>();
+            tutView.BindComponents(tutText, bannerRoot, stepIcon);
+            WireSerialized(tutView, ("_instructionText", tutText), ("_bannerRoot", bannerRoot), ("_stepIcon", stepIcon));
+            uiManager.RegisterWindow(tutView);
+
+            WireLayerType(hubView, UILayerType.Hub);
+            WireLayerType(pauseView, UILayerType.Modal);
+            WireLayerType(optionsView, UILayerType.Modal);
+            WireLayerType(resultView, UILayerType.Modal);
+            WireLayerType(debutView, UILayerType.Modal);
+            WireLayerType(tutView, UILayerType.TutorialOverlay);
+
+            var soUi = new SerializedObject(uiManager);
+            var layersProp = soUi.FindProperty("_layers");
+            layersProp.arraySize = 4;
+            layersProp.GetArrayElementAtIndex(0).objectReferenceValue = hubLayer;
+            layersProp.GetArrayElementAtIndex(1).objectReferenceValue = hudLayer;
+            layersProp.GetArrayElementAtIndex(2).objectReferenceValue = modalLayer;
+            layersProp.GetArrayElementAtIndex(3).objectReferenceValue = tutorialLayer;
+
+            var windowsProp = soUi.FindProperty("_preloadedWindows");
+            windowsProp.arraySize = 6;
+            windowsProp.GetArrayElementAtIndex(0).objectReferenceValue = hubView;
+            windowsProp.GetArrayElementAtIndex(1).objectReferenceValue = pauseView;
+            windowsProp.GetArrayElementAtIndex(2).objectReferenceValue = optionsView;
+            windowsProp.GetArrayElementAtIndex(3).objectReferenceValue = resultView;
+            windowsProp.GetArrayElementAtIndex(4).objectReferenceValue = debutView;
+            windowsProp.GetArrayElementAtIndex(5).objectReferenceValue = tutView;
+            soUi.ApplyModifiedProperties();
+
+            return (uiManager, pauseController);
+        }
+
+        private static GameObject CreateRect(GameObject parent, string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = Vector2.zero;
+            return go;
+        }
+
+        private static GameObject CreateLayer(GameObject parent, string name, UILayerType layerType, UIManager manager, out UILayer layer)
+        {
+            var go = CreateRect(parent, name);
+            layer = go.AddComponent<UILayer>();
+            layer.Initialize(layerType);
+            var so = new SerializedObject(layer);
+            var prop = so.FindProperty("_layerType");
+            if (prop != null) prop.enumValueIndex = (int)layerType;
+            so.ApplyModifiedProperties();
+            manager.RegisterLayer(layer);
+            return go;
+        }
+
+        private static void WireLayerType(UIWindow window, UILayerType layerType)
+        {
+            var so = new SerializedObject(window);
+            var prop = so.FindProperty("_layerType");
+            if (prop != null) prop.enumValueIndex = (int)layerType;
+            so.ApplyModifiedProperties();
+        }
+
+        private static TextMeshProUGUI CreateTmp(GameObject parent, string name, string text, float fontSize, TextAlignmentOptions alignment, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
+            rect.anchoredPosition = pos;
+            rect.sizeDelta = size;
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            tmp.alignment = alignment;
+            tmp.color = Color.white;
+            return tmp;
+        }
+
+        private static Button CreateBtn(GameObject parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
+            rect.anchoredPosition = pos;
+            rect.sizeDelta = size;
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0.25f, 0.25f, 0.3f, 0.9f);
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            CreateTmp(go, "Text", label, 22, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, size);
+            return btn;
+        }
+
+        private static Slider CreateSlider(GameObject parent, string name, Vector2 anchor, Vector2 size)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
+            rect.sizeDelta = size;
+            var slider = go.AddComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 1f;
+            return slider;
+        }
+
+        private static Toggle CreateToggle(GameObject parent, string name, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
+            rect.anchoredPosition = pos;
+            rect.sizeDelta = size;
+            var toggle = go.AddComponent<Toggle>();
+            toggle.isOn = true;
+            return toggle;
+        }
+
+        private static Dropdown CreateDropdown(GameObject parent, string name, Vector2 anchor, Vector2 size, List<string> options)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
+            rect.sizeDelta = size;
+            var dropdown = go.AddComponent<Dropdown>();
+            dropdown.ClearOptions();
+            dropdown.AddOptions(options);
+            return dropdown;
+        }
+
+        private static void WireSerialized(Object target, params (string propName, Object value)[] bindings)
+        {
+            var so = new SerializedObject(target);
+            foreach (var (propName, value) in bindings)
+            {
+                var prop = so.FindProperty(propName);
+                if (prop != null) prop.objectReferenceValue = value;
+            }
+            so.ApplyModifiedProperties();
         }
 
         private static void EnsureDirectoryExists(string scenePath)

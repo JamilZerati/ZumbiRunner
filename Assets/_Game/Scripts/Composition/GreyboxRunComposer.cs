@@ -5,6 +5,8 @@ using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Gameplay.Tutorial;
 using Game.Meta.Debut;
+using Game.Meta.Rewards;
+using Game.Meta.Run;
 using Game.Meta.Stages;
 using Game.Meta.Tracks;
 using Game.Meta.Wallet;
@@ -12,6 +14,7 @@ using Game.Presentation;
 using Game.Presentation.Settings;
 using Game.Presentation.UI;
 using UnityEngine;
+using AudioSettings = Game.Presentation.Settings.AudioSettings;
 
 namespace Game.Composition
 {
@@ -126,7 +129,7 @@ namespace Game.Composition
 
             if (uiManager != null)
             {
-                StateMachine = new GameStateMachine(GameState.Hub);
+                StateMachine = new GameStateMachine(eventBus, GameState.Hub);
                 var analytics = new MockAnalyticsService();
                 uiManager.Initialize(StateMachine, analytics, eventBus);
 
@@ -139,12 +142,17 @@ namespace Game.Composition
                         uiManager.GetWindow<OptionsView>());
                 }
 
+                var wallet = new Wallet(eventBus);
+                wallet.Add(CurrencyKind.Coins, 100, "initial");
+                var stageMapService = new StageMapService();
+                var sink = new RewardSink(wallet);
+
                 var hubView = uiManager.GetWindow<HubView>();
                 if (hubView != null)
                 {
                     hubView.Initialize(
-                        new Wallet(100),
-                        new StageMapService(),
+                        wallet,
+                        stageMapService,
                         StateMachine,
                         uiManager,
                         eventBus,
@@ -155,12 +163,12 @@ namespace Game.Composition
                 if (resultView != null)
                 {
                     var presenter = new ResultRewardPresenter(
-                        resultView,
-                        new Wallet(100),
-                        new StageMapService(),
+                        new RewardCalculator(),
+                        wallet,
+                        sink,
                         StateMachine,
-                        eventBus,
-                        analytics);
+                        analytics,
+                        resultView);
                     resultView.Initialize(presenter);
                 }
 
@@ -176,17 +184,15 @@ namespace Game.Composition
                 var debutView = uiManager.GetWindow<DebutJourneyView>();
                 if (debutView != null)
                 {
-                    var debutDefinition = new DebutJourneyDefinition();
-                    var trackDef = new ProgressTrackDefinition("debut_track", "Debut Track", new List<MilestoneDefinition>());
-                    var track = new ProgressTrack(trackDef);
-                    var debutService = new DebutJourneyService(debutDefinition, track);
-                    debutView.Initialize(debutService);
+                    var debutService = new DebutJourneyService();
+                    var track = new ProgressTrack(debutService.Definition);
+                    debutView.Initialize(debutService, track, currentLoginDay: 1, sink);
                 }
 
                 var tutorialView = uiManager.GetWindow<TutorialGuideView>();
                 if (tutorialView != null)
                 {
-                    var tutorialController = new TutorialGuideController(analytics);
+                    var tutorialController = new TutorialGuideController(new FtueStepProgress(), analytics);
                     tutorialView.Initialize(tutorialController);
                 }
 

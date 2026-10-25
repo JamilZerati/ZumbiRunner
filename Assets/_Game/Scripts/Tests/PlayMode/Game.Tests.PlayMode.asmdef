@@ -8,6 +8,7 @@
         "Game.Presentation",
         "Game.Infrastructure",
         "Game.Composition",
+        "Game.Meta",
         "Unity.TextMeshPro",
         "Unity.InputSystem"
     ],
