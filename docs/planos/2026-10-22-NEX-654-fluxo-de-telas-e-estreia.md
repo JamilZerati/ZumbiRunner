@@ -300,7 +300,7 @@ flowchart TD
   - **Marco de PR**: Marco 5
   - **Effort**: high
 
-- [ ] **Passo 6 (Marco 6)**: `Assets/_Game/Scripts/Presentation/UI/HubView.cs` [NEX-1134]
+- [x] **Passo 6 (Marco 6)**: `Assets/_Game/Scripts/Presentation/UI/HubView.cs` [NEX-1134]
   - **Ação**: Criar `HubView` e `StageSelectionWidget` integrados ao `StageMapService` e `IWallet`.
   - **Lógica de Negócios / Responsabilidade**: Exibir saldo de moedas, mapa com lista de fases (estrelas e desbloqueio), atalhos para Quartel, Loja e Passe com feedback de navegação, botão de opções, botão de jornada de estreia e botão Jogar (iniciando a corrida da fase selecionada via `GameState.Run`).
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 2, Marco 3, Marco 5.
