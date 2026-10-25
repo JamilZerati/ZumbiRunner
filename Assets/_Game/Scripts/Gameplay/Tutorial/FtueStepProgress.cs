@@ -4,9 +4,9 @@ namespace Game.Gameplay.Tutorial
 {
     public class FtueStepProgress
     {
-        public const string SwipeStep = "swipe";
-        public const string GateStep = "gate";
-        public const string CageStep = "cage";
+        public const string SwipeStep = "swipe_movement";
+        public const string GateStep = "gate_choice";
+        public const string CageStep = "cage_rescue";
 
         private readonly HashSet<string> _completedSteps = new();
 

@@ -309,7 +309,7 @@ flowchart TD
   - **Marco de PR**: Marco 6
   - **Effort**: high
 
-- [ ] **Passo 7 (Marco 7)**: `Assets/_Game/Scripts/Gameplay/Tutorial/TutorialGuideController.cs` [NEX-1135]
+- [x] **Passo 7 (Marco 7)**: `Assets/_Game/Scripts/Gameplay/Tutorial/TutorialGuideController.cs` [NEX-1135]
   - **Ação**: Implementar `TutorialGuideController` e `TutorialGuideView` para condução contextual nas fases 1, 2 e 3.
   - **Lógica de Negócios / Responsabilidade**: Monitorar eventos de fase: Fase 1 (Swipe/movimento), Fase 2 (Portão de perk) e Fase 3 (Jaula de sobrevivente). Exibir banner de instrução na camada de tutorial, emitir eventos `ftue_step` via `IAnalyticsService` e salvar conclusão no `MetaState`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 2. `interface`: Marco 1 (`IAnalyticsService`).
