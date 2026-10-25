@@ -319,7 +319,7 @@ flowchart TD
   - **Marco de PR**: Marco 7
   - **Effort**: high
 
-- [ ] **Passo 8 (Marco 8)**: `Assets/_Game/Scripts/Presentation/UI/DebutJourneyView.cs` [NEX-1136]
+- [x] **Passo 8 (Marco 8)**: `Assets/_Game/Scripts/Presentation/UI/DebutJourneyView.cs` [NEX-1136]
   - **Ação**: Criar `DebutJourneyDefinition` (trilha de 7 marcos diários), `DebutJourneyService` e tela `DebutJourneyView`.
   - **Lógica de Negócios / Responsabilidade**: Exibir a progressão dos 7 dias, permitir resgate idempotente dos dias alcançados com crédito de moedas/medalhas na carteira via `IProgressTrack.ClaimMilestone`, e bloquear marcos futuros.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 2, Marco 6.
