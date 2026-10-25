@@ -216,6 +216,8 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(optionsView.IsOpen, "OptionsView deve abrir a partir do menu de pausa.");
             optionsView.CloseButton.onClick.Invoke();
             Assert.IsFalse(optionsView.IsOpen, "OptionsView deve fechar pelo CloseButton.");
+            Assert.AreEqual(0.0f, Time.timeScale, 1e-4f, "Time.timeScale deve permanecer congelado em 0 após fechar OptionsView.");
+            Assert.IsTrue(pauseView.IsOpen, "PauseView deve permanecer aberto após fechar OptionsView.");
 
             pauseView.ResumeButton.onClick.Invoke();
 
@@ -254,6 +256,18 @@ namespace Game.Tests.PlayMode
 
             optionsView.CloseButton.onClick.Invoke();
             Assert.IsFalse(optionsView.IsOpen);
+
+            Assert.AreEqual(0.65f, PlayerPrefs.GetFloat(AudioSettings.MasterKey), 1e-3f);
+            Assert.AreEqual((int)HeroAbilityTriggerMode.Manual, PlayerPrefs.GetInt(PlayerPrefsAbilitySettings.DefaultPrefsKey));
+            Assert.AreEqual("en-US", PlayerPrefs.GetString(LocalizationSettings.LanguageKey));
+
+            var reloadedAudio = new AudioSettings();
+            var reloadedAbility = new PlayerPrefsAbilitySettings();
+            var reloadedLang = new LocalizationSettings();
+
+            Assert.AreEqual(0.65f, reloadedAudio.MasterVolume, 1e-3f);
+            Assert.AreEqual(HeroAbilityTriggerMode.Manual, reloadedAbility.TriggerMode);
+            Assert.AreEqual("en-US", reloadedLang.CurrentLanguage);
         }
 
         [UnityTest]
@@ -299,6 +313,10 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(GameState.Hub, uiManager.StateMachine.CurrentState);
             Assert.IsTrue(hubView.IsOpen);
             StringAssert.Contains("500", hubView.CoinsText.text, "Saldo da carteira deve ser atualizado para 100 + 400 = 500 no Hub.");
+
+            resultView.ContinueButton.onClick.Invoke();
+            StringAssert.Contains("500", hubView.CoinsText.text, "Segundo clique não deve duplicar concessão de moedas.");
+            Assert.IsFalse(resultView.ContinueButton.interactable, "Botão Continuar deve permanecer desabilitado.");
         }
 
         [UnityTest]
@@ -307,17 +325,26 @@ namespace Game.Tests.PlayMode
             yield return LoadM6FromDisk();
 
             var uiManager = Object.FindAnyObjectByType<UIManager>();
+            var hubView = uiManager.GetWindow<HubView>();
             var debutView = uiManager.OpenWindow<DebutJourneyView>();
 
             Assert.IsNotNull(debutView);
             Assert.IsTrue(debutView.IsOpen);
             Assert.AreEqual(7, debutView.DayStatusTexts.Count);
+            StringAssert.Contains("100", hubView.CoinsText.text, "Saldo inicial deve ser 100.");
 
             debutView.Track.AddPoints(1);
             debutView.RefreshView();
+            Assert.IsTrue(debutView.ClaimButton.interactable, "ClaimButton deve estar habilitado para dia disponível.");
 
             debutView.ClaimButton.onClick.Invoke();
             StringAssert.Contains("Resgatado", debutView.DayStatusTexts[0].text);
+            StringAssert.Contains("200", hubView.CoinsText.text, "Saldo da carteira deve ser incrementado em 100 moedas após o resgate.");
+            Assert.IsFalse(debutView.ClaimButton.interactable, "ClaimButton deve ser desabilitado após resgate.");
+
+            debutView.ClaimButton.onClick.Invoke();
+            StringAssert.Contains("200", hubView.CoinsText.text, "Segundo clique não deve alterar o saldo.");
+            Assert.IsFalse(debutView.ClaimButton.interactable, "ClaimButton permanece desabilitado.");
 
             debutView.CloseButton.onClick.Invoke();
             Assert.IsFalse(debutView.IsOpen);
@@ -337,9 +364,21 @@ namespace Game.Tests.PlayMode
             controller.CheckTutorialStep(1);
 
             Assert.IsTrue(tutorialView.IsOpen);
+            Assert.IsTrue(tutorialView.BannerRoot.activeSelf, "BannerRoot deve estar ativo ao exibir o passo.");
             StringAssert.Contains("mover", tutorialView.InstructionText.text);
             Assert.GreaterOrEqual(analytics.Events.Count, 1);
             Assert.AreEqual(AnalyticsEvents.FtueStep, analytics.Events[0].EventName);
+            Assert.AreEqual(FtueStepProgress.SwipeStep, analytics.Events[0].Parameters["step_name"]);
+            Assert.AreEqual(1, analytics.Events[0].Parameters["stage_index"]);
+            Assert.AreEqual("started", analytics.Events[0].Parameters["status"]);
+
+            controller.CompleteTutorialStep(FtueStepProgress.SwipeStep, 1);
+            Assert.AreEqual(2, analytics.Events.Count);
+            Assert.AreEqual(AnalyticsEvents.FtueStep, analytics.Events[1].EventName);
+            Assert.AreEqual(FtueStepProgress.SwipeStep, analytics.Events[1].Parameters["step_name"]);
+            Assert.AreEqual(1, analytics.Events[1].Parameters["stage_index"]);
+            Assert.AreEqual("completed", analytics.Events[1].Parameters["status"]);
+            Assert.IsFalse(tutorialView.BannerRoot.activeSelf, "BannerRoot deve ser ocultado ao concluir o passo.");
         }
 
         [UnityTest]
@@ -369,6 +408,7 @@ namespace Game.Tests.PlayMode
 
             var runResult = new RunResult { LevelId = "stage_01", Victory = true, CoinsEarned = 50, MultiplierReached = 2, Stars = 3 };
             var runConfig = new RunConfig { LevelId = "stage_01", RewardMultiplier = 1.0f };
+            uiManager.StateMachine.TryTransition(GameState.Result);
             uiManager.OpenWindow<ResultView>();
             resultView.Presenter.PresentResult(runResult, runConfig);
             resultView.ContinueButton.onClick.Invoke();
@@ -379,17 +419,20 @@ namespace Game.Tests.PlayMode
             CaptureScreenshot(EvidencePath);
             CaptureScreenshot(RecordingsPath);
 
-            var googleDriveDir = "G:/Meu Drive/Evidences/ZumbiRunner/NEX-1137/tasks";
-            if (Directory.Exists(googleDriveDir))
+            if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
             {
-                var googleDriveFile = Path.Combine(googleDriveDir, "NEX-1137-ui-flow.png");
-                CaptureScreenshot(googleDriveFile);
-                Assert.IsTrue(File.Exists(googleDriveFile), "Evidência visual deve ser salva no Google Drive.");
-            }
+                var googleDriveDir = "G:/Meu Drive/Evidences/ZumbiRunner/NEX-1137/tasks";
+                if (Directory.Exists(googleDriveDir))
+                {
+                    var googleDriveFile = Path.Combine(googleDriveDir, "NEX-1137-ui-flow.png");
+                    CaptureScreenshot(googleDriveFile);
+                    Assert.IsTrue(File.Exists(googleDriveFile), "Evidência visual deve ser salva no Google Drive.");
+                }
 
-            Assert.IsTrue(File.Exists(EvidencePath), "Evidência visual deve ser salva em docs/evidencias/.");
-            Assert.Greater(new FileInfo(EvidencePath).Length, 1000, "Screenshot deve ter tamanho válido.");
-            Assert.IsTrue(File.Exists(RecordingsPath), "Evidência visual deve ser salva em Recordings/.");
+                Assert.IsTrue(File.Exists(EvidencePath), "Evidência visual deve ser salva em docs/evidencias/.");
+                Assert.Greater(new FileInfo(EvidencePath).Length, 1000, "Screenshot deve ter tamanho válido.");
+                Assert.IsTrue(File.Exists(RecordingsPath), "Evidência visual deve ser salva em Recordings/.");
+            }
         }
     }
 }

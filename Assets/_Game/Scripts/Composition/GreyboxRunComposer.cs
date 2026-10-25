@@ -68,10 +68,19 @@ namespace Game.Composition
         public void Compose(IEventBus eventBus)
         {
             EventBus = eventBus;
+            StateMachine = new GameStateMachine(eventBus, GameState.Hub);
 
             if (combatDirector != null)
             {
                 combatDirector.EventBus = eventBus;
+                combatDirector.Initialize(
+                    combatDirector.Squad,
+                    combatDirector.Scroller,
+                    StateMachine,
+                    combatDirector.VictoryDistance,
+                    combatDirector.Spawner,
+                    eventBus,
+                    combatDirector.StageModifiers);
             }
 
             if (hordeSpawner != null)
@@ -129,7 +138,6 @@ namespace Game.Composition
 
             if (uiManager != null)
             {
-                StateMachine = new GameStateMachine(eventBus, GameState.Hub);
                 var analytics = new MockAnalyticsService();
                 uiManager.Initialize(StateMachine, analytics, eventBus);
 
@@ -157,6 +165,7 @@ namespace Game.Composition
                         uiManager,
                         eventBus,
                         analytics);
+                    hubView.DebutJourneyHook = () => uiManager.OpenWindow<DebutJourneyView>();
                 }
 
                 var resultView = uiManager.GetWindow<ResultView>();

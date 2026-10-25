@@ -770,7 +770,7 @@ namespace Game.Editor
             // CombatDirector
             var eventBus = new EventBus();
             var director = generalGo.AddComponent<CombatDirector>();
-            var stateMachine = new GameStateMachine(null, GameState.Boot);
+            var stateMachine = new GameStateMachine(eventBus, GameState.Boot);
             stateMachine.TryTransition(GameState.Run);
             director.Initialize(squad, scroller, stateMachine, 120f, spawner, eventBus);
 
@@ -1469,6 +1469,7 @@ namespace Game.Editor
             var prevBtn = CreateBtn(stageWidgetGo, "PrevButton", "<", new Vector2(0.5f, 0.6f), new Vector2(-220, 0), new Vector2(60, 60));
             var nextBtn = CreateBtn(stageWidgetGo, "NextButton", ">", new Vector2(0.5f, 0.6f), new Vector2(220, 0), new Vector2(60, 60));
             stageWidget.BindComponents(stageTitle, stageStars, lockIndicator, prevBtn, nextBtn);
+            WireSerialized(stageWidget, ("_stageTitleText", stageTitle), ("_starsText", stageStars), ("_lockIndicator", lockIndicator), ("_prevButton", prevBtn), ("_nextButton", nextBtn));
             hubView.BindComponents(coinsText, playBtn, optionsBtn, debutBtn, barracksBtn, shopBtn, passBtn, stageWidget, feedbackText);
             WireSerialized(hubView, ("_coinsText", coinsText), ("_playButton", playBtn), ("_optionsButton", optionsBtn), ("_debutJourneyButton", debutBtn), ("_barracksButton", barracksBtn), ("_shopButton", shopBtn), ("_passButton", passBtn), ("_stageSelectionWidget", stageWidget), ("_navigationFeedbackText", feedbackText));
             uiManager.RegisterWindow(hubView);
@@ -1596,7 +1597,14 @@ namespace Game.Editor
             layer.Initialize(layerType);
             var so = new SerializedObject(layer);
             var prop = so.FindProperty("_layerType");
-            if (prop != null) prop.enumValueIndex = (int)layerType;
+            if (prop != null)
+            {
+                prop.enumValueIndex = (int)layerType;
+            }
+            else
+            {
+                Debug.LogError($"[SceneBuilder] Propriedade '_layerType' não encontrada na camada '{layer.name}' ({layer.GetType().Name}).");
+            }
             so.ApplyModifiedProperties();
             manager.RegisterLayer(layer);
             return go;
@@ -1606,7 +1614,14 @@ namespace Game.Editor
         {
             var so = new SerializedObject(window);
             var prop = so.FindProperty("_layerType");
-            if (prop != null) prop.enumValueIndex = (int)layerType;
+            if (prop != null)
+            {
+                prop.enumValueIndex = (int)layerType;
+            }
+            else
+            {
+                Debug.LogError($"[SceneBuilder] Propriedade '_layerType' não encontrada na janela '{window.name}' ({window.GetType().Name}).");
+            }
             so.ApplyModifiedProperties();
         }
 
