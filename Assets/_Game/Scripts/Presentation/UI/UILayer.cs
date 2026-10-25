@@ -27,7 +27,10 @@ namespace Game.Presentation.UI
 
         private void Awake()
         {
-            _canvasGroup ??= GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            }
         }
 
         public void Initialize(UILayerType layerType, CanvasGroup canvasGroup = null)
@@ -37,9 +40,9 @@ namespace Game.Presentation.UI
             {
                 _canvasGroup = canvasGroup;
             }
-            else
+            else if (_canvasGroup == null)
             {
-                _canvasGroup ??= GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+                _canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
             }
         }
 

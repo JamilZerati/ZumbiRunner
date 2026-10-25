@@ -465,5 +465,48 @@ namespace Game.Tests.EditMode.UI
 
             Assert.Contains(window, (System.Collections.ICollection)layer.Windows);
         }
+
+        [Test]
+        public void OpenWindow_OnInitiallyInactiveGameObject_ActivatesGameObject_MaintainsIsOpenTrue_AndDispatchesOnOpened()
+        {
+            var go = new GameObject("InitiallyInactiveWindow");
+            _createdObjects.Add(go);
+            go.SetActive(false);
+
+            var window = go.AddComponent<DummyHubWindow>();
+            _uiManager.RegisterWindow(window);
+
+            bool eventFired = false;
+            window.OnOpened += _ => eventFired = true;
+
+            var opened = _uiManager.OpenWindow<DummyHubWindow>();
+
+            Assert.AreSame(window, opened);
+            Assert.IsTrue(window.IsOpen);
+            Assert.IsTrue(go.activeSelf);
+            Assert.IsTrue(eventFired);
+        }
+
+        [Test]
+        public void DestroyImmediate_UIWindow_ClearsOnOpenedAndOnClosedDelegates()
+        {
+            var window = CreateComponent<DummyHubWindow>();
+            window.OnOpened += _ => { };
+            window.OnClosed += _ => { };
+
+            var onOpenedField = typeof(UIWindow).GetField("OnOpened", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var onClosedField = typeof(UIWindow).GetField("OnClosed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+            Assert.IsNotNull(onOpenedField?.GetValue(window));
+            Assert.IsNotNull(onClosedField?.GetValue(window));
+
+            typeof(UIWindow)
+                .GetMethod("OnDestroy", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                ?.Invoke(window, null);
+            Object.DestroyImmediate(window);
+
+            Assert.IsNull(onOpenedField?.GetValue(window));
+            Assert.IsNull(onClosedField?.GetValue(window));
+        }
     }
 }

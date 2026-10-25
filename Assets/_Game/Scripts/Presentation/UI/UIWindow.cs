@@ -16,8 +16,16 @@ namespace Game.Presentation.UI
 
         protected virtual void Awake()
         {
-            gameObject.SetActive(false);
-            _isOpen = false;
+            if (!_isOpen)
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
+        protected virtual void OnDestroy()
+        {
+            OnOpened = null;
+            OnClosed = null;
         }
 
         public void SetLayerType(UILayerType layerType)
@@ -32,8 +40,8 @@ namespace Game.Presentation.UI
                 return;
             }
 
-            gameObject.SetActive(true);
             _isOpen = true;
+            gameObject.SetActive(true);
             OnOpen();
             OnOpened?.Invoke(this);
         }
