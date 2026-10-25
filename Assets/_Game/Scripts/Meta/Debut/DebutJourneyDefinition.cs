@@ -7,7 +7,7 @@ namespace Game.Meta.Debut
 {
     public static class DebutJourneyDefinition
     {
-        public const string TrackId = "debut_journey_7days";
+        public const string TrackId = "debut_journey";
 
         public static ProgressTrackDefinition CreateDefaultTrack()
         {
