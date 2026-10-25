@@ -1,7 +1,16 @@
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Analytics;
 using Game.Gameplay;
 using Game.Gameplay.Abilities;
+using Game.Gameplay.Tutorial;
+using Game.Meta.Debut;
+using Game.Meta.Stages;
+using Game.Meta.Tracks;
+using Game.Meta.Wallet;
 using Game.Presentation;
+using Game.Presentation.Settings;
+using Game.Presentation.UI;
 using UnityEngine;
 
 namespace Game.Composition
@@ -19,8 +28,13 @@ namespace Game.Composition
         [SerializeField] private GeneralAbilityAudio abilityAudio;
         [SerializeField] private GeneralAbilityExplosionVfx abilityVfx;
         [SerializeField] private DebugTextOverlay debugOverlay;
+        [SerializeField] private UIManager uiManager;
+        [SerializeField] private PauseController pauseController;
 
         public IEventBus EventBus { get; private set; }
+        public IGameStateMachine StateMachine { get; private set; }
+        public UIManager UIManager => uiManager;
+        public PauseController PauseController => pauseController;
 
         public void Configure(
             CombatDirector director,
@@ -40,6 +54,12 @@ namespace Game.Composition
             abilityAudio = audio;
             abilityVfx = vfx;
             debugOverlay = overlay;
+        }
+
+        public void ConfigureUi(UIManager manager, PauseController pause = null)
+        {
+            uiManager = manager;
+            pauseController = pause;
         }
 
         public void Compose(IEventBus eventBus)
@@ -92,6 +112,85 @@ namespace Game.Composition
                 var scroller = combatDirector != null ? combatDirector.Scroller : FindFirstObjectByType<TrackScroller>();
                 var weapon = combatDirector != null ? combatDirector.GetComponent<WeaponController>() : FindFirstObjectByType<WeaponController>();
                 debugOverlay.Initialize(eventBus, squad, combatDirector, scroller, weapon, abilityController);
+            }
+
+            if (uiManager == null)
+            {
+                uiManager = FindFirstObjectByType<UIManager>();
+            }
+
+            if (pauseController == null)
+            {
+                pauseController = FindFirstObjectByType<PauseController>();
+            }
+
+            if (uiManager != null)
+            {
+                StateMachine = new GameStateMachine(GameState.Hub);
+                var analytics = new MockAnalyticsService();
+                uiManager.Initialize(StateMachine, analytics, eventBus);
+
+                if (pauseController != null)
+                {
+                    pauseController.Initialize(
+                        StateMachine,
+                        uiManager,
+                        uiManager.GetWindow<PauseView>(),
+                        uiManager.GetWindow<OptionsView>());
+                }
+
+                var hubView = uiManager.GetWindow<HubView>();
+                if (hubView != null)
+                {
+                    hubView.Initialize(
+                        new Wallet(100),
+                        new StageMapService(),
+                        StateMachine,
+                        uiManager,
+                        eventBus,
+                        analytics);
+                }
+
+                var resultView = uiManager.GetWindow<ResultView>();
+                if (resultView != null)
+                {
+                    var presenter = new ResultRewardPresenter(
+                        resultView,
+                        new Wallet(100),
+                        new StageMapService(),
+                        StateMachine,
+                        eventBus,
+                        analytics);
+                    resultView.Initialize(presenter);
+                }
+
+                var optionsView = uiManager.GetWindow<OptionsView>();
+                if (optionsView != null)
+                {
+                    optionsView.Initialize(
+                        new AudioSettings(),
+                        new LocalizationSettings(),
+                        new PlayerPrefsAbilitySettings());
+                }
+
+                var debutView = uiManager.GetWindow<DebutJourneyView>();
+                if (debutView != null)
+                {
+                    var debutDefinition = new DebutJourneyDefinition();
+                    var trackDef = new ProgressTrackDefinition("debut_track", "Debut Track", new List<MilestoneDefinition>());
+                    var track = new ProgressTrack(trackDef);
+                    var debutService = new DebutJourneyService(debutDefinition, track);
+                    debutView.Initialize(debutService);
+                }
+
+                var tutorialView = uiManager.GetWindow<TutorialGuideView>();
+                if (tutorialView != null)
+                {
+                    var tutorialController = new TutorialGuideController(analytics);
+                    tutorialView.Initialize(tutorialController);
+                }
+
+                uiManager.OpenWindow<HubView>();
             }
         }
 

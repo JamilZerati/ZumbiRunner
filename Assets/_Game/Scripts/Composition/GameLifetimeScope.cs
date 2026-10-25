@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Core.Analytics;
 using VContainer;
 using VContainer.Unity;
 
@@ -10,6 +11,7 @@ namespace Game.Composition
         {
             builder.Register<EventBus>(Lifetime.Singleton).As<IEventBus>();
             builder.Register<GameStateMachine>(Lifetime.Singleton).As<IGameStateMachine>();
+            builder.Register<MockAnalyticsService>(Lifetime.Singleton).As<IAnalyticsService>();
         }
     }
 }
