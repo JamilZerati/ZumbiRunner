@@ -281,7 +281,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: medium
 
-- [ ] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Presentation/UI/PauseView.cs` [NEX-1132]
+- [x] **Passo 4 (Marco 4)**: `Assets/_Game/Scripts/Presentation/UI/PauseView.cs` [NEX-1132]
   - **Ação**: Criar `PauseView` e `PauseController` para congelamento e desdobramento do tempo (`Time.timeScale = 0`).
   - **Lógica de Negócios / Responsabilidade**: Implementar botões Resumir (`timeScale = 1`), Reiniciar (recarrega a corrida), Opções (abre `OptionsView` na camada modal) e Desistir (retorna com segurança ao Hub restaurando `timeScale = 1.0f`).
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 2, Marco 3.
