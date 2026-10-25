@@ -272,7 +272,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: high
 
-- [ ] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Presentation/UI/OptionsView.cs` [NEX-1131]
+- [x] **Passo 3 (Marco 3)**: `Assets/_Game/Scripts/Presentation/UI/OptionsView.cs` [NEX-1131]
   - **Ação**: Criar serviços `AudioSettings` e `LocalizationSettings` persistidos via `PlayerPrefs` e implementar `OptionsView` com sliders de volume, toggle de habilidade (Auto/Manual via `IAbilitySettings`) e dropdown de idioma.
   - **Lógica de Negócios / Responsabilidade**: Validação e restrição de volumes no intervalo [0, 1], reflexão imediata nas configurações e suporte à reabertura tanto no Hub quanto na Pausa.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 2.
