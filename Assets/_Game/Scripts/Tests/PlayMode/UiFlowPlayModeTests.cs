@@ -185,6 +185,8 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(GameState.Hub, uiManager.StateMachine.CurrentState);
             StringAssert.Contains("100", hubView.CoinsText.text);
 
+            CaptureScreenshot("docs/evidencias/NEX-1137-01-hub.png");
+
             hubView.PlayButton.onClick.Invoke();
 
             Assert.AreEqual(GameState.Run, uiManager.StateMachine.CurrentState);
@@ -205,6 +207,7 @@ namespace Game.Tests.PlayMode
 
             hubView.PlayButton.onClick.Invoke();
             Assert.AreEqual(GameState.Run, uiManager.StateMachine.CurrentState);
+            CaptureScreenshot("docs/evidencias/NEX-1137-02-run-hud.png");
 
             pauseController.PauseGame();
 
@@ -212,8 +215,11 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(0.0f, Time.timeScale, 1e-4f);
             Assert.IsTrue(pauseView.IsOpen);
 
+            CaptureScreenshot("docs/evidencias/NEX-1137-03-pause.png");
+
             pauseView.OptionsButton.onClick.Invoke();
             Assert.IsTrue(optionsView.IsOpen, "OptionsView deve abrir a partir do menu de pausa.");
+            CaptureScreenshot("docs/evidencias/NEX-1137-04-options.png");
             optionsView.CloseButton.onClick.Invoke();
             Assert.IsFalse(optionsView.IsOpen, "OptionsView deve fechar pelo CloseButton.");
             Assert.AreEqual(0.0f, Time.timeScale, 1e-4f, "Time.timeScale deve permanecer congelado em 0 após fechar OptionsView.");
@@ -301,6 +307,7 @@ namespace Game.Tests.PlayMode
 
             StringAssert.Contains("Vitória", resultView.TitleText.text);
             StringAssert.Contains("200", resultView.CoinsText.text);
+            CaptureScreenshot("docs/evidencias/NEX-1137-05-result.png");
 
             resultView.DoubleRewardButton.onClick.Invoke();
             StringAssert.Contains("400", resultView.CoinsText.text);
@@ -336,6 +343,7 @@ namespace Game.Tests.PlayMode
             debutView.Track.AddPoints(1);
             debutView.RefreshView();
             Assert.IsTrue(debutView.ClaimButton.interactable, "ClaimButton deve estar habilitado para dia disponível.");
+            CaptureScreenshot("docs/evidencias/NEX-1137-06-debut-journey.png");
 
             debutView.ClaimButton.onClick.Invoke();
             StringAssert.Contains("Resgatado", debutView.DayStatusTexts[0].text);
@@ -366,6 +374,7 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(tutorialView.IsOpen);
             Assert.IsTrue(tutorialView.BannerRoot.activeSelf, "BannerRoot deve estar ativo ao exibir o passo.");
             StringAssert.Contains("mover", tutorialView.InstructionText.text);
+            CaptureScreenshot("docs/evidencias/NEX-1137-07-tutorial-ftue.png");
             Assert.GreaterOrEqual(analytics.Events.Count, 1);
             Assert.AreEqual(AnalyticsEvents.FtueStep, analytics.Events[0].EventName);
             Assert.AreEqual(FtueStepProgress.SwipeStep, analytics.Events[0].Parameters["step_name"]);
@@ -397,6 +406,7 @@ namespace Game.Tests.PlayMode
 
             hubView.PlayButton.onClick.Invoke();
             Assert.AreEqual(GameState.Run, uiManager.StateMachine.CurrentState);
+            CaptureScreenshot("docs/evidencias/NEX-1137-02-run-hud.png");
 
             pauseController.PauseGame();
             Assert.AreEqual(GameState.Paused, uiManager.StateMachine.CurrentState);
