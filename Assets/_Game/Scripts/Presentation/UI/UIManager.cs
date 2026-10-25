@@ -56,6 +56,7 @@ namespace Game.Presentation.UI
             _stateSubscription?.Dispose();
             _stateSubscription = null;
 
+            AutoRegisterComponents();
             _stateMachine = stateMachine;
             _analytics = analytics;
             _eventBus = eventBus;
