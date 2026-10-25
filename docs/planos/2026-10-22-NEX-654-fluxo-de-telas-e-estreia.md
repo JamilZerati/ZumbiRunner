@@ -290,7 +290,7 @@ flowchart TD
   - **Marco de PR**: Marco 4
   - **Effort**: medium
 
-- [ ] **Passo 5 (Marco 5)**: `Assets/_Game/Scripts/Presentation/UI/ResultView.cs` [NEX-1133]
+- [x] **Passo 5 (Marco 5)**: `Assets/_Game/Scripts/Presentation/UI/ResultView.cs` [NEX-1133]
   - **Ação**: Criar `ResultView` e `ResultRewardPresenter` integrados ao `RewardCalculator` e `IWallet`.
   - **Lógica de Negócios / Responsabilidade**: Exibir título de Vitória/Derrota, moedas base e multiplicador da pista. Implementar botão de extensão de rewarded ad para dobrar as moedas (aplicando `doubleReward: true`), e botão Continuar com concessão idempotente via `RewardBundle.Grant(sink)` e retorno ao Hub.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 2. `interface`: Marco 1 (`IAnalyticsService`).
