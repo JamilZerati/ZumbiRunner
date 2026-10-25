@@ -38,7 +38,7 @@ namespace Game.Tests.EditMode.UI
             var modalLayerGo = CreateGameObject("ModalLayer");
             modalLayerGo.transform.SetParent(uiManagerGo.transform);
             var modalLayer = modalLayerGo.AddComponent<UILayer>();
-            modalLayer.SetLayerType(UILayerType.Modal);
+            modalLayer.Initialize(UILayerType.Modal);
             _uiManager.RegisterLayer(modalLayer);
 
             var pauseGo = CreateGameObject("PauseView");
@@ -265,6 +265,9 @@ namespace Game.Tests.EditMode.UI
             _pauseController.PauseGame();
             Assert.AreEqual(0f, Time.timeScale);
 
+            typeof(PauseView)
+                .GetMethod("OnDestroy", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
+                ?.Invoke(_pauseView, null);
             Object.DestroyImmediate(_pauseView.gameObject);
 
             Assert.AreEqual(1.0f, Time.timeScale);
@@ -277,6 +280,9 @@ namespace Game.Tests.EditMode.UI
             _pauseController.PauseGame();
             Assert.AreEqual(0f, Time.timeScale);
 
+            typeof(PauseController)
+                .GetMethod("OnDestroy", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
+                ?.Invoke(_pauseController, null);
             Object.DestroyImmediate(_pauseController.gameObject);
 
             Assert.AreEqual(1.0f, Time.timeScale);
