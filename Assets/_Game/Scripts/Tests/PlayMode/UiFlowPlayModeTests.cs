@@ -14,8 +14,10 @@ using Game.Meta.Run;
 using Game.Meta.Stages;
 using Game.Meta.Tracks;
 using Game.Meta.Wallet;
+using Game.Presentation;
 using Game.Presentation.Settings;
 using Game.Presentation.UI;
+using AudioSettings = Game.Presentation.Settings.AudioSettings;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -31,14 +33,33 @@ namespace Game.Tests.PlayMode
         private const string RecordingsPath = "Recordings/NEX-1137-ui-flow.png";
         private Scene _loadedScene;
 
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            ResetPlayerPrefs();
+            yield return null;
+        }
+
         [UnityTearDown]
         public IEnumerator TearDown()
         {
             Time.timeScale = 1.0f;
+            ResetPlayerPrefs();
+
             if (_loadedScene.IsValid() && _loadedScene.isLoaded)
             {
                 yield return SceneManager.UnloadSceneAsync(_loadedScene);
             }
+        }
+
+        private static void ResetPlayerPrefs()
+        {
+            PlayerPrefs.DeleteKey(PlayerPrefsAbilitySettings.DefaultPrefsKey);
+            PlayerPrefs.DeleteKey(AudioSettings.MasterKey);
+            PlayerPrefs.DeleteKey(AudioSettings.SfxKey);
+            PlayerPrefs.DeleteKey(AudioSettings.BgmKey);
+            PlayerPrefs.DeleteKey(LocalizationSettings.LanguageKey);
+            PlayerPrefs.Save();
         }
 
         private IEnumerator LoadM6FromDisk()
@@ -58,14 +79,35 @@ namespace Game.Tests.PlayMode
 
         private static void CaptureScreenshot(string path)
         {
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+            {
+                // Em ambiente -nographics (sem GPU), nao sobrescrever screenshot valido capturado com dispositivo grafico
+                return;
+            }
+
             var cam = Camera.main;
-            if (cam == null) return;
+            Assert.IsNotNull(cam, "Camera.main não deve ser nula para captura de evidência visual.");
 
             var dir = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
             }
+
+            var canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            var prevCanvasStates = new List<(Canvas canvas, RenderMode mode, Camera worldCam, float planeDist)>(canvases.Length);
+            foreach (var c in canvases)
+            {
+                prevCanvasStates.Add((c, c.renderMode, c.worldCamera, c.planeDistance));
+                if (c.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    c.renderMode = RenderMode.ScreenSpaceCamera;
+                    c.worldCamera = cam;
+                    c.planeDistance = 2f;
+                }
+            }
+
+            Canvas.ForceUpdateCanvases();
 
             var rt = new RenderTexture(1080, 1920, 24, RenderTextureFormat.ARGB32);
             var prevTarget = cam.targetTexture;
@@ -90,6 +132,17 @@ namespace Game.Tests.PlayMode
                 RenderTexture.active = prevActive;
                 rt.Release();
                 Object.DestroyImmediate(rt);
+
+                foreach (var (canvas, mode, worldCam, dist) in prevCanvasStates)
+                {
+                    if (canvas != null)
+                    {
+                        canvas.renderMode = mode;
+                        canvas.worldCamera = worldCam;
+                        canvas.planeDistance = dist;
+                    }
+                }
+                Canvas.ForceUpdateCanvases();
             }
         }
 
@@ -147,6 +200,7 @@ namespace Game.Tests.PlayMode
             var uiManager = Object.FindAnyObjectByType<UIManager>();
             var pauseController = Object.FindAnyObjectByType<PauseController>();
             var pauseView = uiManager.GetWindow<PauseView>();
+            var optionsView = uiManager.GetWindow<OptionsView>();
             var hubView = uiManager.GetWindow<HubView>();
 
             hubView.PlayButton.onClick.Invoke();
@@ -157,6 +211,11 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(GameState.Paused, uiManager.StateMachine.CurrentState);
             Assert.AreEqual(0.0f, Time.timeScale, 1e-4f);
             Assert.IsTrue(pauseView.IsOpen);
+
+            pauseView.OptionsButton.onClick.Invoke();
+            Assert.IsTrue(optionsView.IsOpen, "OptionsView deve abrir a partir do menu de pausa.");
+            optionsView.CloseButton.onClick.Invoke();
+            Assert.IsFalse(optionsView.IsOpen, "OptionsView deve fechar pelo CloseButton.");
 
             pauseView.ResumeButton.onClick.Invoke();
 
@@ -182,6 +241,7 @@ namespace Game.Tests.PlayMode
 
             Assert.IsNotNull(optionsView);
             Assert.IsTrue(optionsView.IsOpen);
+            Assert.AreEqual(HeroAbilityTriggerMode.Auto, optionsView.AbilitySettings.TriggerMode, "Modo inicial deve ser Auto.");
 
             optionsView.MasterVolumeSlider.value = 0.65f;
             Assert.AreEqual(0.65f, optionsView.AudioSettings.MasterVolume, 1e-3f);
@@ -205,6 +265,10 @@ namespace Game.Tests.PlayMode
             var resultView = uiManager.OpenWindow<ResultView>();
             var hubView = uiManager.GetWindow<HubView>();
 
+            uiManager.StateMachine.TryTransition(GameState.Run);
+            uiManager.StateMachine.TryTransition(GameState.Result);
+            Assert.AreEqual(GameState.Result, uiManager.StateMachine.CurrentState);
+
             var runResult = new RunResult
             {
                 LevelId = "stage_01",
@@ -227,9 +291,14 @@ namespace Game.Tests.PlayMode
             resultView.DoubleRewardButton.onClick.Invoke();
             StringAssert.Contains("400", resultView.CoinsText.text);
 
+            resultView.DoubleRewardButton.onClick.Invoke();
+            StringAssert.Contains("400", resultView.CoinsText.text);
+            Assert.IsFalse(resultView.DoubleRewardButton.interactable, "Botão de dobrar deve estar desabilitado após resgate.");
+
             resultView.ContinueButton.onClick.Invoke();
             Assert.AreEqual(GameState.Hub, uiManager.StateMachine.CurrentState);
             Assert.IsTrue(hubView.IsOpen);
+            StringAssert.Contains("500", hubView.CoinsText.text, "Saldo da carteira deve ser atualizado para 100 + 400 = 500 no Hub.");
         }
 
         [UnityTest]
@@ -247,8 +316,8 @@ namespace Game.Tests.PlayMode
             debutView.Track.AddPoints(1);
             debutView.RefreshView();
 
-            bool claimed = debutView.ClaimAvailableDay();
-            Assert.IsTrue(claimed);
+            debutView.ClaimButton.onClick.Invoke();
+            StringAssert.Contains("Resgatado", debutView.DayStatusTexts[0].text);
 
             debutView.CloseButton.onClick.Invoke();
             Assert.IsFalse(debutView.IsOpen);
@@ -309,6 +378,14 @@ namespace Game.Tests.PlayMode
 
             CaptureScreenshot(EvidencePath);
             CaptureScreenshot(RecordingsPath);
+
+            var googleDriveDir = "G:/Meu Drive/Evidences/ZumbiRunner/NEX-1137/tasks";
+            if (Directory.Exists(googleDriveDir))
+            {
+                var googleDriveFile = Path.Combine(googleDriveDir, "NEX-1137-ui-flow.png");
+                CaptureScreenshot(googleDriveFile);
+                Assert.IsTrue(File.Exists(googleDriveFile), "Evidência visual deve ser salva no Google Drive.");
+            }
 
             Assert.IsTrue(File.Exists(EvidencePath), "Evidência visual deve ser salva em docs/evidencias/.");
             Assert.Greater(new FileInfo(EvidencePath).Length, 1000, "Screenshot deve ter tamanho válido.");

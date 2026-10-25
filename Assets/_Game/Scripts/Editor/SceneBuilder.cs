@@ -1439,7 +1439,7 @@ namespace Game.Editor
             return gate;
         }
 
-        public static (UIManager uiManager, PauseController pauseController) BuildUiHierarchy(GameObject canvasGo)
+        private static (UIManager uiManager, PauseController pauseController) BuildUiHierarchy(GameObject canvasGo)
         {
             var uiManagerGo = new GameObject("UIManager", typeof(RectTransform));
             uiManagerGo.transform.SetParent(canvasGo.transform, false);
@@ -1450,7 +1450,6 @@ namespace Game.Editor
             var modalLayerGo = CreateLayer(uiManagerGo, "ModalLayer", UILayerType.Modal, uiManager, out var modalLayer);
             var tutorialLayerGo = CreateLayer(uiManagerGo, "TutorialOverlayLayer", UILayerType.TutorialOverlay, uiManager, out var tutorialLayer);
 
-            // HubView
             var hubGo = CreateRect(hubLayerGo, "HubView");
             var hubView = hubGo.AddComponent<HubView>();
             var coinsText = CreateTmp(hubGo, "CoinsText", "Moedas: 100", 32, TextAlignmentOptions.TopRight, new Vector2(1, 1), new Vector2(-40, -40), new Vector2(300, 60));
@@ -1474,7 +1473,6 @@ namespace Game.Editor
             WireSerialized(hubView, ("_coinsText", coinsText), ("_playButton", playBtn), ("_optionsButton", optionsBtn), ("_debutJourneyButton", debutBtn), ("_barracksButton", barracksBtn), ("_shopButton", shopBtn), ("_passButton", passBtn), ("_stageSelectionWidget", stageWidget), ("_navigationFeedbackText", feedbackText));
             uiManager.RegisterWindow(hubView);
 
-            // PauseView
             var pauseGo = CreateRect(modalLayerGo, "PauseView");
             var pauseView = pauseGo.AddComponent<PauseView>();
             var resumeBtn = CreateBtn(pauseGo, "ResumeButton", "Retomar", new Vector2(0.5f, 0.6f), Vector2.zero, new Vector2(260, 60));
@@ -1485,7 +1483,6 @@ namespace Game.Editor
             WireSerialized(pauseView, ("resumeButton", resumeBtn), ("restartButton", restartBtn), ("optionsButton", pauseOptBtn), ("quitButton", quitBtn));
             uiManager.RegisterWindow(pauseView);
 
-            // OptionsView
             var optionsGo = CreateRect(modalLayerGo, "OptionsView");
             var optionsView = optionsGo.AddComponent<OptionsView>();
             var masterSlider = CreateSlider(optionsGo, "MasterSlider", new Vector2(0.5f, 0.7f), new Vector2(300, 30));
@@ -1500,13 +1497,11 @@ namespace Game.Editor
             WireSerialized(optionsView, ("masterVolumeSlider", masterSlider), ("sfxVolumeSlider", sfxSlider), ("bgmVolumeSlider", bgmSlider), ("abilityModeToggle", abilityToggle), ("abilityModeButton", abilityBtn), ("abilityModeText", abilityTxt), ("legacyLanguageDropdown", dropdown), ("closeButton", closeOptBtn));
             uiManager.RegisterWindow(optionsView);
 
-            // PauseController
             var pauseControllerGo = new GameObject("PauseController");
             pauseControllerGo.transform.SetParent(canvasGo.transform, false);
             var pauseController = pauseControllerGo.AddComponent<PauseController>();
             WireSerialized(pauseController, ("uiManager", uiManager), ("pauseView", pauseView), ("optionsView", optionsView));
 
-            // ResultView
             var resultGo = CreateRect(modalLayerGo, "ResultView");
             var resultView = resultGo.AddComponent<ResultView>();
             var resTitle = CreateTmp(resultGo, "TitleText", "Vitória", 44, TextAlignmentOptions.Center, new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(400, 60));
@@ -1519,7 +1514,6 @@ namespace Game.Editor
             WireSerialized(resultView, ("_titleText", resTitle), ("_coinsText", resCoins), ("_multiplierText", resMult), ("_starsText", resStars), ("_doubleRewardButton", doubleBtn), ("_continueButton", continueBtn));
             uiManager.RegisterWindow(resultView);
 
-            // DebutJourneyView
             var debutGo = CreateRect(modalLayerGo, "DebutJourneyView");
             var debutView = debutGo.AddComponent<DebutJourneyView>();
             var debTitle = CreateTmp(debutGo, "TitleText", "Jornada de Estreia (7 Dias)", 36, TextAlignmentOptions.Center, new Vector2(0.5f, 0.85f), Vector2.zero, new Vector2(500, 60));
@@ -1543,7 +1537,6 @@ namespace Game.Editor
             }
             uiManager.RegisterWindow(debutView);
 
-            // TutorialGuideView
             var tutGo = CreateRect(tutorialLayerGo, "TutorialGuideView");
             var tutView = tutGo.AddComponent<TutorialGuideView>();
             var bannerRoot = CreateRect(tutGo, "BannerRoot");
@@ -1695,7 +1688,14 @@ namespace Game.Editor
             foreach (var (propName, value) in bindings)
             {
                 var prop = so.FindProperty(propName);
-                if (prop != null) prop.objectReferenceValue = value;
+                if (prop != null)
+                {
+                    prop.objectReferenceValue = value;
+                }
+                else
+                {
+                    Debug.LogError($"[SceneBuilder] Propriedade serializada '{propName}' não encontrada no alvo '{target.name}' ({target.GetType().Name}).");
+                }
             }
             so.ApplyModifiedProperties();
         }
