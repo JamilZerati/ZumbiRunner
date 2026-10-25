@@ -262,7 +262,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: medium
 
-- [ ] **Passo 2 (Marco 2)**: `Assets/_Game/Scripts/Presentation/UI/UIManager.cs` [NEX-1130]
+- [x] **Passo 2 (Marco 2)**: `Assets/_Game/Scripts/Presentation/UI/UIManager.cs` [NEX-1130]
   - **Ação**: Estender `GameState` com `Hub`, `Paused`, `Result` e implementar `GameStateMachine` com as novas transições. Criar `UIManager`, `UIWindow` e `UILayer`.
   - **Lógica de Negócios / Responsabilidade**: Gerenciar registro de telas uGUI, controle de visibilidade por camada (`UILayerType`: `Hub`, `GameHud`, `Modal`, `TutorialOverlay`), interceptação de input e transições integradas com o `IGameStateMachine`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0. `interface`: Marco 1 (`IAnalyticsService`).
