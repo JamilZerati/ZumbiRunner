@@ -1,8 +1,20 @@
+using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Analytics;
 using Game.Gameplay;
 using Game.Gameplay.Abilities;
+using Game.Gameplay.Tutorial;
+using Game.Meta.Debut;
+using Game.Meta.Rewards;
+using Game.Meta.Run;
+using Game.Meta.Stages;
+using Game.Meta.Tracks;
+using Game.Meta.Wallet;
 using Game.Presentation;
+using Game.Presentation.Settings;
+using Game.Presentation.UI;
 using UnityEngine;
+using AudioSettings = Game.Presentation.Settings.AudioSettings;
 
 namespace Game.Composition
 {
@@ -19,8 +31,13 @@ namespace Game.Composition
         [SerializeField] private GeneralAbilityAudio abilityAudio;
         [SerializeField] private GeneralAbilityExplosionVfx abilityVfx;
         [SerializeField] private DebugTextOverlay debugOverlay;
+        [SerializeField] private UIManager uiManager;
+        [SerializeField] private PauseController pauseController;
 
         public IEventBus EventBus { get; private set; }
+        public IGameStateMachine StateMachine { get; private set; }
+        public UIManager UIManager => uiManager;
+        public PauseController PauseController => pauseController;
 
         public void Configure(
             CombatDirector director,
@@ -42,13 +59,28 @@ namespace Game.Composition
             debugOverlay = overlay;
         }
 
+        public void ConfigureUi(UIManager manager, PauseController pause = null)
+        {
+            uiManager = manager;
+            pauseController = pause;
+        }
+
         public void Compose(IEventBus eventBus)
         {
             EventBus = eventBus;
+            StateMachine = new GameStateMachine(eventBus, GameState.Hub);
 
             if (combatDirector != null)
             {
                 combatDirector.EventBus = eventBus;
+                combatDirector.Initialize(
+                    combatDirector.Squad,
+                    combatDirector.Scroller,
+                    StateMachine,
+                    combatDirector.VictoryDistance,
+                    combatDirector.Spawner,
+                    eventBus,
+                    combatDirector.StageModifiers);
             }
 
             if (hordeSpawner != null)
@@ -92,6 +124,88 @@ namespace Game.Composition
                 var scroller = combatDirector != null ? combatDirector.Scroller : FindFirstObjectByType<TrackScroller>();
                 var weapon = combatDirector != null ? combatDirector.GetComponent<WeaponController>() : FindFirstObjectByType<WeaponController>();
                 debugOverlay.Initialize(eventBus, squad, combatDirector, scroller, weapon, abilityController);
+            }
+
+            if (uiManager == null)
+            {
+                uiManager = FindFirstObjectByType<UIManager>();
+            }
+
+            if (pauseController == null)
+            {
+                pauseController = FindFirstObjectByType<PauseController>();
+            }
+
+            if (uiManager != null)
+            {
+                var analytics = new MockAnalyticsService();
+                uiManager.Initialize(StateMachine, analytics, eventBus);
+
+                if (pauseController != null)
+                {
+                    pauseController.Initialize(
+                        StateMachine,
+                        uiManager,
+                        uiManager.GetWindow<PauseView>(),
+                        uiManager.GetWindow<OptionsView>());
+                }
+
+                var wallet = new Wallet(eventBus);
+                wallet.Add(CurrencyKind.Coins, 100, "initial");
+                var stageMapService = new StageMapService();
+                var sink = new RewardSink(wallet);
+
+                var hubView = uiManager.GetWindow<HubView>();
+                if (hubView != null)
+                {
+                    hubView.Initialize(
+                        wallet,
+                        stageMapService,
+                        StateMachine,
+                        uiManager,
+                        eventBus,
+                        analytics);
+                    hubView.DebutJourneyHook = () => uiManager.OpenWindow<DebutJourneyView>();
+                }
+
+                var resultView = uiManager.GetWindow<ResultView>();
+                if (resultView != null)
+                {
+                    var presenter = new ResultRewardPresenter(
+                        new RewardCalculator(),
+                        wallet,
+                        sink,
+                        StateMachine,
+                        analytics,
+                        resultView);
+                    resultView.Initialize(presenter);
+                }
+
+                var optionsView = uiManager.GetWindow<OptionsView>();
+                if (optionsView != null)
+                {
+                    optionsView.Initialize(
+                        new AudioSettings(),
+                        new LocalizationSettings(),
+                        new PlayerPrefsAbilitySettings());
+                }
+
+                var debutView = uiManager.GetWindow<DebutJourneyView>();
+                if (debutView != null)
+                {
+                    var debutService = new DebutJourneyService();
+                    var track = new ProgressTrack(debutService.Definition);
+                    debutView.Initialize(debutService, track, currentLoginDay: 1, sink);
+                }
+
+                var tutorialView = uiManager.GetWindow<TutorialGuideView>();
+                if (tutorialView != null)
+                {
+                    var tutorialController = new TutorialGuideController(new FtueStepProgress(), analytics);
+                    tutorialView.Initialize(tutorialController);
+                }
+
+                uiManager.OpenWindow<HubView>();
             }
         }
 
