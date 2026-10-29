@@ -387,7 +387,7 @@ flowchart TD
   - **Marco de PR**: Marco 5
   - **Effort**: high
 
-- [ ] **Passo 6 (Marco 6)**: `Extensão do Simulador CLI Headless (-mutations)` [NEX-1239]
+- [x] **Passo 6 (Marco 6)**: `Extensão do Simulador CLI Headless (-mutations)` [NEX-1239]
   - **Ação**: Adicionar flag `-mutations <id1,id2>` no `SimulateCommand.cs`.
   - **Lógica de Negócios / Responsabilidade**: Interpretar as mutações passadas via CLI ou menu de contexto, injetar no `StageModifierController` do loop de simulação dos bots Guloso e Fujao, e registrar no relatório JSON.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1, Marco 3.

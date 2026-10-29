@@ -6,6 +6,8 @@ using UnityEditor;
 using UnityEngine;
 using Game.Data;
 using Game.Core.Gates;
+using Game.Core.Modifiers;
+using Game.Data.Mutations;
 
 namespace Game.Editor.Tools
 {
@@ -36,6 +38,7 @@ namespace Game.Editor.Tools
         public int totalRuns, victories, totalRescued;
         public float winRate, averageDistance, averageFinalSquad, averageMultiplier, averageRescued;
         public List<SimulationRunResult> runs = new List<SimulationRunResult>();
+        public List<string> activeMutations = new List<string>();
 
         public BotType Bot => (BotType)Enum.Parse(typeof(BotType), botType);
         public int TotalRuns => totalRuns;
@@ -47,6 +50,7 @@ namespace Game.Editor.Tools
         public float AverageRescued => averageRescued;
         public int TotalRescued => totalRescued;
         public IReadOnlyList<SimulationRunResult> Runs => runs;
+        public IReadOnlyList<string> ActiveMutations => activeMutations;
     }
 
     [Serializable]
@@ -54,11 +58,13 @@ namespace Game.Editor.Tools
     {
         public string levelId;
         public int seed, runsPerBot;
+        public List<string> activeMutations = new List<string>();
         public List<SimulationSummary> summaries = new List<SimulationSummary>();
 
         public string LevelId => levelId;
         public int Seed => seed;
         public int RunsPerBot => runsPerBot;
+        public IReadOnlyList<string> ActiveMutations => activeMutations;
         public IReadOnlyList<SimulationSummary> Summaries => summaries;
         public SimulationSummary GetSummary(BotType type) => summaries.Find(s => s.botType == type.ToString());
     }
@@ -84,13 +90,149 @@ namespace Game.Editor.Tools
             return null;
         }
 
-        public static SimulationReport RunAll(string levelId = "level_01", int seed = 42, int runs = 10, string outputPath = null)
+        private static readonly HashSet<string> CanonicalMutationIds = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "armored", "frenzy", "fog", "last_soldier", "no_multiplication"
+        };
+
+        private static bool ContainsIgnoreCase(List<string> list, string item)
+        {
+            if (list == null || item == null) return false;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (string.Equals(list[i], item, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        public static bool IsValidMutationId(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return false;
+            string trimmed = id.Trim();
+            if (CanonicalMutationIds.Contains(trimmed)) return true;
+            var catalog = AssetDatabase.LoadAssetAtPath<MutationCatalog>("Assets/_Game/Data/Mutations/MutationCatalog.asset");
+            return catalog != null && catalog.TryGet(trimmed, out _);
+        }
+
+        public static List<string> ParseMutationIds(string rawArg)
+        {
+            var parsed = new List<string>();
+            if (string.IsNullOrWhiteSpace(rawArg)) return parsed;
+
+            string[] tokens = rawArg.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                string trimmed = tokens[i].Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+
+                if (IsValidMutationId(trimmed))
+                {
+                    if (!ContainsIgnoreCase(parsed, trimmed))
+                    {
+                        parsed.Add(trimmed);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[SimulateCommand] Unknown mutation '{trimmed}' ignored.");
+                }
+            }
+            return parsed;
+        }
+
+        public static List<string> FilterValidMutations(IEnumerable<string> mutations)
+        {
+            var parsed = new List<string>();
+            if (mutations == null) return parsed;
+
+            foreach (var item in mutations)
+            {
+                if (string.IsNullOrWhiteSpace(item)) continue;
+                if (item.Contains(','))
+                {
+                    var sub = ParseMutationIds(item);
+                    for (int s = 0; s < sub.Count; s++)
+                    {
+                        if (!ContainsIgnoreCase(parsed, sub[s]))
+                        {
+                            parsed.Add(sub[s]);
+                        }
+                    }
+                    continue;
+                }
+
+                string trimmed = item.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+
+                if (IsValidMutationId(trimmed))
+                {
+                    if (!ContainsIgnoreCase(parsed, trimmed))
+                    {
+                        parsed.Add(trimmed);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[SimulateCommand] Unknown mutation '{trimmed}' ignored.");
+                }
+            }
+            return parsed;
+        }
+
+        public static List<IStageModifier> ResolveModifiersForMutation(string mutationId)
+        {
+            var list = new List<IStageModifier>();
+            if (string.IsNullOrWhiteSpace(mutationId)) return list;
+
+            var catalog = AssetDatabase.LoadAssetAtPath<MutationCatalog>("Assets/_Game/Data/Mutations/MutationCatalog.asset");
+            if (catalog != null && catalog.TryGet(mutationId, out var def) && def.Modifiers != null && def.Modifiers.Count > 0)
+            {
+                list.AddRange(def.Modifiers);
+                return list;
+            }
+
+            switch (mutationId.Trim().ToLowerInvariant())
+            {
+                case "armored":
+                    list.Add(new EnemyStatStageModifier("mutacao:armored", StatTarget.MaxHealth, 1.5f));
+                    break;
+                case "frenzy":
+                    list.Add(new EnemyStatStageModifier("mutacao:frenzy", StatTarget.MoveSpeed, 1.3f));
+                    break;
+                case "fog":
+                    list.Add(new SquadStatStageModifier("mutacao:fog", StatTarget.Range, 0.6f));
+                    break;
+                case "last_soldier":
+                    list.Add(new InitialSquadOverrideStageModifier("mutacao:last_soldier", 1));
+                    break;
+                case "no_multiplication":
+                    list.Add(new GateOperationRemapStageModifier("mutacao:no_multiplication", true, true));
+                    break;
+            }
+            return list;
+        }
+
+        public static void ApplyMutationsToController(StageModifierController controller, IEnumerable<string> mutationIds)
+        {
+            if (controller == null || mutationIds == null) return;
+            foreach (var id in mutationIds)
+            {
+                var mods = ResolveModifiersForMutation(id);
+                for (int i = 0; i < mods.Count; i++)
+                {
+                    controller.Activate(mods[i], 0f, float.MaxValue);
+                }
+            }
+        }
+
+        public static SimulationReport RunAll(string levelId = "level_01", int seed = 42, int runs = 10, string outputPath = null, IEnumerable<string> mutations = null)
         {
             var level = LoadLevel(levelId);
             if (level == null) throw new FileNotFoundException($"Level '{levelId}' could not be loaded.");
-            var report = new SimulationReport { levelId = levelId, seed = seed, runsPerBot = runs };
-            report.summaries.Add(RunSimulation(level, BotType.Guloso, runs, seed));
-            report.summaries.Add(RunSimulation(level, BotType.Fujao, runs, seed));
+            var validMutations = FilterValidMutations(mutations);
+            var report = new SimulationReport { levelId = levelId, seed = seed, runsPerBot = runs, activeMutations = new List<string>(validMutations) };
+            report.summaries.Add(RunSimulation(level, BotType.Guloso, runs, seed, validMutations));
+            report.summaries.Add(RunSimulation(level, BotType.Fujao, runs, seed, validMutations));
 
             string finalOutput = !string.IsNullOrEmpty(outputPath) ? outputPath : Path.Combine(Directory.GetCurrentDirectory(), ".artifacts", "simulation.json");
             string dir = Path.GetDirectoryName(finalOutput);
@@ -99,23 +241,24 @@ namespace Game.Editor.Tools
             return report;
         }
 
-        public static SimulationSummary RunSimulation(string levelId, BotType botType, int runs = 10, int seed = 42)
+        public static SimulationSummary RunSimulation(string levelId, BotType botType, int runs = 10, int seed = 42, IEnumerable<string> mutations = null)
         {
             var level = LoadLevel(levelId);
             if (level == null) throw new FileNotFoundException($"Level '{levelId}' could not be loaded.");
-            return RunSimulation(level, botType, runs, seed);
+            return RunSimulation(level, botType, runs, seed, mutations);
         }
 
-        public static SimulationSummary RunSimulation(LevelDefinition level, BotType botType, int runs = 10, int seed = 42)
+        public static SimulationSummary RunSimulation(LevelDefinition level, BotType botType, int runs = 10, int seed = 42, IEnumerable<string> mutations = null)
         {
             if (level == null) throw new ArgumentNullException(nameof(level));
-            var summary = new SimulationSummary { botType = botType.ToString(), totalRuns = runs };
+            var validMutations = FilterValidMutations(mutations);
+            var summary = new SimulationSummary { botType = botType.ToString(), totalRuns = runs, activeMutations = new List<string>(validMutations) };
             float totalDistance = 0f;
             int totalSquad = 0, totalMultiplier = 0, totalRescued = 0;
 
             for (int i = 0; i < runs; i++)
             {
-                var r = SimulateSingleRun(level, botType, seed, i);
+                var r = SimulateSingleRun(level, botType, seed, i, validMutations);
                 summary.runs.Add(r);
                 if (r.victory) summary.victories++;
                 totalDistance += r.distanceReached;
@@ -158,16 +301,24 @@ namespace Game.Editor.Tools
             { "shaman", new ArchetypeStats(60, 1.0f, 2) }
         };
 
-        public static SimulationRunResult SimulateSingleRun(LevelDefinition level, BotType bot, int seed, int runIndex)
+        public static SimulationRunResult SimulateSingleRun(LevelDefinition level, BotType bot, int seed, int runIndex, IEnumerable<string> mutations = null)
         {
             var rng = new System.Random(seed + runIndex * 10007);
+            var stageModifiers = new StageModifierController();
+            var validMutations = FilterValidMutations(mutations);
+            ApplyMutationsToController(stageModifiers, validMutations);
+
             int squad = level.InitialTroops > 0 ? level.InitialTroops : 5;
+            if (stageModifiers.CurrentInitialSquadOverride.HasValue && stageModifiers.CurrentInitialSquadOverride.Value > 0)
+            {
+                squad = stageModifiers.CurrentInitialSquadOverride.Value;
+            }
+
             float currentDist = 0f, fireRate = 2f, speed = level.Speed > 0f ? level.Speed : 8f;
             int damage = 2, kills = 0, mult = 0, rescued = 0;
             bool isAlive = true;
             int abilityKillsAccumulator = 0;
             int abilityCharges = 0;
-            var stageModifiers = new StageModifierController();
             var pendingBonusZombiesByLane = new Dictionary<int, int>();
 
             if (level.Segments != null)
@@ -265,7 +416,14 @@ namespace Game.Editor.Tools
             if (bot == BotType.Fujao)
             {
                 if (data.Contains("subtract") || data.Contains("-")) squad = Math.Max(1, squad - 3);
-                else if (data.Contains("divide") || data.Contains("/")) squad = Math.Max(1, squad / 2);
+                else if (data.Contains("divide") || data.Contains("/"))
+                {
+                    int divisor = 2;
+                    var mDiv = Regex.Match(data, @"[\/÷](\d+)");
+                    if (mDiv.Success) divisor = int.Parse(mDiv.Groups[1].Value);
+                    if (stageModifiers != null && stageModifiers.RemapGateDivision) squad = Math.Max(1, squad - divisor);
+                    else squad = Math.Max(1, squad / Math.Max(1, divisor));
+                }
                 return;
             }
             if (data.Contains("fireRate") || data.Contains("fire_rate"))
@@ -278,7 +436,22 @@ namespace Game.Editor.Tools
                 var m = Regex.Match(data, @"\+(\d+)");
                 damage += m.Success ? int.Parse(m.Groups[1].Value) : 2;
             }
-            else if (data.Contains("multiply") || data.Contains("*")) squad *= 2;
+            else if (data.Contains("multiply") || data.Contains("*"))
+            {
+                int factor = 2;
+                var mMult = Regex.Match(data, @"[x\*](\d+)");
+                if (mMult.Success) factor = int.Parse(mMult.Groups[1].Value);
+                if (stageModifiers != null && stageModifiers.RemapGateMultiplication) squad += factor;
+                else squad *= factor;
+            }
+            else if (data.Contains("divide") || data.Contains("/"))
+            {
+                int divisor = 2;
+                var mDiv = Regex.Match(data, @"[\/÷](\d+)");
+                if (mDiv.Success) divisor = int.Parse(mDiv.Groups[1].Value);
+                if (stageModifiers != null && stageModifiers.RemapGateDivision) squad = Math.Max(1, squad - divisor);
+                else squad = Math.Max(1, squad / Math.Max(1, divisor));
+            }
             else if (data.Contains("add") || data.Contains("+"))
             {
                 var m = Regex.Match(data, @"\+?(\d+)");
@@ -338,7 +511,8 @@ namespace Game.Editor.Tools
             {
                 if (bot == BotType.Guloso)
                 {
-                    squad *= 3;
+                    if (stageModifiers != null && stageModifiers.RemapGateMultiplication) squad += 3;
+                    else squad *= 3;
                     stageModifiers?.Activate(cursed.StageModifier, currentDist, cursed.DurationDistance);
                 }
                 else squad += 1;
@@ -350,8 +524,10 @@ namespace Game.Editor.Tools
                     int guardCount = guarded.GuardCount > 0 ? guarded.GuardCount : 5;
                     var stats = Archetypes.TryGetValue(guarded.GuardArchetypeId ?? "runner", out var a) ? a : new ArchetypeStats(12, 5.0f, 1);
                     float guardSpeed = stats.Speed * (stageModifiers != null ? stageModifiers.CurrentEnemySpeedMultiplier : 1f);
-                    float closingTime = 40f / (speed + guardSpeed);
-                    int killed = Math.Min(guardCount, (int)(fireRate * damage * squad * 0.95f * closingTime / stats.Hp));
+                    float rangeMult = stageModifiers != null ? stageModifiers.CurrentSquadRangeMultiplier : 1f;
+                    float healthMult = stageModifiers != null ? stageModifiers.CurrentEnemyHealthMultiplier : 1f;
+                    float closingTime = (40f * rangeMult) / (speed + guardSpeed);
+                    int killed = Math.Min(guardCount, (int)(fireRate * damage * squad * 0.95f * closingTime / (stats.Hp * healthMult)));
                     kills += killed;
                     int reaching = guardCount - killed;
                     if (reaching > 0)
@@ -359,7 +535,8 @@ namespace Game.Editor.Tools
                         squad -= reaching * stats.ContactDamage;
                         if (squad <= 0) { squad = 0; isAlive = false; return; }
                     }
-                    squad *= 2;
+                    if (stageModifiers != null && stageModifiers.RemapGateMultiplication) squad += 2;
+                    else squad *= 2;
                 }
                 else squad += 1;
             }
@@ -443,8 +620,10 @@ namespace Game.Editor.Tools
                 var stats = Archetypes.TryGetValue(archName, out var a) ? a : new ArchetypeStats(20, 2.0f, 1);
                 float speedMult = stageModifiers != null ? stageModifiers.CurrentEnemySpeedMultiplier : 1f;
                 float contactMult = stageModifiers != null ? stageModifiers.CurrentEnemyContactDamageMultiplier : 1f;
-                float effectiveHp = stats.Hp * hpMultiplier;
-                float closingTime = 40f / (speed + stats.Speed * speedMult);
+                float healthMult = stageModifiers != null ? stageModifiers.CurrentEnemyHealthMultiplier : 1f;
+                float rangeMult = stageModifiers != null ? stageModifiers.CurrentSquadRangeMultiplier : 1f;
+                float effectiveHp = stats.Hp * hpMultiplier * healthMult;
+                float closingTime = (40f * rangeMult) / (speed + stats.Speed * speedMult);
 
                 float eff = (bot == BotType.Guloso) ? (0.95f + (float)(rng.NextDouble() * 0.08 - 0.04)) : (0.55f + (float)(rng.NextDouble() * 0.08 - 0.04));
                 int killed = Math.Min(waves[i].count, (int)(fireRate * damage * squad * eff * closingTime / effectiveHp));
@@ -796,7 +975,8 @@ namespace Game.Editor.Tools
                 : (bossDef != null && bossDef.BaseHp > 0 ? bossDef.BaseHp : 1000);
 
             float hpMultiplier = level != null ? level.GetHpMultiplier() : 1f;
-            int bossMaxHp = (int)(baseHp * hpMultiplier);
+            float healthMult = stageModifiers != null ? stageModifiers.CurrentEnemyHealthMultiplier : 1f;
+            int bossMaxHp = (int)(baseHp * hpMultiplier * healthMult);
             int bossHp = bossMaxHp;
 
             float arenaLength = seg.Boss != null && seg.Boss.ArenaLength > 0f
@@ -861,7 +1041,7 @@ namespace Game.Editor.Tools
                                 var stats = Archetypes.TryGetValue(arch, out var s) ? s : new ArchetypeStats(20, 2f, 1);
                                 activeMinions.Add(new BossMinionState
                                 {
-                                    Hp = stats.Hp * hpMultiplier,
+                                    Hp = stats.Hp * hpMultiplier * healthMult,
                                     Distance = 35f,
                                     Speed = stats.Speed * speedMult,
                                     ContactDamage = (int)(stats.ContactDamage * contactMult)
@@ -979,6 +1159,7 @@ namespace Game.Editor.Tools
             string levelId = "level_01";
             int seed = 42, runs = 10;
             string outputPath = null;
+            string rawMutations = null;
 
             if (cmd != null)
             {
@@ -988,12 +1169,26 @@ namespace Game.Editor.Tools
                     else if (cmd[i].Equals("-seed", StringComparison.OrdinalIgnoreCase) && i + 1 < cmd.Length) int.TryParse(cmd[i + 1], out seed);
                     else if (cmd[i].Equals("-runs", StringComparison.OrdinalIgnoreCase) && i + 1 < cmd.Length) int.TryParse(cmd[i + 1], out runs);
                     else if (cmd[i].Equals("-output", StringComparison.OrdinalIgnoreCase) && i + 1 < cmd.Length) outputPath = cmd[i + 1];
+                    else if (cmd[i].Equals("-mutations", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var mutationTokens = new List<string>();
+                        while (i + 1 < cmd.Length && !cmd[i + 1].StartsWith("-"))
+                        {
+                            mutationTokens.Add(cmd[++i]);
+                        }
+                        rawMutations = string.Join(",", mutationTokens);
+                    }
                 }
             }
 
             try
             {
-                var report = RunAll(levelId, seed, runs, outputPath);
+                var mutations = ParseMutationIds(rawMutations);
+                if (mutations.Count > 0)
+                {
+                    Debug.Log($"[SimulateCommand] Active mutations: {string.Join(", ", mutations)}");
+                }
+                var report = RunAll(levelId, seed, runs, outputPath, mutations);
                 for (int i = 0; i < report.summaries.Count; i++)
                 {
                     var s = report.summaries[i];
