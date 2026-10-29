@@ -369,7 +369,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: high
 
-- [ ] **Passo 4 (Marco 4)**: `Integração com RunConfig, Meta e RewardCalculator` [NEX-1237]
+- [x] **Passo 4 (Marco 4)**: `Integração com RunConfig, Meta e RewardCalculator` [NEX-1237]
   - **Ação**: Integrar mutações em `RunConfigBuilder`, estender `ProgressionService` e atualizar `RewardCalculator`.
   - **Lógica de Negócios / Responsabilidade**: Adicionar checagem de desbloqueio `AreMutationsUnlocked` via `IsBossDefeated("level_05_boss")`, aplicar override de `last_soldier` na geração de `RunConfig`, e validar cálculo acumulativo de moedas no `RewardCalculator`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1.

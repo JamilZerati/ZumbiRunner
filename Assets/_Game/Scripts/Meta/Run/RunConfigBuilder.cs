@@ -53,6 +53,18 @@ namespace Game.Meta.Run
                 }
             }
 
+            if (selectedMutations != null)
+            {
+                foreach (string mutation in selectedMutations)
+                {
+                    if (string.Equals(mutation, "last_soldier", StringComparison.OrdinalIgnoreCase))
+                    {
+                        squad = 1;
+                        break;
+                    }
+                }
+            }
+
             var mutationList = selectedMutations != null ? new List<string>(selectedMutations) : new List<string>();
 
             return new RunConfig(stageId, squad, weaponId, rewardMultiplier, mutationList, bonusAbilityCharges);
