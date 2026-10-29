@@ -10,6 +10,7 @@ namespace Game.Data.Mutations
         [SerializeField] private List<MutationDefinition> entries = new();
 
         public IReadOnlyList<MutationDefinition> Entries => entries;
+        public IReadOnlyList<MutationDefinition> Mutations => entries;
 
         public bool TryGet(string id, out MutationDefinition definition)
         {
@@ -30,6 +31,17 @@ namespace Game.Data.Mutations
             }
 
             return false;
+        }
+
+        public bool TryGetMutation(string id, out MutationDefinition mutation)
+        {
+            return TryGet(id, out mutation);
+        }
+
+        public MutationDefinition GetMutation(string id)
+        {
+            TryGet(id, out var def);
+            return def;
         }
 
         public IReadOnlyDictionary<string, float> GetRewardBonuses()
