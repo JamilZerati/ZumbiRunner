@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4f0d07dd7b642deb26ee8c54a621a41, type: 3}
+  m_Name: MutationCatalog
+  m_EditorClassIdentifier: Game.Data::Game.Data.Mutations.MutationCatalog
+  entries:
+  - {fileID: 11400000, guid: e005cbdc45d70fe4aaf65a75f2fbd87b, type: 2}
+  - {fileID: 11400000, guid: e9c4da445111d2144bf1d413cf1953fd, type: 2}
+  - {fileID: 11400000, guid: 95230e41c69e89547bb458964097af27, type: 2}
+  - {fileID: 11400000, guid: 7b928dd83050caf4ab5200b93235c718, type: 2}
+  - {fileID: 11400000, guid: 586a8786232f9a144947657aeec19984, type: 2}

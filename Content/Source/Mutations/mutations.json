@@ -1,0 +1,73 @@
+{
+  "mutations": [
+    {
+      "id": "armored",
+      "displayName": "Blindados",
+      "description": "Inimigos possuem +50% de vida.",
+      "rewardBonus": 0.5,
+      "modifiers": [
+        {
+          "type": "EnemyStat",
+          "sourceId": "mutacao:armored",
+          "statTarget": "MaxHealth",
+          "multiplier": 1.5
+        }
+      ]
+    },
+    {
+      "id": "frenzy",
+      "displayName": "Frenesi",
+      "description": "Inimigos movem-se 30% mais rápido.",
+      "rewardBonus": 0.5,
+      "modifiers": [
+        {
+          "type": "EnemyStat",
+          "sourceId": "mutacao:frenzy",
+          "statTarget": "MoveSpeed",
+          "multiplier": 1.3
+        }
+      ]
+    },
+    {
+      "id": "fog",
+      "displayName": "Neblina",
+      "description": "Alcance de engajamento da tropa reduzido em 40%.",
+      "rewardBonus": 0.25,
+      "modifiers": [
+        {
+          "type": "SquadStat",
+          "sourceId": "mutacao:fog",
+          "statTarget": "Range",
+          "multiplier": 0.6
+        }
+      ]
+    },
+    {
+      "id": "last_soldier",
+      "displayName": "Último Soldado",
+      "description": "Comece a fase com apenas 1 soldado.",
+      "rewardBonus": 1.0,
+      "modifiers": [
+        {
+          "type": "InitialSquadOverride",
+          "sourceId": "mutacao:last_soldier",
+          "squadCount": 1
+        }
+      ]
+    },
+    {
+      "id": "no_multiplication",
+      "displayName": "Sem Multiplicação",
+      "description": "Portões de multiplicação viram adição e divisão viram subtração.",
+      "rewardBonus": 0.5,
+      "modifiers": [
+        {
+          "type": "GateOperationRemap",
+          "sourceId": "mutacao:no_multiplication",
+          "remapMultiplyToAdd": true,
+          "remapDivideToSubtract": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09a33ec7353640e7aece56f99c0e6174, type: 3}
+  m_Name: armored
+  m_EditorClassIdentifier: Game.Data::Game.Data.Mutations.MutationDefinition
+  id: armored
+  displayName: Blindados
+  description: Inimigos possuem +50% de vida.
+  icon: {fileID: 0}
+  rewardBonus: 0.5
+  modifiers:
+  - rid: 6580926297281396858
+  references:
+    version: 2
+    RefIds:
+    - rid: 6580926297281396858
+      type: {class: EnemyStatStageModifier, ns: Game.Core.Modifiers, asm: Game.Core}
+      data:
+        sourceId: mutacao:armored
+        statTarget: 0
+        multiplier: 1.5

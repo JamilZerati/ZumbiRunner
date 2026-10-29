@@ -36,11 +36,12 @@ namespace Game.Editor
             int levelCount = LevelImporter.ImportAll(errors: errors);
             int abilityCount = AbilityImporter.ImportAll(errors: errors);
             int weatherCount = WeatherImporter.ImportAll(errors: errors);
+            int mutationCount = MutationImporter.ImportAll(errors: errors);
             for (int i = 0; i < errors.Count; i++)
             {
                 Debug.LogError($"[Game.Editor.Cli] ImportContent error: {errors[i]}");
             }
-            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {allyCount} allies, {perkCount} perks, {enemyCount} enemies, {gateCount} gates, {cageCount} cages, {holdoutCount} holdouts, {levelCount} levels, {abilityCount} abilities, {weatherCount} weathers imported, {errors.Count} errors.");
+            Debug.Log($"[Game.Editor.Cli] ImportContent completed: {weaponCount} weapons, {statusCount} statuses, {interactionCount} interactions, {allyCount} allies, {perkCount} perks, {enemyCount} enemies, {gateCount} gates, {cageCount} cages, {holdoutCount} holdouts, {levelCount} levels, {abilityCount} abilities, {weatherCount} weathers, {mutationCount} mutations imported, {errors.Count} errors.");
             EditorApplication.Exit(ComputeImportExitCode(errors));
         }
 

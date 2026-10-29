@@ -351,7 +351,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: medium
 
-- [ ] **Passo 2 (Marco 2)**: `Importador de Mutações e Catálogo de Dados` [NEX-1235]
+- [x] **Passo 2 (Marco 2)**: `Importador de Mutações e Catálogo de Dados` [NEX-1235]
   - **Ação**: Criar `Content/Source/Mutations/mutations.json` com os 5 registros canônicos e implementar `MutationImporter.cs` no `Game.Editor`, conectando no `Cli.ImportContent()`.
   - **Lógica de Negócios / Responsabilidade**: Ler o JSON fonte, instanciar e serializar os assets ScriptableObject e gerar `MutationCatalog.asset` de forma determinística e idempotente.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1.
