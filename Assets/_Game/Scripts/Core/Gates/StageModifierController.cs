@@ -102,7 +102,7 @@ namespace Game.Core.Gates
                 contact *= mod.EnemyContactDamageMultiplier;
                 range *= mod.SquadRangeMultiplier;
                 health *= mod.EnemyHealthMultiplier;
-                if (mod.InitialSquadOverride.HasValue)
+                if (mod.InitialSquadOverride.HasValue && mod.InitialSquadOverride.Value > 0)
                 {
                     initialSquadOverride = mod.InitialSquadOverride.Value;
                 }

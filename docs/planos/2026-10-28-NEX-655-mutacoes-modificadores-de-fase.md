@@ -360,7 +360,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: medium
 
-- [ ] **Passo 3 (Marco 3)**: `Implementação dos Modificadores em Gameplay` [NEX-1236]
+- [x] **Passo 3 (Marco 3)**: `Implementação dos Modificadores em Gameplay` [NEX-1236]
   - **Ação**: Integrar modificadores no `StageModifierController`, `HordeSpawner`, `LevelDirector` e `GatePair`.
   - **Lógica de Negócios / Responsabilidade**: Atualizar `StageModifierController` com `CurrentEnemyHealthMultiplier`, `CurrentInitialSquadOverride`, `RemapGateMultiplication` e `RemapGateDivision`. Aplicar scaling de HP em `HordeSpawner` e chefes, alcance em `CombatDirector`, tropa inicial em `LevelDirector` e conversão de portões em `GatePair`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 1.
