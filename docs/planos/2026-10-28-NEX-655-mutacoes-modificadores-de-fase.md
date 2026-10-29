@@ -378,7 +378,7 @@ flowchart TD
   - **Marco de PR**: Marco 4
   - **Effort**: medium
 
-- [ ] **Passo 5 (Marco 5)**: `Widget de Seleção Pré-Fase e Desbloqueio na UI [TELA]` [NEX-1238]
+- [x] **Passo 5 (Marco 5)**: `Widget de Seleção Pré-Fase e Desbloqueio na UI [TELA]` [NEX-1238]
   - **Ação**: Implementar `MutationSelectionWidget.cs` e `MutationToggleItem.cs`, integrando no `HubView`.
   - **Lógica de Negócios / Responsabilidade**: Exibir estado bloqueado se Boss 1 não foi derrotado; permitir seleção de 0 a 3 mutações ativas; exibir bônus total somado; e passar mutações selecionadas para `HubView.StartSelectedRun()`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 4.
