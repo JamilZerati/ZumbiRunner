@@ -72,11 +72,17 @@ namespace Game.Tests.EditMode
             catalog.SetEntries(new[] { armored, frenzy, fog, lastSoldier, noMultiplication });
 
             Assert.AreEqual(5, catalog.Entries.Count);
+            Assert.AreEqual(5, catalog.Mutations.Count);
 
             Assert.IsTrue(catalog.TryGet("armored", out var defArmored));
             Assert.AreEqual("Blindados", defArmored.DisplayName);
             Assert.AreEqual(0.50f, defArmored.RewardBonus, 1e-4f);
             Assert.AreEqual(1.5f, defArmored.Modifiers[0].EnemyHealthMultiplier, 1e-4f);
+            Assert.IsNull(defArmored.Icon);
+
+            Assert.IsTrue(catalog.TryGetMutation("armored", out var defArmoredMut));
+            Assert.AreSame(defArmored, defArmoredMut);
+            Assert.AreSame(defArmored, catalog.GetMutation("armored"));
 
             Assert.IsTrue(catalog.TryGet("frenzy", out var defFrenzy));
             Assert.AreEqual("Frenesi", defFrenzy.DisplayName);
@@ -106,6 +112,8 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0.50f, bonuses["no_multiplication"], 1e-4f);
 
             Assert.IsFalse(catalog.TryGet("unknown_mutation", out _));
+            Assert.IsFalse(catalog.TryGetMutation("unknown_mutation", out _));
+            Assert.IsNull(catalog.GetMutation("unknown_mutation"));
         }
 
         [Test]

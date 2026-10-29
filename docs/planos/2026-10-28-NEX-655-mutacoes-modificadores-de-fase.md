@@ -342,7 +342,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: high
 
-- [ ] **Passo 1 (Marco 1)**: `Contratos de Modificadores e Definições de Dados` [NEX-1234]
+- [x] **Passo 1 (Marco 1)**: `Contratos de Modificadores e Definições de Dados` [NEX-1234]
   - **Ação**: Estender `IStageModifier` em `Game.Core.Gates` e criar modificadores polimórficos em `Game.Core.Modifiers`, além de `MutationDefinition` e `MutationCatalog` em `Game.Data.Mutations`.
   - **Lógica de Negócios / Responsabilidade**: Definir C# puro para `EnemyStatStageModifier`, `SquadStatStageModifier`, `InitialSquadOverrideStageModifier` e `GateOperationRemapStageModifier`, mantendo compatibilidade com `StageModifierSpec` e `WeatherStageModifier`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
