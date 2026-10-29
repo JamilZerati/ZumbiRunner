@@ -23,7 +23,17 @@ namespace Game.Presentation.UI
 
         public bool AreMutationsUnlocked => _progressionService != null && _progressionService.AreMutationsUnlocked;
         public IReadOnlyList<string> SelectedMutationIds => _selectedMutations;
-        public IReadOnlyList<MutationToggleItem> Items => _instantiatedItems;
+        public IReadOnlyList<MutationToggleItem> Items
+        {
+            get
+            {
+                if (_instantiatedItems.Count == 0 && _itemsContainer != null)
+                {
+                    _instantiatedItems.AddRange(_itemsContainer.GetComponentsInChildren<MutationToggleItem>(true));
+                }
+                return _instantiatedItems;
+            }
+        }
         public Transform ItemsContainer => _itemsContainer;
         public MutationToggleItem ItemPrefab => _itemPrefab;
         public TMP_Text TotalBonusText => _totalBonusText;
@@ -76,6 +86,11 @@ namespace Game.Presentation.UI
             _catalog = catalog;
             _progressionService = progressionService;
             _selectedMutations.Clear();
+
+            if (_instantiatedItems.Count == 0 && _itemsContainer != null)
+            {
+                _instantiatedItems.AddRange(_itemsContainer.GetComponentsInChildren<MutationToggleItem>(true));
+            }
 
             if (_itemPrefab != null && _itemsContainer != null && _catalog != null)
             {

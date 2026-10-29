@@ -18,10 +18,10 @@ MonoBehaviour:
   ContactDps: 25
   CoinValue: 5
   Behaviors:
-  - rid: 6580925696437649410
+  - rid: 6580926312557838392
   references:
     version: 2
     RefIds:
-    - rid: 6580925696437649410
+    - rid: 6580926312557838392
       type: {class: MoveStraightBehavior, ns: Game.Data, asm: Game.Data}
       data: 

@@ -18,11 +18,11 @@ MonoBehaviour:
   icon: {fileID: 0}
   rewardBonus: 0.5
   modifiers:
-  - rid: 6580926297281396858
+  - rid: 6580926312557838458
   references:
     version: 2
     RefIds:
-    - rid: 6580926297281396858
+    - rid: 6580926312557838458
       type: {class: EnemyStatStageModifier, ns: Game.Core.Modifiers, asm: Game.Core}
       data:
         sourceId: mutacao:armored

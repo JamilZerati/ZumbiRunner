@@ -18,12 +18,27 @@ MonoBehaviour:
   TargetDurationSeconds: 90
   InitialTroops: 5
   LaneCount: 2
+  Phase: 1
+  IsBossStage: 0
+  BossId: 
   Segments:
   - SegmentType: 0
     StartDistance: 0
     Length: 40
     Events: []
     CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0
   - SegmentType: 1
     StartDistance: 40
     Length: 20
@@ -33,6 +48,18 @@ MonoBehaviour:
       Data: fireRate+5
       Lane: -1
     CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0
   - SegmentType: 2
     StartDistance: 60
     Length: 560
@@ -46,8 +73,32 @@ MonoBehaviour:
       Data: lane=1;count=5
       Lane: 1
     CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0
   - SegmentType: 3
     StartDistance: 620
     Length: 100
     Events: []
     CoveredLanes: 
+    Cages: []
+    Holdout:
+      HoldoutId: 
+      CustomMaxHp: 0
+      CustomSurvivors: 0
+      CustomDuration: 0
+    Boss:
+      BossId: 
+      CustomMaxHp: 0
+      InitialLane: 0
+      ArenaLength: 0
+    Weather: 0

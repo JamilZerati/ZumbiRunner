@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Analytics;
+using Game.Core.Events;
+using Game.Core.Gates;
+using Game.Data.Mutations;
 using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Gameplay.Tutorial;
 using Game.Meta.Debut;
+using Game.Meta.Progression;
 using Game.Meta.Rewards;
 using Game.Meta.Run;
 using Game.Meta.Stages;
@@ -33,11 +37,24 @@ namespace Game.Composition
         [SerializeField] private DebugTextOverlay debugOverlay;
         [SerializeField] private UIManager uiManager;
         [SerializeField] private PauseController pauseController;
+        [SerializeField] private MutationCatalog mutationCatalog;
 
         public IEventBus EventBus { get; private set; }
         public IGameStateMachine StateMachine { get; private set; }
         public UIManager UIManager => uiManager;
         public PauseController PauseController => pauseController;
+        public IMutationCatalog MutationCatalog => mutationCatalog;
+        public IProgressionService ProgressionService { get; private set; }
+
+        public void ConfigureMutations(MutationCatalog catalog)
+        {
+            mutationCatalog = catalog;
+        }
+
+        public void SetProgressionService(IProgressionService service)
+        {
+            ProgressionService = service;
+        }
 
         public void Configure(
             CombatDirector director,
@@ -69,9 +86,21 @@ namespace Game.Composition
         {
             EventBus = eventBus;
             StateMachine = new GameStateMachine(eventBus, GameState.Hub);
+            eventBus.Subscribe<RunStartedEvent>(OnRunStarted);
+
+#if UNITY_EDITOR
+            if (mutationCatalog == null)
+            {
+                mutationCatalog = UnityEditor.AssetDatabase.LoadAssetAtPath<MutationCatalog>("Assets/_Game/Data/Mutations/MutationCatalog.asset");
+            }
+#endif
 
             if (combatDirector != null)
             {
+                if (combatDirector.StageModifiers == null)
+                {
+                    combatDirector.SetStageModifiers(new StageModifierController());
+                }
                 combatDirector.EventBus = eventBus;
                 combatDirector.Initialize(
                     combatDirector.Squad,
@@ -154,6 +183,8 @@ namespace Game.Composition
                 wallet.Add(CurrencyKind.Coins, 100, "initial");
                 var stageMapService = new StageMapService();
                 var sink = new RewardSink(wallet);
+                ProgressionService ??= new ProgressionService();
+                var mutationBonuses = mutationCatalog != null ? mutationCatalog.GetRewardBonuses() : null;
 
                 var hubView = uiManager.GetWindow<HubView>();
                 if (hubView != null)
@@ -164,7 +195,9 @@ namespace Game.Composition
                         StateMachine,
                         uiManager,
                         eventBus,
-                        analytics);
+                        analytics,
+                        mutationCatalog,
+                        ProgressionService);
                     hubView.DebutJourneyHook = () => uiManager.OpenWindow<DebutJourneyView>();
                 }
 
@@ -172,7 +205,7 @@ namespace Game.Composition
                 if (resultView != null)
                 {
                     var presenter = new ResultRewardPresenter(
-                        new RewardCalculator(),
+                        new RewardCalculator(mutationBonuses),
                         wallet,
                         sink,
                         StateMachine,
@@ -206,6 +239,53 @@ namespace Game.Composition
                 }
 
                 uiManager.OpenWindow<HubView>();
+            }
+        }
+
+        private void OnRunStarted(RunStartedEvent evt)
+        {
+            if (evt.Config?.MutationIds == null || evt.Config.MutationIds.Count == 0)
+            {
+                return;
+            }
+
+            if (mutationCatalog == null)
+            {
+                return;
+            }
+
+            var stageModifiers = combatDirector != null && combatDirector.StageModifiers != null
+                ? combatDirector.StageModifiers
+                : new StageModifierController();
+
+            for (int i = 0; i < evt.Config.MutationIds.Count; i++)
+            {
+                string mutationId = evt.Config.MutationIds[i];
+                if (mutationCatalog.TryGet(mutationId, out var def) && def?.Modifiers != null)
+                {
+                    for (int m = 0; m < def.Modifiers.Count; m++)
+                    {
+                        var modifier = def.Modifiers[m];
+                        if (modifier != null)
+                        {
+                            stageModifiers.Activate(modifier, 0f, float.MaxValue);
+                        }
+                    }
+                }
+            }
+
+            if (combatDirector != null)
+            {
+                combatDirector.SetStageModifiers(stageModifiers);
+                if (stageModifiers.CurrentInitialSquadOverride.HasValue && combatDirector.Squad != null)
+                {
+                    combatDirector.Squad.SetCount(stageModifiers.CurrentInitialSquadOverride.Value);
+                }
+            }
+
+            if (hordeSpawner != null)
+            {
+                hordeSpawner.StageModifierController = stageModifiers;
             }
         }
 
