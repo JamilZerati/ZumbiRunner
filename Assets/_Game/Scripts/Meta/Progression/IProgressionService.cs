@@ -8,5 +8,6 @@ namespace Game.Meta.Progression
         bool ProcessRunResult(RunResult result, IRewardSink sink, out IReward grantedReward);
         bool IsContentUnlocked(string contentId);
         bool IsBossDefeated(string levelId);
+        bool AreMutationsUnlocked { get; }
     }
 }
