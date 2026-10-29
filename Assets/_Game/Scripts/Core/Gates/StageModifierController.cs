@@ -18,6 +18,10 @@ namespace Game.Core.Gates
         public float CurrentEnemySpeedMultiplier { get; private set; } = 1f;
         public float CurrentEnemyContactDamageMultiplier { get; private set; } = 1f;
         public float CurrentSquadRangeMultiplier { get; private set; } = 1f;
+        public float CurrentEnemyHealthMultiplier { get; private set; } = 1f;
+        public int? CurrentInitialSquadOverride { get; private set; }
+        public bool RemapGateMultiplication { get; private set; }
+        public bool RemapGateDivision { get; private set; }
 
         public void Activate(IStageModifier modifier, float startDistance, float durationDistance)
         {
@@ -86,17 +90,39 @@ namespace Game.Core.Gates
             float speed = 1f;
             float contact = 1f;
             float range = 1f;
+            float health = 1f;
+            int? initialSquadOverride = null;
+            bool remapMult = false;
+            bool remapDiv = false;
 
             for (int i = 0; i < activeModifiers.Count; i++)
             {
-                speed *= activeModifiers[i].Modifier.EnemySpeedMultiplier;
-                contact *= activeModifiers[i].Modifier.EnemyContactDamageMultiplier;
-                range *= activeModifiers[i].Modifier.SquadRangeMultiplier;
+                var mod = activeModifiers[i].Modifier;
+                speed *= mod.EnemySpeedMultiplier;
+                contact *= mod.EnemyContactDamageMultiplier;
+                range *= mod.SquadRangeMultiplier;
+                health *= mod.EnemyHealthMultiplier;
+                if (mod.InitialSquadOverride.HasValue)
+                {
+                    initialSquadOverride = mod.InitialSquadOverride.Value;
+                }
+                if (mod.RemapGateMultiplication)
+                {
+                    remapMult = true;
+                }
+                if (mod.RemapGateDivision)
+                {
+                    remapDiv = true;
+                }
             }
 
             CurrentEnemySpeedMultiplier = speed;
             CurrentEnemyContactDamageMultiplier = contact;
             CurrentSquadRangeMultiplier = range;
+            CurrentEnemyHealthMultiplier = health;
+            CurrentInitialSquadOverride = initialSquadOverride;
+            RemapGateMultiplication = remapMult;
+            RemapGateDivision = remapDiv;
         }
     }
 }

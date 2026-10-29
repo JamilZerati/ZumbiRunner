@@ -87,5 +87,7 @@ namespace Game.Meta.Progression
             if (string.IsNullOrEmpty(levelId)) return false;
             return _defeatedBosses.Contains(levelId);
         }
+
+        public bool AreMutationsUnlocked => IsBossDefeated("level_05_boss");
     }
 }

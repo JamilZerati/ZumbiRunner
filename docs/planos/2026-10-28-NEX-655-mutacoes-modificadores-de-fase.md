@@ -1,7 +1,7 @@
 # Plano de Implementação: M20 · Mutações (Modificadores de Fase)
 > Data: 2026-10-28  
 > Issue: NEX-655  
-> Status: Pronto para Execução via /executar  
+> Status: Cenários validados — Suíte Red comprovada em 2026-10-29  
 
 ---
 

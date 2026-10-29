@@ -8,6 +8,10 @@ namespace Game.Core.Weather
         public float EnemySpeedMultiplier { get; }
         public float EnemyContactDamageMultiplier { get; }
         public float SquadRangeMultiplier { get; }
+        public float EnemyHealthMultiplier => 1f;
+        public int? InitialSquadOverride => null;
+        public bool RemapGateMultiplication => false;
+        public bool RemapGateDivision => false;
 
         public WeatherStageModifier(WeatherType type)
         {
