@@ -121,7 +121,15 @@ namespace Game.Gameplay
             _stageModifierController = stageModifiers ?? new StageModifierController();
 
             _currentDistance = 0f;
-            _currentSquad = config != null ? config.InitialSquad : (levelDef != null ? levelDef.InitialTroops : 10);
+            int baseSquad = config != null ? config.InitialSquad : (levelDef != null ? levelDef.InitialTroops : 10);
+            if (_stageModifierController != null && _stageModifierController.CurrentInitialSquadOverride.HasValue && _stageModifierController.CurrentInitialSquadOverride.Value > 0)
+            {
+                _currentSquad = _stageModifierController.CurrentInitialSquadOverride.Value;
+            }
+            else
+            {
+                _currentSquad = baseSquad;
+            }
             _multiplierReached = 0;
             EscapedEnemyCount = 0;
             SpawnedHordeCount = 0;
@@ -232,7 +240,9 @@ namespace Game.Gameplay
                         IsBossFightActive = true;
 
                         string bossId = segment.Boss?.BossId ?? (_levelDef != null ? _levelDef.BossId : null) ?? "boss_colossus";
-                        int maxHp = segment.Boss != null && segment.Boss.CustomMaxHp > 0 ? segment.Boss.CustomMaxHp : 1000;
+                        int baseHp = segment.Boss != null && segment.Boss.CustomMaxHp > 0 ? segment.Boss.CustomMaxHp : 1000;
+                        float healthMultiplier = _stageModifierController != null ? _stageModifierController.CurrentEnemyHealthMultiplier : 1f;
+                        int maxHp = (int)Math.Round(baseHp * healthMultiplier);
                         int initialLane = segment.Boss != null ? segment.Boss.InitialLane : 0;
 
                         ActiveBossId = bossId;

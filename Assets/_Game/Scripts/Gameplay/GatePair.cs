@@ -5,7 +5,9 @@ using Game.Core.Allies;
 using Game.Core.Events;
 using Game.Core.Gates;
 using Game.Core.Perks;
+using Game.Core.Perks.Effects;
 using Game.Core.Stats;
+using Game.Data;
 using UnityEngine;
 
 namespace Game.Gameplay
@@ -24,7 +26,7 @@ namespace Game.Gameplay
 
         public StageModifierController StageModifierController
         {
-            get => stageModifierController;
+            get => stageModifierController != null ? stageModifierController : (stageModifierController = FindAnyObjectByType<LevelDirector>()?.StageModifierController);
             set => stageModifierController = value;
         }
 
@@ -100,7 +102,7 @@ namespace Game.Gameplay
             IsConsumed = true;
 
             var activeBus = bus ?? eventBus;
-            var activeModifierController = stageModifiers ?? stageModifierController;
+            var activeModifierController = stageModifiers ?? StageModifierController;
             var runtimeState = targetGate.RuntimeState ?? targetGate.EnsureRuntimeState();
             var variant = targetGate.Variant;
             var variantType = runtimeState != null
@@ -120,16 +122,14 @@ namespace Game.Gameplay
                 var activeRoster = roster ?? (squad as IAllyRoster);
                 if (targetGate.Perk != null)
                 {
-                    var context = new PerkContext(squad, laneIndex, loadout, roster: activeRoster);
-                    targetGate.Perk.Apply(context);
+                    ApplyPerk(targetGate.Perk, squad, laneIndex, loadout, activeRoster, activeModifierController);
                 }
 
                 if (variantType == GateVariantType.Cursed)
                 {
                     if (targetGate.BonusPerk != null)
                     {
-                        var context = new PerkContext(squad, laneIndex, loadout, roster: activeRoster);
-                        targetGate.BonusPerk.Apply(context);
+                        ApplyPerk(targetGate.BonusPerk, squad, laneIndex, loadout, activeRoster, activeModifierController);
                     }
 
                     if (variant is CursedGateVariant cursedVariant && activeModifierController != null)
@@ -152,6 +152,63 @@ namespace Game.Gameplay
 
             OnGateTriggered?.Invoke(laneIndex, targetGate);
             return true;
+        }
+
+        private static void ApplyPerk(
+            PerkDefinition perk,
+            ISquad squad,
+            int laneIndex,
+            IWeaponLoadout loadout,
+            IAllyRoster roster,
+            StageModifierController stageModifiers)
+        {
+            if (perk == null)
+            {
+                return;
+            }
+
+            var effects = perk.Effects;
+            if (effects == null || effects.Count == 0)
+            {
+                return;
+            }
+
+            var context = new PerkContext(squad, laneIndex, loadout, roster: roster);
+            if (context.SourceId == null)
+            {
+                context = context.WithSourceId(perk.Id);
+            }
+
+            bool remapMult = stageModifiers != null && stageModifiers.RemapGateMultiplication;
+            bool remapDiv = stageModifiers != null && stageModifiers.RemapGateDivision;
+
+            for (int i = 0; i < effects.Count; i++)
+            {
+                var effect = effects[i];
+                if (effect == null)
+                {
+                    continue;
+                }
+
+                if (remapMult && effect is MultiplySoldiersEffect mult)
+                {
+                    if (mult.Factor > 0)
+                    {
+                        squad?.Add(mult.Factor);
+                    }
+                }
+                else if (remapDiv && effect is DivideSoldiersEffect div)
+                {
+                    if (div.Divisor > 0)
+                    {
+                        ApplySquadDelta(squad, -div.Divisor);
+                    }
+                }
+                else
+                {
+                    effect.Apply(context);
+                }
+            }
         }
 
         private static int ApplySquadDelta(ISquad squad, int value)
