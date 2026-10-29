@@ -17,11 +17,11 @@ MonoBehaviour:
   perkId: add_5
   perk: {fileID: 11400000, guid: ffc7824f09f52be448b6690924d9b82a, type: 2}
   variant:
-    rid: 6580925928563277879
+    rid: 6580926312557838451
   references:
     version: 2
     RefIds:
-    - rid: 6580925928563277879
+    - rid: 6580926312557838451
       type: {class: ShootToUpgradeGateVariant, ns: Game.Core.Gates, asm: Game.Core}
       data:
         initialValue: -5

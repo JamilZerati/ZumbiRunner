@@ -18,11 +18,11 @@ MonoBehaviour:
   icon: {fileID: 0}
   rewardBonus: 0.25
   modifiers:
-  - rid: 6580926297281396855
+  - rid: 6580926312557838455
   references:
     version: 2
     RefIds:
-    - rid: 6580926297281396855
+    - rid: 6580926312557838455
       type: {class: SquadStatStageModifier, ns: Game.Core.Modifiers, asm: Game.Core}
       data:
         sourceId: mutacao:fog

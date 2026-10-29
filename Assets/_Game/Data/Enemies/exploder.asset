@@ -18,21 +18,21 @@ MonoBehaviour:
   ContactDps: 0
   CoinValue: 2
   Behaviors:
-  - rid: 6580925696437649419
-  - rid: 6580925696437649420
-  - rid: 6580925696437649421
+  - rid: 6580926312557838404
+  - rid: 6580926312557838405
+  - rid: 6580926312557838406
   references:
     version: 2
     RefIds:
-    - rid: 6580925696437649419
+    - rid: 6580926312557838404
       type: {class: MoveStraightBehavior, ns: Game.Data, asm: Game.Data}
       data: 
-    - rid: 6580925696437649420
+    - rid: 6580926312557838405
       type: {class: ExplodeOnContactBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Damage: 30
         Radius: 2
-    - rid: 6580925696437649421
+    - rid: 6580926312557838406
       type: {class: ExplodeOnDeathBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Damage: 50

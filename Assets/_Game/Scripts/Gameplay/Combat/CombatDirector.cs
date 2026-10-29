@@ -87,7 +87,7 @@ namespace Game.Gameplay
         private StageModifierController _stageModifiers;
         public StageModifierController StageModifiers
         {
-            get => _stageModifiers != null ? _stageModifiers : (_stageModifiers = FindAnyObjectByType<LevelDirector>()?.StageModifierController);
+            get => _stageModifiers != null ? _stageModifiers : (_stageModifiers = FindAnyObjectByType<LevelDirector>()?.StageModifierController ?? new StageModifierController());
             set
             {
                 _stageModifiers = value;

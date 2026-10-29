@@ -18,25 +18,25 @@ MonoBehaviour:
   ContactDps: 20
   CoinValue: 100
   Behaviors:
-  - rid: 6580926081309081660
-  - rid: 6580926081309081661
-  - rid: 6580926081309081662
+  - rid: 6580926312557838396
+  - rid: 6580926312557838397
+  - rid: 6580926312557838398
   references:
     version: 2
     RefIds:
-    - rid: 6580926081309081660
+    - rid: 6580926312557838396
       type: {class: BossPingPongBehavior, ns: Game.Data, asm: Game.Data}
       data:
         MinLane: 0
         MaxLane: 2
         Speed: 2
-    - rid: 6580926081309081661
+    - rid: 6580926312557838397
       type: {class: BossLaneTelegraphDiveBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Interval: 4
         TelegraphDuration: 1
         Damage: 50
-    - rid: 6580926081309081662
+    - rid: 6580926312557838398
       type: {class: BossSummonWaveBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Thresholds:

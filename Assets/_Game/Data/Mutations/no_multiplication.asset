@@ -18,11 +18,11 @@ MonoBehaviour:
   icon: {fileID: 0}
   rewardBonus: 0.5
   modifiers:
-  - rid: 6580926297281396857
+  - rid: 6580926312557838457
   references:
     version: 2
     RefIds:
-    - rid: 6580926297281396857
+    - rid: 6580926312557838457
       type: {class: GateOperationRemapStageModifier, ns: Game.Core.Modifiers, asm: Game.Core}
       data:
         sourceId: mutacao:no_multiplication

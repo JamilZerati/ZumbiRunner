@@ -396,7 +396,7 @@ flowchart TD
   - **Marco de PR**: Marco 6
   - **Effort**: medium
 
-- [ ] **Passo 7 (Marco 7)**: `Integração Geral, Cena Greybox e Validação PlayMode [GAMEPLAY]` [NEX-1240]
+- [x] **Passo 7 (Marco 7)**: `Integração Geral, Cena Greybox e Validação PlayMode [GAMEPLAY]` [NEX-1240]
   - **Ação**: Atualizar `GreyboxRunComposer` e `SceneBuilder` para registrar `MutationCatalog` e fiação uGUI; executar validação em PlayMode com evidências visuais.
   - **Lógica de Negócios / Responsabilidade**: Conectar toda a esteira de Mutações de ponta a ponta na cena viva de teste, validar PlayMode, executar `tools/unity simulate -mutations armored,frenzy` e registrar capturas.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 2, Marco 3, Marco 5, Marco 6.

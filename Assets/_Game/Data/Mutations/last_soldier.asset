@@ -18,11 +18,11 @@ MonoBehaviour:
   icon: {fileID: 0}
   rewardBonus: 1
   modifiers:
-  - rid: 6580926297281396856
+  - rid: 6580926312557838456
   references:
     version: 2
     RefIds:
-    - rid: 6580926297281396856
+    - rid: 6580926312557838456
       type: {class: InitialSquadOverrideStageModifier, ns: Game.Core.Modifiers, asm: Game.Core}
       data:
         sourceId: mutacao:last_soldier
