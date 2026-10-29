@@ -333,7 +333,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-1233]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & E2E Specs` [NEX-1233]
   - **Ação**: Criar a suíte Red de testes comportamentais e cenários adversários em `Assets/_Game/Scripts/Tests/EditMode/Mutations/`.
   - **Lógica de Negócios / Responsabilidade**: Definir os testes unitários cobrindo as 5 mutações canônicas, recálculo de multiplicadores, remap de portões, validação de trava de Boss, teto de 3 mutações e bônus no `RewardCalculator`.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
