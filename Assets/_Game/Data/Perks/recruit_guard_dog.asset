@@ -15,10 +15,10 @@ MonoBehaviour:
   id: recruit_guard_dog
   displayName: "Recrutar C\xE3o de Guarda"
   effects:
-  - rid: 6580925956049338545
+  - rid: 6580926312557838541
   references:
     version: 2
     RefIds:
-    - rid: 6580925956049338545
+    - rid: 6580926312557838541
       type: {class: RecruitAllyPerkEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data: 

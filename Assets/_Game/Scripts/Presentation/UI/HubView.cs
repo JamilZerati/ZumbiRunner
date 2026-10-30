@@ -5,6 +5,8 @@ using Game.Core.Analytics;
 using Game.Core.Events;
 using Game.Core.State;
 using Game.Meta.Stages;
+using Game.Data.Mutations;
+using Game.Meta.Progression;
 using Game.Meta.Wallet;
 using TMPro;
 using UnityEngine;
@@ -17,6 +19,7 @@ namespace Game.Presentation.UI
         [SerializeField] private TMP_Text _coinsText, _navigationFeedbackText;
         [SerializeField] private Button _playButton, _optionsButton, _debutJourneyButton, _barracksButton, _shopButton, _passButton;
         [SerializeField] private StageSelectionWidget _stageSelectionWidget;
+        [SerializeField] private MutationSelectionWidget _mutationSelectionWidget;
 
         private IWallet _wallet;
         private IStageMapService _stageMapService;
@@ -36,6 +39,8 @@ namespace Game.Presentation.UI
         public Button ShopButton => _shopButton;
         public Button PassButton => _passButton;
         public StageSelectionWidget StageSelectionWidget => _stageSelectionWidget;
+        public MutationSelectionWidget MutationSelectionWidget => _mutationSelectionWidget;
+        public IReadOnlyList<string> SelectedMutations => _mutationSelectionWidget != null ? _mutationSelectionWidget.SelectedMutationIds : Array.Empty<string>();
         public TMP_Text NavigationFeedbackText => _navigationFeedbackText;
         public string LastNavigationShortcut { get; private set; }
         public Action DebutJourneyHook { get; set; }
@@ -54,6 +59,7 @@ namespace Game.Presentation.UI
             SetLayerType(UILayerType.Hub);
             base.Awake();
             if (_stageSelectionWidget == null) _stageSelectionWidget = GetComponentInChildren<StageSelectionWidget>(true);
+            if (_mutationSelectionWidget == null) _mutationSelectionWidget = GetComponentInChildren<MutationSelectionWidget>(true);
             WireButtons();
         }
 
@@ -75,9 +81,10 @@ namespace Game.Presentation.UI
             base.OnOpen();
             RefreshCoins();
             _stageSelectionWidget?.Refresh();
+            _mutationSelectionWidget?.Refresh();
         }
 
-        public void BindComponents(TMP_Text coins = null, Button play = null, Button options = null, Button debut = null, Button barracks = null, Button shop = null, Button pass = null, StageSelectionWidget stageWidget = null, TMP_Text feedback = null)
+        public void BindComponents(TMP_Text coins = null, Button play = null, Button options = null, Button debut = null, Button barracks = null, Button shop = null, Button pass = null, StageSelectionWidget stageWidget = null, TMP_Text feedback = null, MutationSelectionWidget mutationWidget = null)
         {
             UnwireButtons();
             if (coins != null) _coinsText = coins;
@@ -89,12 +96,14 @@ namespace Game.Presentation.UI
             if (pass != null) _passButton = pass;
             if (stageWidget != null) _stageSelectionWidget = stageWidget;
             if (feedback != null) _navigationFeedbackText = feedback;
+            if (mutationWidget != null) _mutationSelectionWidget = mutationWidget;
             WireButtons();
             RefreshCoins();
             _stageSelectionWidget?.Refresh();
+            _mutationSelectionWidget?.Refresh();
         }
 
-        public void Initialize(IWallet wallet, IStageMapService stageMapService, IGameStateMachine stateMachine = null, UIManager uiManager = null, IEventBus eventBus = null, IAnalyticsService analytics = null)
+        public void Initialize(IWallet wallet, IStageMapService stageMapService, IGameStateMachine stateMachine = null, UIManager uiManager = null, IEventBus eventBus = null, IAnalyticsService analytics = null, IMutationCatalog mutationCatalog = null, IProgressionService progressionService = null)
         {
             _walletSubscription?.Dispose();
             _wallet = wallet;
@@ -106,6 +115,7 @@ namespace Game.Presentation.UI
 
             if (_eventBus != null) _walletSubscription = _eventBus.Subscribe<WalletChangedEvent>(OnWalletChanged);
             if (_stageSelectionWidget != null && stageMapService != null) _stageSelectionWidget.Initialize(stageMapService);
+            if (_mutationSelectionWidget != null && (mutationCatalog != null || progressionService != null)) _mutationSelectionWidget.Initialize(mutationCatalog, progressionService);
 
             WireButtons();
             RefreshCoins();
@@ -127,7 +137,8 @@ namespace Game.Presentation.UI
             bool ok = _stateMachine != null ? _stateMachine.TryTransition(GameState.Run) : (_uiManager != null && _uiManager.TryTransition(GameState.Run));
             if (ok)
             {
-                _eventBus?.Publish(new RunStartedEvent(stageId, new RunConfig { LevelId = stageId }));
+                var config = new RunConfig { LevelId = stageId, MutationIds = new List<string>(SelectedMutations) };
+                _eventBus?.Publish(new RunStartedEvent(stageId, config));
                 OnRunStarted?.Invoke(stageId);
                 return true;
             }

@@ -15,11 +15,11 @@ MonoBehaviour:
   id: fire_rate_up_1
   displayName: "+1 Cad\xEAncia"
   effects:
-  - rid: 5800860176870801408
+  - rid: 6580926312557838527
   references:
     version: 2
     RefIds:
-    - rid: 5800860176870801408
+    - rid: 6580926312557838527
       type: {class: ModifyStatEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Stat: 1

@@ -302,5 +302,27 @@ namespace Game.Tests.EditMode
             Assert.IsNotNull(hud.ProgressSlider.fillRect.GetComponent<UnityEngine.UI.Image>());
             Assert.IsNotNull(hud.ProgressSlider.transform.Find("Background")?.GetComponent<UnityEngine.UI.Image>());
         }
+
+        [Test]
+        public void BuildM6GreyboxScene_GreyboxRunComposerHasMutationCatalog()
+        {
+            BuildAndReopenM6Scene();
+
+            var composer = Object.FindAnyObjectByType<Game.Composition.GreyboxRunComposer>();
+            Assert.IsNotNull(composer, "GreyboxRunComposer must exist in M6 Greybox scene.");
+            Assert.IsNotNull(composer.MutationCatalog, "GreyboxRunComposer must have MutationCatalog assigned.");
+        }
+
+        [Test]
+        public void BuildM6GreyboxScene_HubViewHasMutationSelectionWidgetWired()
+        {
+            BuildAndReopenM6Scene();
+
+            var hubView = Object.FindAnyObjectByType<Game.Presentation.UI.HubView>();
+            Assert.IsNotNull(hubView, "HubView must exist in M6 Greybox scene.");
+            Assert.IsNotNull(hubView.MutationSelectionWidget, "HubView must have MutationSelectionWidget wired.");
+            Assert.IsNotNull(hubView.MutationSelectionWidget.ItemsContainer, "MutationSelectionWidget must have ItemsContainer.");
+            Assert.GreaterOrEqual(hubView.MutationSelectionWidget.Items.Count, 5, "MutationSelectionWidget must have 5 canonical mutation toggle items.");
+        }
     }
 }

@@ -5,6 +5,7 @@ using Game.Composition;
 using Game.Core;
 using Game.Core.Events;
 using Game.Data;
+using Game.Data.Mutations;
 using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Infrastructure;
@@ -119,6 +120,12 @@ namespace Game.Editor
             var serializedComposer = new SerializedObject(composer);
             serializedComposer.FindProperty("uiManager").objectReferenceValue = uiManager;
             serializedComposer.FindProperty("pauseController").objectReferenceValue = pauseController;
+            var mutationCatalogAsset = AssetDatabase.LoadAssetAtPath<MutationCatalog>("Assets/_Game/Data/Mutations/MutationCatalog.asset");
+            if (mutationCatalogAsset != null)
+            {
+                serializedComposer.FindProperty("mutationCatalog").objectReferenceValue = mutationCatalogAsset;
+                composer.ConfigureMutations(mutationCatalogAsset);
+            }
             serializedComposer.ApplyModifiedProperties();
 
             EditorSceneManager.SaveScene(scene, M1GreyboxScenePath);
@@ -1075,6 +1082,12 @@ namespace Game.Editor
             serializedComposer.FindProperty("debugOverlay").objectReferenceValue = debugOverlay;
             serializedComposer.FindProperty("uiManager").objectReferenceValue = uiManager;
             serializedComposer.FindProperty("pauseController").objectReferenceValue = pauseController;
+            var mutationCatalogAsset = AssetDatabase.LoadAssetAtPath<MutationCatalog>("Assets/_Game/Data/Mutations/MutationCatalog.asset");
+            if (mutationCatalogAsset != null)
+            {
+                serializedComposer.FindProperty("mutationCatalog").objectReferenceValue = mutationCatalogAsset;
+                composer.ConfigureMutations(mutationCatalogAsset);
+            }
             composer.ConfigureUi(uiManager, pauseController);
             serializedComposer.ApplyModifiedProperties();
 
@@ -1470,8 +1483,27 @@ namespace Game.Editor
             var nextBtn = CreateBtn(stageWidgetGo, "NextButton", ">", new Vector2(0.5f, 0.6f), new Vector2(220, 0), new Vector2(60, 60));
             stageWidget.BindComponents(stageTitle, stageStars, lockIndicator, prevBtn, nextBtn);
             WireSerialized(stageWidget, ("_stageTitleText", stageTitle), ("_starsText", stageStars), ("_lockIndicator", lockIndicator), ("_prevButton", prevBtn), ("_nextButton", nextBtn));
-            hubView.BindComponents(coinsText, playBtn, optionsBtn, debutBtn, barracksBtn, shopBtn, passBtn, stageWidget, feedbackText);
-            WireSerialized(hubView, ("_coinsText", coinsText), ("_playButton", playBtn), ("_optionsButton", optionsBtn), ("_debutJourneyButton", debutBtn), ("_barracksButton", barracksBtn), ("_shopButton", shopBtn), ("_passButton", passBtn), ("_stageSelectionWidget", stageWidget), ("_navigationFeedbackText", feedbackText));
+            var mutationWidgetGo = CreateRect(hubGo, "MutationSelectionWidget");
+            var mutationWidget = mutationWidgetGo.AddComponent<MutationSelectionWidget>();
+            var mutationItemsContainer = CreateRect(mutationWidgetGo, "ItemsContainer");
+            var totalBonusText = CreateTmp(mutationWidgetGo, "TotalBonusText", "+0% Moedas", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.45f), Vector2.zero, new Vector2(300, 30));
+            var lockedOverlay = CreateRect(mutationWidgetGo, "LockedOverlay");
+            var lockedReason = CreateTmp(lockedOverlay, "LockedReason", "Derrote o Boss da Fase 5", 18, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(250, 40));
+
+            var explicitItems = new List<MutationToggleItem>
+            {
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_armored", "Blindados"),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_frenzy", "Frenesi"),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_fog", "Neblina"),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_last_soldier", "Último Soldado"),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_no_multiplication", "Sem Multiplicação")
+            };
+
+            mutationWidget.BindComponents(mutationItemsContainer.transform, null, totalBonusText, lockedOverlay, lockedReason, explicitItems);
+            WireSerialized(mutationWidget, ("_itemsContainer", mutationItemsContainer.transform), ("_totalBonusText", totalBonusText), ("_lockedOverlay", lockedOverlay), ("_lockedReasonText", lockedReason));
+
+            hubView.BindComponents(coinsText, playBtn, optionsBtn, debutBtn, barracksBtn, shopBtn, passBtn, stageWidget, feedbackText, mutationWidget);
+            WireSerialized(hubView, ("_coinsText", coinsText), ("_playButton", playBtn), ("_optionsButton", optionsBtn), ("_debutJourneyButton", debutBtn), ("_barracksButton", barracksBtn), ("_shopButton", shopBtn), ("_passButton", passBtn), ("_stageSelectionWidget", stageWidget), ("_navigationFeedbackText", feedbackText), ("_mutationSelectionWidget", mutationWidget));
             uiManager.RegisterWindow(hubView);
 
             var pauseGo = CreateRect(modalLayerGo, "PauseView");
@@ -1682,6 +1714,26 @@ namespace Game.Editor
             var toggle = go.AddComponent<Toggle>();
             toggle.isOn = true;
             return toggle;
+        }
+
+        private static MutationToggleItem CreateMutationToggleItem(GameObject parent, string name, string label)
+        {
+            var itemGo = CreateRect(parent, name);
+            var item = itemGo.AddComponent<MutationToggleItem>();
+            var iconGo = CreateRect(itemGo, "Icon");
+            var iconImg = iconGo.AddComponent<Image>();
+            var nameTxt = CreateTmp(itemGo, "Name", label, 18, TextAlignmentOptions.Left, new Vector2(0.3f, 0.5f), Vector2.zero, new Vector2(140, 30));
+            var bonusTxt = CreateTmp(itemGo, "Bonus", "+50%", 16, TextAlignmentOptions.Right, new Vector2(0.8f, 0.5f), Vector2.zero, new Vector2(80, 30));
+            var btnGo = CreateRect(itemGo, "Button");
+            var btnImg = btnGo.AddComponent<Image>();
+            btnImg.color = new Color(0.2f, 0.2f, 0.2f, 0.5f);
+            var btn = btnGo.AddComponent<Button>();
+            btn.targetGraphic = btnImg;
+            var indicator = CreateRect(itemGo, "Indicator");
+            indicator.SetActive(false);
+            item.BindComponents(iconImg, nameTxt, bonusTxt, btn, indicator);
+            WireSerialized(item, ("_iconImage", iconImg), ("_nameText", nameTxt), ("_bonusText", bonusTxt), ("_toggleButton", btn), ("_selectedIndicator", indicator));
+            return item;
         }
 
         private static Dropdown CreateDropdown(GameObject parent, string name, Vector2 anchor, Vector2 size, List<string> options)
