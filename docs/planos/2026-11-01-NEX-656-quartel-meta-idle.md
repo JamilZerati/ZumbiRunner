@@ -1,7 +1,7 @@
 # Plano de Implementação: M21 · Quartel (Meta Idle)
 > Data: 2026-11-01  
 > Issue: NEX-656  
-> Status: Pronto para Execução via /executar  
+> Status: Cenários validados — Suíte Red comprovada em 2026-11-01  
 
 ---
 
