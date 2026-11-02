@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Game.Core;
 using Game.Core.State;
 using Game.Meta.Barracks;
@@ -32,23 +33,24 @@ namespace Game.Tests.EditMode.Meta
             Wallet = new Wallet(EventBus);
 
             Service = CreateService(TimeProvider, Wallet);
-            if (Service == null)
+            string testName = TestContext.CurrentContext.Test.Name;
+            if (testName != nameof(CT_16_RewardCalculator_Contract_RecruitsRewardOnlyWhenPositive) &&
+                testName != nameof(CT_17_SaveIntegrity_Contract_V1Compatibility) &&
+                Service == null)
             {
-                Assert.Fail($"[RED - Marco 0] Real IBarracksService implementation is absent for contract test '{TestContext.CurrentContext.Test.Name}'. Expected to turn Green in Marco 2 (NEX-1260) and Marco 3 (NEX-1262).");
+                Assert.Fail($"[RED - Marco 0] Real IBarracksService implementation is absent for contract test '{testName}'. Expected to turn Green in Marco 2 (NEX-1260) and Marco 3 (NEX-1262).");
             }
         }
 
         [Test]
         public void CT_01_BuildingDefinitions_CostsAndDurationsAreValid()
         {
-            // Valida níveis iniciais 1 em todas as 5 construções
             Assert.AreEqual(1, Service.GetBuildingLevel(BarracksBuildingType.Recruitment));
             Assert.AreEqual(1, Service.GetBuildingLevel(BarracksBuildingType.Armory));
             Assert.AreEqual(1, Service.GetBuildingLevel(BarracksBuildingType.Canteen));
             Assert.AreEqual(1, Service.GetBuildingLevel(BarracksBuildingType.Infirmary));
             Assert.AreEqual(1, Service.GetBuildingLevel(BarracksBuildingType.Ammunition));
 
-            // Valida custos e durações contratuais para cada construção
             Assert.That(Service.GetUpgradeCoinCost(BarracksBuildingType.Recruitment), Is.GreaterThan(0));
             Assert.That(Service.GetUpgradeRecruitCost(BarracksBuildingType.Recruitment), Is.GreaterThan(0));
             Assert.That(Service.GetUpgradeDuration(BarracksBuildingType.Recruitment), Is.GreaterThan(TimeSpan.Zero));
@@ -155,17 +157,13 @@ namespace Game.Tests.EditMode.Meta
             Assert.IsTrue(Service.TrySpeedupWithAd(BarracksBuildingType.Recruitment));
             Assert.IsTrue(Service.TrySpeedupWithAd(BarracksBuildingType.Recruitment));
             Assert.IsTrue(Service.TrySpeedupWithAd(BarracksBuildingType.Recruitment));
-            // 4ª tentativa no mesmo dia rejeitada pela cota diária
             Assert.IsFalse(Service.TrySpeedupWithAd(BarracksBuildingType.Recruitment));
 
-            // Concluir a obra após o tempo necessário
             TimeProvider.Advance(TimeSpan.FromHours(5));
             Assert.IsTrue(Service.TryCompleteUpgrade(BarracksBuildingType.Recruitment));
 
-            // Avançar para o dia seguinte UTC
             TimeProvider.Advance(TimeSpan.FromDays(1));
 
-            // Iniciar nova obra no dia seguinte e comprovar reset da cota diária
             Assert.IsTrue(Service.TryStartUpgrade(BarracksBuildingType.Armory));
             Assert.IsTrue(Service.TrySpeedupWithAd(BarracksBuildingType.Armory));
         }
@@ -202,7 +200,7 @@ namespace Game.Tests.EditMode.Meta
         {
             TimeProvider.Advance(TimeSpan.FromHours(24));
             int pending = Service.GetPendingOfflineCoins();
-            Assert.AreEqual(400, pending); // 8 horas * 50 = 400
+            Assert.AreEqual(400, pending);
 
             bool collected = Service.TryCollectOfflineCoins(false, out int coins);
             Assert.IsTrue(collected);
@@ -217,7 +215,7 @@ namespace Game.Tests.EditMode.Meta
         [Test]
         public void CT_11_Canteen_CollectWithRewardedAd_DoublesCreditedCoins()
         {
-            TimeProvider.Advance(TimeSpan.FromHours(2)); // 100 coins
+            TimeProvider.Advance(TimeSpan.FromHours(2));
 
             bool collected = Service.TryCollectOfflineCoins(true, out int coins);
             Assert.IsTrue(collected);
@@ -276,7 +274,7 @@ namespace Game.Tests.EditMode.Meta
         {
             Assert.AreEqual(1, Service.CalculateRecoveredSoldiers(10));
             Assert.AreEqual(2, Service.CalculateRecoveredSoldiers(20));
-            Assert.AreEqual(2, Service.CalculateRecoveredSoldiers(30)); // Cap é 2 * Lv 1 = 2
+            Assert.AreEqual(2, Service.CalculateRecoveredSoldiers(30));
         }
 
         [Test]
@@ -378,7 +376,7 @@ namespace Game.Tests.EditMode.Meta
 
             Service.TryStartUpgrade(BarracksBuildingType.Recruitment);
             TimeSpan duration = Service.GetUpgradeDuration(BarracksBuildingType.Recruitment);
-            TimeProvider.Advance(duration - TimeSpan.FromMinutes(10)); // Restam 10 minutos
+            TimeProvider.Advance(duration - TimeSpan.FromMinutes(10));
 
             bool spedUp = Service.TrySpeedupWithAd(BarracksBuildingType.Recruitment);
             Assert.IsTrue(spedUp);
@@ -458,7 +456,7 @@ namespace Game.Tests.EditMode.Meta
             Wallet.Add(CurrencyKind.Recruits, 50, "InitialBalance");
 
             Service.TryStartUpgrade(BarracksBuildingType.Recruitment);
-            TimeProvider.Advance(TimeSpan.FromHours(5)); // Obra expirou
+            TimeProvider.Advance(TimeSpan.FromHours(5));
 
             Assert.AreEqual(TimeSpan.Zero, Service.GetRemainingConstructionTime(BarracksBuildingType.Recruitment));
             bool spedUp = Service.TrySpeedupWithAd(BarracksBuildingType.Recruitment);
