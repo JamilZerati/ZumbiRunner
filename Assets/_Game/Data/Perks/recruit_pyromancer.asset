@@ -15,10 +15,10 @@ MonoBehaviour:
   id: recruit_pyromancer
   displayName: Recrutar Piromante
   effects:
-  - rid: 5341296692308213962
+  - rid: 6580925956049338547
   references:
     version: 2
     RefIds:
-    - rid: 5341296692308213962
+    - rid: 6580925956049338547
       type: {class: RecruitAllyPerkEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data: 

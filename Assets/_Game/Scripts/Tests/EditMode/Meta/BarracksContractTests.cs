@@ -231,31 +231,25 @@ namespace Game.Tests.EditMode.Meta
             Wallet.Add(CurrencyKind.Coins, 1000, "InitialBalance");
             Wallet.Add(CurrencyKind.Recruits, 50, "InitialBalance");
 
-            // 1. Iniciar obra antes da adulteração
             bool started = Service.TryStartUpgrade(BarracksBuildingType.Recruitment);
             Assert.IsTrue(started);
             TimeSpan initialRemaining = Service.GetRemainingConstructionTime(BarracksBuildingType.Recruitment);
             Assert.That(initialRemaining, Is.GreaterThan(TimeSpan.Zero));
 
-            // 2. Acumular moedas offline normalmente
             TimeProvider.Advance(TimeSpan.FromHours(2));
             Assert.That(Service.GetPendingOfflineCoins(), Is.GreaterThan(0));
 
-            // 3. Adulterar o relógio (recuar mais de 10 minutos)
             TimeProvider.Advance(TimeSpan.FromHours(-3));
             Assert.IsTrue(TimeProvider.IsClockManipulated);
             Assert.IsTrue(Service.IsClockManipulated);
 
-            // 4. Moedas offline congelam em 0
             Assert.AreEqual(0, Service.GetPendingOfflineCoins());
 
-            // 5. Novas obras são bloqueadas com motivo explícito
             Assert.IsFalse(Service.CanStartUpgrade(BarracksBuildingType.Armory, out string reason));
             Assert.That(reason, Does.Contain("inconsistente"));
 
-            // 6. Timer da obra ativa congela e conclusão é bloqueada
             TimeSpan frozenRemaining = Service.GetRemainingConstructionTime(BarracksBuildingType.Recruitment);
-            Assert.That(frozenRemaining, Is.GreaterThan(TimeSpan.Zero));
+            Assert.AreEqual(initialRemaining.TotalSeconds - TimeSpan.FromHours(2).TotalSeconds, frozenRemaining.TotalSeconds, 1.0);
             Assert.IsFalse(Service.TryCompleteUpgrade(BarracksBuildingType.Recruitment));
         }
 
@@ -314,6 +308,7 @@ namespace Game.Tests.EditMode.Meta
         public void CT_17_SaveIntegrity_Contract_V1Compatibility()
         {
             string tempPath = Path.Combine(Path.GetTempPath(), $"save_v1_contract_{Guid.NewGuid():N}.json");
+            string staticTempPath = Path.Combine(Path.GetTempPath(), $"save_v1_static_{Guid.NewGuid():N}.json");
             try
             {
                 var store = new SaveStore(null, null, currentVersion: 1);
@@ -330,12 +325,19 @@ namespace Game.Tests.EditMode.Meta
                 string json = File.ReadAllText(tempPath);
                 Assert.That(json, Does.Contain("\"SaveVersion\": 1"));
                 Assert.That(json, Does.Contain("\"IntegrityHash\":"));
+
+                File.WriteAllText(staticTempPath, json, Encoding.UTF8);
+                Assert.IsTrue(store.ValidateIntegrity(staticTempPath), "Save V1 estático autêntico sem chave BarracksState deve validar integridade.");
             }
             finally
             {
                 if (File.Exists(tempPath))
                 {
                     File.Delete(tempPath);
+                }
+                if (File.Exists(staticTempPath))
+                {
+                    File.Delete(staticTempPath);
                 }
             }
         }
@@ -346,28 +348,22 @@ namespace Game.Tests.EditMode.Meta
             var receivedEvents = new List<WalletChangedEvent>();
             EventBus.Subscribe<WalletChangedEvent>(e => receivedEvents.Add(e));
 
-            // Com saldo 0, upgrade deve falhar por falta de moedas
             Assert.IsFalse(Service.CanStartUpgrade(BarracksBuildingType.Recruitment, out string coinReason));
             Assert.That(coinReason, Does.Contain("Moedas insuficientes"));
 
-            // Adicionar moedas dispara WalletChangedEvent
             Wallet.Add(CurrencyKind.Coins, 300, "TestCoinReward");
             Assert.AreEqual(1, receivedEvents.Count);
             Assert.AreEqual(CurrencyKind.Coins, receivedEvents[0].Currency);
 
-            // Agora falha por falta de recrutas
             Assert.IsFalse(Service.CanStartUpgrade(BarracksBuildingType.Recruitment, out string recruitReason));
             Assert.That(recruitReason, Does.Contain("Recrutas insuficientes"));
 
-            // Adicionar recrutas dispara WalletChangedEvent
             Wallet.Add(CurrencyKind.Recruits, 20, "TestRecruitsReward");
             Assert.AreEqual(2, receivedEvents.Count);
             Assert.AreEqual(CurrencyKind.Recruits, receivedEvents[1].Currency);
 
-            // Agora tem saldo suficiente para iniciar a obra
             Assert.IsTrue(Service.CanStartUpgrade(BarracksBuildingType.Recruitment, out _));
 
-            // Manipulação de relógio altera reativamente o estado do serviço
             TimeProvider.SetManipulated(true);
             Assert.IsTrue(Service.IsClockManipulated);
             Assert.IsFalse(Service.CanStartUpgrade(BarracksBuildingType.Recruitment, out string clockReason));
@@ -397,6 +393,11 @@ namespace Game.Tests.EditMode.Meta
             bool collected = Service.TryCollectOfflineCoins(false, out int coins);
             Assert.IsFalse(collected);
             Assert.AreEqual(0, coins);
+
+            TimeProvider.Advance(TimeSpan.FromSeconds(62));
+            Assert.AreEqual(1, Service.GetPendingOfflineCoins());
+            Assert.IsTrue(Service.TryCollectOfflineCoins(false, out int collectedCoins));
+            Assert.AreEqual(1, collectedCoins);
         }
 
         [Test]
@@ -475,10 +476,7 @@ namespace Game.Tests.EditMode.Meta
 
         protected override void SetBuildingLevel(BarracksBuildingType type, int level)
         {
-            if (Service is FakeBarracksService fake)
-            {
-                fake.SetBuildingLevel(type, level);
-            }
+            ((FakeBarracksService)Service).SetBuildingLevel(type, level);
         }
     }
 

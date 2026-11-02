@@ -21,11 +21,9 @@ namespace Game.Meta.Barracks
         bool TryInstantCompleteWithMedals(BarracksBuildingType type);
         bool TryCompleteUpgrade(BarracksBuildingType type);
 
-        // Refeitório
         int GetPendingOfflineCoins();
         bool TryCollectOfflineCoins(bool doubleWithAd, out int collectedCoins);
 
-        // Bônus para RunConfig
         int GetInitialSquadBonus();
         float GetBaseDamageMultiplier();
         int CalculateRecoveredSoldiers(int soldiersLost);
