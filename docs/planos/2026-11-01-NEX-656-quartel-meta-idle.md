@@ -199,6 +199,10 @@ namespace Game.Meta.Barracks
         TimeSpan GetRemainingConstructionTime(BarracksBuildingType type);
         int GetInstantCompleteMedalCost(BarracksBuildingType type);
 
+        int GetUpgradeCoinCost(BarracksBuildingType type);
+        int GetUpgradeRecruitCost(BarracksBuildingType type);
+        TimeSpan GetUpgradeDuration(BarracksBuildingType type);
+
         bool CanStartUpgrade(BarracksBuildingType type, out string failReason);
         bool TryStartUpgrade(BarracksBuildingType type);
         bool TrySpeedupWithAd(BarracksBuildingType type);

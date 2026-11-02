@@ -59,7 +59,12 @@ namespace Game.Tests.EditMode.Meta.Doubles
         public TimeSpan GetRemainingConstructionTime(BarracksBuildingType type)
         {
             if (!IsUnderConstruction(type)) return TimeSpan.Zero;
-            var remaining = _construction.EndUtc - _timeProvider.UtcNow;
+
+            DateTime referenceTime = IsClockManipulated
+                ? new DateTime(_timeProvider.LastSeenUtcTicks, DateTimeKind.Utc)
+                : _timeProvider.UtcNow;
+
+            var remaining = _construction.EndUtc - referenceTime;
             return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
         }
 
@@ -68,6 +73,23 @@ namespace Game.Tests.EditMode.Meta.Doubles
             if (!IsUnderConstruction(type)) return 0;
             double remainingMinutes = GetRemainingConstructionTime(type).TotalMinutes;
             return Math.Max(5, (int)Math.Ceiling(remainingMinutes / 5.0));
+        }
+
+        public int GetUpgradeCoinCost(BarracksBuildingType type)
+        {
+            int nextLevel = GetBuildingLevel(type) + 1;
+            return GetCoinCost(type, nextLevel);
+        }
+
+        public int GetUpgradeRecruitCost(BarracksBuildingType type)
+        {
+            int nextLevel = GetBuildingLevel(type) + 1;
+            return GetRecruitCost(type, nextLevel);
+        }
+
+        public TimeSpan GetUpgradeDuration(BarracksBuildingType type)
+        {
+            return TimeSpan.FromHours(4);
         }
 
         public bool CanStartUpgrade(BarracksBuildingType type, out string failReason)
@@ -91,9 +113,8 @@ namespace Game.Tests.EditMode.Meta.Doubles
                 return false;
             }
 
-            int nextLevel = currentLevel + 1;
-            int coinCost = GetCoinCost(type, nextLevel);
-            int recruitCost = GetRecruitCost(type, nextLevel);
+            int coinCost = GetUpgradeCoinCost(type);
+            int recruitCost = GetUpgradeRecruitCost(type);
 
             if (coinCost > 0 && _wallet.GetBalance(CurrencyKind.Coins) < coinCost)
             {
@@ -115,23 +136,39 @@ namespace Game.Tests.EditMode.Meta.Doubles
         {
             if (!CanStartUpgrade(type, out _)) return false;
 
-            int nextLevel = GetBuildingLevel(type) + 1;
-            int coinCost = GetCoinCost(type, nextLevel);
-            int recruitCost = GetRecruitCost(type, nextLevel);
+            int coinCost = GetUpgradeCoinCost(type);
+            int recruitCost = GetUpgradeRecruitCost(type);
 
             // Pré-validação atômica estrita antes de debitar
             if (coinCost > 0 && _wallet.GetBalance(CurrencyKind.Coins) < coinCost) return false;
             if (recruitCost > 0 && _wallet.GetBalance(CurrencyKind.Recruits) < recruitCost) return false;
 
-            if (coinCost > 0) _wallet.TrySpend(CurrencyKind.Coins, coinCost, "BarracksUpgrade");
-            if (recruitCost > 0) _wallet.TrySpend(CurrencyKind.Recruits, recruitCost, "BarracksUpgrade");
+            if (coinCost > 0)
+            {
+                if (!_wallet.TrySpend(CurrencyKind.Coins, coinCost, "BarracksUpgrade"))
+                {
+                    return false;
+                }
+            }
 
-            int durationSeconds = 3600;
+            if (recruitCost > 0)
+            {
+                if (!_wallet.TrySpend(CurrencyKind.Recruits, recruitCost, "BarracksUpgrade"))
+                {
+                    if (coinCost > 0)
+                    {
+                        _wallet.Add(CurrencyKind.Coins, coinCost, "BarracksUpgradeRollback");
+                    }
+                    return false;
+                }
+            }
+
+            int nextLevel = GetBuildingLevel(type) + 1;
             _construction = new ActiveConstruction
             {
                 IsActive = true,
                 Type = type,
-                EndUtc = _timeProvider.UtcNow.AddSeconds(durationSeconds),
+                EndUtc = _timeProvider.UtcNow.Add(GetUpgradeDuration(type)),
                 TargetLevel = nextLevel
             };
 
@@ -140,7 +177,9 @@ namespace Game.Tests.EditMode.Meta.Doubles
 
         public bool TrySpeedupWithAd(BarracksBuildingType type)
         {
+            if (IsClockManipulated) return false;
             if (!IsUnderConstruction(type)) return false;
+            if (GetRemainingConstructionTime(type) <= TimeSpan.Zero) return false;
 
             DateTime today = _timeProvider.UtcNow.Date;
             if (today > _lastAdUsageDayUtc)
@@ -163,6 +202,7 @@ namespace Game.Tests.EditMode.Meta.Doubles
 
         public bool TryInstantCompleteWithMedals(BarracksBuildingType type)
         {
+            if (IsClockManipulated) return false;
             if (!IsUnderConstruction(type)) return false;
 
             int medalCost = GetInstantCompleteMedalCost(type);
@@ -178,6 +218,7 @@ namespace Game.Tests.EditMode.Meta.Doubles
 
         public bool TryCompleteUpgrade(BarracksBuildingType type)
         {
+            if (IsClockManipulated) return false;
             if (!IsUnderConstruction(type)) return false;
             if (_timeProvider.UtcNow < _construction.EndUtc) return false;
 
@@ -225,6 +266,7 @@ namespace Game.Tests.EditMode.Meta.Doubles
 
         public int CalculateRecoveredSoldiers(int soldiersLost)
         {
+            if (soldiersLost <= 0) return 0;
             int recovered = soldiersLost / 10;
             int cap = 2 * GetBuildingLevel(BarracksBuildingType.Infirmary);
             return Math.Min(recovered, cap);

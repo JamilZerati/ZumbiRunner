@@ -26,6 +26,12 @@ namespace Game.Tests.EditMode.Meta.Doubles
             {
                 _isClockManipulated = true;
             }
+            else if (time.Ticks >= _lastSeenUtcTicks)
+            {
+                _lastSeenUtcTicks = time.Ticks;
+                _isClockManipulated = false;
+            }
+
             _utcNow = time;
         }
 
@@ -36,6 +42,10 @@ namespace Game.Tests.EditMode.Meta.Doubles
             {
                 _lastSeenUtcTicks = _utcNow.Ticks;
                 _isClockManipulated = false;
+            }
+            else if (_lastSeenUtcTicks - _utcNow.Ticks > TimeSpan.FromMinutes(10).Ticks)
+            {
+                _isClockManipulated = true;
             }
         }
 
