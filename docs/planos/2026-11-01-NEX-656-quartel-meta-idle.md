@@ -287,7 +287,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Testes de Contrato` [NEX-1258]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Testes de Contrato` [NEX-1258]
   - **Ação**: Criar contratos de Seams públicos, fakes (`FakeTimeProvider`) e suíte de cenários Red.
   - **Lógica de Negócios / Responsabilidade**: Definir `IBarracksService`, eventos e test doubles que garantem a testabilidade C# pura antes de qualquer implementação.
   - **Dependências**: nenhuma (raiz).
