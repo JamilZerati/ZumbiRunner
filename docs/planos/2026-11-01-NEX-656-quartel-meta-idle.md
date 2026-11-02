@@ -1,7 +1,7 @@
 # Plano de Implementação: M21 · Quartel (Meta Idle)
 > Data: 2026-11-01  
 > Issue: NEX-656  
-> Status: Pronto para Execução via /executar  
+> Status: Cenários validados — Suíte Red comprovada em 2026-11-01  
 
 ---
 
@@ -199,6 +199,10 @@ namespace Game.Meta.Barracks
         TimeSpan GetRemainingConstructionTime(BarracksBuildingType type);
         int GetInstantCompleteMedalCost(BarracksBuildingType type);
 
+        int GetUpgradeCoinCost(BarracksBuildingType type);
+        int GetUpgradeRecruitCost(BarracksBuildingType type);
+        TimeSpan GetUpgradeDuration(BarracksBuildingType type);
+
         bool CanStartUpgrade(BarracksBuildingType type, out string failReason);
         bool TryStartUpgrade(BarracksBuildingType type);
         bool TrySpeedupWithAd(BarracksBuildingType type);
@@ -287,7 +291,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Testes de Contrato` [NEX-1258]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Testes de Contrato` [NEX-1258]
   - **Ação**: Criar contratos de Seams públicos, fakes (`FakeTimeProvider`) e suíte de cenários Red.
   - **Lógica de Negócios / Responsabilidade**: Definir `IBarracksService`, eventos e test doubles que garantem a testabilidade C# pura antes de qualquer implementação.
   - **Dependências**: nenhuma (raiz).
