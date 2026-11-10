@@ -14,6 +14,7 @@ namespace Game.Meta.Save
         public Dictionary<string, int> StageStars { get; set; } = new Dictionary<string, int>();
         public HashSet<string> UnlockedStages { get; set; } = new HashSet<string>();
         public Dictionary<string, ProgressTrackState> TrackStates { get; set; } = new Dictionary<string, ProgressTrackState>();
+        public BarracksState Barracks { get; set; } = new BarracksState();
         public string IntegrityHash { get; set; }
     }
 }
