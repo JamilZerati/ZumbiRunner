@@ -1,4 +1,6 @@
 using System;
+using Game.Core.Ads;
+using Game.Meta.Ads;
 using Game.Meta.Barracks;
 using Game.Meta.Wallet;
 using TMPro;
@@ -17,12 +19,17 @@ namespace Game.Presentation.UI.Barracks
 
         private IBarracksService _service;
         private IWallet _wallet;
+        private IAdService _adService;
+        private IAdPolicy _adPolicy;
+        private bool _isShowingAd;
 
         public TMP_Text PendingCoinsText => _pendingCoinsText;
         public Button CollectButton => _collectButton;
         public Button DoubleAdButton => _doubleAdButton;
         public TMP_Text ClockWarningText => _clockWarningText;
         public GameObject ClockWarningObject => _clockWarningObject;
+        public IAdService AdService => _adService;
+        public IAdPolicy AdPolicy => _adPolicy;
 
         public event Action<bool, int> OnCollectClicked;
 
@@ -53,10 +60,17 @@ namespace Game.Presentation.UI.Barracks
             WireButtons();
         }
 
-        public void Initialize(IBarracksService service, IWallet wallet = null)
+        public void Initialize(
+            IBarracksService service,
+            IWallet wallet = null,
+            IAdService adService = null,
+            IAdPolicy adPolicy = null)
         {
             _service = service;
             _wallet = wallet;
+            _adService = adService;
+            _adPolicy = adPolicy;
+            _isShowingAd = false;
             Refresh();
         }
 
@@ -87,7 +101,7 @@ namespace Game.Presentation.UI.Barracks
                 _clockWarningObject.SetActive(isClockManipulated);
             }
 
-            bool canCollect = pending > 0 && !isClockManipulated;
+            bool canCollect = pending > 0 && !isClockManipulated && !_isShowingAd;
             if (_collectButton != null)
             {
                 _collectButton.interactable = canCollect;
@@ -95,7 +109,10 @@ namespace Game.Presentation.UI.Barracks
 
             if (_doubleAdButton != null)
             {
-                _doubleAdButton.interactable = canCollect;
+                bool canDoubleAd = canCollect &&
+                    (_adPolicy == null || _adPolicy.CanShowRewarded(AdPlacement.CanteenDouble)) &&
+                    (_adService == null || _adService.IsAdAvailable(AdPlacement.CanteenDouble));
+                _doubleAdButton.interactable = canDoubleAd;
             }
         }
 
@@ -114,7 +131,7 @@ namespace Game.Presentation.UI.Barracks
 
         private void HandleCollectStandard()
         {
-            if (_service == null) return;
+            if (_service == null || _isShowingAd) return;
             if (_service.TryCollectOfflineCoins(false, out int coins))
             {
                 OnCollectClicked?.Invoke(false, coins);
@@ -124,12 +141,45 @@ namespace Game.Presentation.UI.Barracks
 
         private void HandleCollectDouble()
         {
-            if (_service == null) return;
-            if (_service.TryCollectOfflineCoins(true, out int coins))
+            if (_service == null || _isShowingAd) return;
+
+            if (_adPolicy != null && !_adPolicy.CanShowRewarded(AdPlacement.CanteenDouble))
             {
-                OnCollectClicked?.Invoke(true, coins);
+                return;
             }
-            Refresh();
+
+            if (_adService == null)
+            {
+                if (_service.TryCollectOfflineCoins(true, out int coins))
+                {
+                    OnCollectClicked?.Invoke(true, coins);
+                }
+                Refresh();
+                return;
+            }
+
+            if (!_adService.IsAdAvailable(AdPlacement.CanteenDouble))
+            {
+                return;
+            }
+
+            _isShowingAd = true;
+            if (_collectButton != null) _collectButton.interactable = false;
+            if (_doubleAdButton != null) _doubleAdButton.interactable = false;
+
+            _adService.ShowAd(AdPlacement.CanteenDouble, result =>
+            {
+                _isShowingAd = false;
+                if (result == AdShowResult.Completed)
+                {
+                    _adPolicy?.RecordAdShown(AdPlacement.CanteenDouble, AdType.Rewarded);
+                    if (_service.TryCollectOfflineCoins(true, out int coins))
+                    {
+                        OnCollectClicked?.Invoke(true, coins);
+                    }
+                }
+                Refresh();
+            });
         }
     }
 }

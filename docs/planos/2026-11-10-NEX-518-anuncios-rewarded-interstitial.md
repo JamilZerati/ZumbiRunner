@@ -283,7 +283,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: medium
 
-- [ ] **Passo 2 (Marco 2)**: `Placements Rewarded de Hub & Meta (ResultView e Quartel)` [NEX-1498]
+- [x] **Passo 2 (Marco 2)**: `Placements Rewarded de Hub & Meta (ResultView e Quartel)` [NEX-1498]
   - **Ação**: Modificar [TELA] `ResultRewardPresenter.cs`, `ResultView.cs`, `CanteenWidget.cs` e `BarracksBuildingCardWidget.cs` para integrar `IAdService` e `IAdPolicy`.
   - **Lógica de Negócios / Responsabilidade**: Garantir concessão estrita de dobro de recompensa e aceleração/coleta do Quartel somente no callback `Completed`. Proteger integralmente a recompensa base caso o anúncio falhe ou seja cancelado.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 1.

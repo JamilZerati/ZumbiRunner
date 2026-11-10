@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Ads;
 using Game.Core.Analytics;
 using Game.Core.State;
+using Game.Meta.Ads;
 using Game.Meta.Rewards;
 using Game.Meta.Run;
 using Game.Meta.Wallet;
@@ -16,6 +18,8 @@ namespace Game.Presentation.UI
         private readonly IRewardSink _sink;
         private readonly IGameStateMachine _stateMachine;
         private readonly IAnalyticsService _analytics;
+        private readonly IAdService _adService;
+        private readonly IAdPolicy _adPolicy;
         private ResultView _view;
 
         private RunResult _currentResult;
@@ -25,6 +29,7 @@ namespace Game.Presentation.UI
         private float _multiplier;
         private bool _isDoubled;
         private bool _isClaimed;
+        private bool _isShowingAd;
 
         public RunResult CurrentResult => _currentResult;
         public RunConfig CurrentConfig => _currentConfig;
@@ -33,6 +38,13 @@ namespace Game.Presentation.UI
         public float Multiplier => _multiplier;
         public bool IsDoubled => _isDoubled;
         public bool IsClaimed => _isClaimed;
+        public IAdService AdService => _adService;
+        public IAdPolicy AdPolicy => _adPolicy;
+
+        public bool CanDoubleReward =>
+            !_isClaimed && !_isDoubled && !_isShowingAd && _currentResult != null &&
+            (_adPolicy == null || _adPolicy.CanShowRewarded(AdPlacement.DoubleReward)) &&
+            (_adService == null || _adService.IsAdAvailable(AdPlacement.DoubleReward));
 
         public ResultRewardPresenter(
             IRewardCalculator calculator = null,
@@ -40,13 +52,17 @@ namespace Game.Presentation.UI
             IRewardSink sink = null,
             IGameStateMachine stateMachine = null,
             IAnalyticsService analytics = null,
-            ResultView view = null)
+            ResultView view = null,
+            IAdService adService = null,
+            IAdPolicy adPolicy = null)
         {
             _calculator = calculator ?? new RewardCalculator();
             _wallet = wallet ?? sink?.Wallet;
             _sink = sink ?? (_wallet != null ? new RewardSink(_wallet) : null);
             _stateMachine = stateMachine;
             _analytics = analytics;
+            _adService = adService;
+            _adPolicy = adPolicy;
             if (view != null) AttachView(view);
         }
 
@@ -55,8 +71,10 @@ namespace Game.Presentation.UI
             IRewardSink sink,
             IGameStateMachine stateMachine = null,
             IAnalyticsService analytics = null,
-            ResultView view = null)
-            : this(calculator, sink?.Wallet, sink, stateMachine, analytics, view) { }
+            ResultView view = null,
+            IAdService adService = null,
+            IAdPolicy adPolicy = null)
+            : this(calculator, sink?.Wallet, sink, stateMachine, analytics, view, adService, adPolicy) { }
 
         public void AttachView(ResultView view)
         {
@@ -72,6 +90,7 @@ namespace Game.Presentation.UI
             _currentConfig = config;
             _isDoubled = false;
             _isClaimed = false;
+            _isShowingAd = false;
 
             _currentBundle = _calculator.Calculate(result, config, doubleReward: false);
             _totalCoins = ExtractCoinsFromBundle(_currentBundle);
@@ -85,27 +104,78 @@ namespace Game.Presentation.UI
                 ["coins"] = _totalCoins
             });
 
-            _analytics?.TrackEvent(AnalyticsEvents.AdOffer, new Dictionary<string, object>
+            if (CanDoubleReward)
             {
-                ["offer_type"] = "double_reward",
-                ["placement"] = "result_screen"
-            });
+                _analytics?.TrackEvent(AnalyticsEvents.AdOffer, new Dictionary<string, object>
+                {
+                    ["offer_type"] = "double_reward",
+                    ["placement"] = "result_screen"
+                });
+            }
 
             _view?.RefreshView(this);
         }
 
-        public bool DoubleReward()
+        public bool DoubleReward(Action<bool> onComplete = null)
         {
-            if (_isClaimed || _isDoubled || _currentResult == null) return false;
+            if (!CanDoubleReward)
+            {
+                onComplete?.Invoke(false);
+                return false;
+            }
 
+            if (_adService == null)
+            {
+                ApplyDoubleReward();
+                onComplete?.Invoke(true);
+                return true;
+            }
+
+            _isShowingAd = true;
+            _view?.SetButtonsInteractable(false);
+
+            bool callbackInvoked = false;
+            bool successResult = false;
+
+            _adService.ShowAd(AdPlacement.DoubleReward, result =>
+            {
+                _isShowingAd = false;
+                bool success = result == AdShowResult.Completed;
+                if (success)
+                {
+                    ApplyDoubleReward();
+                }
+                else
+                {
+                    _analytics?.TrackEvent(AnalyticsEvents.AdFailed, new Dictionary<string, object>
+                    {
+                        ["placement"] = AdPlacement.DoubleReward.ToString(),
+                        ["reason"] = result.ToString()
+                    });
+                    _view?.RefreshView(this);
+                    _view?.SetButtonsInteractable(true);
+                }
+
+                callbackInvoked = true;
+                successResult = success;
+                onComplete?.Invoke(success);
+            });
+
+            return callbackInvoked ? successResult : true;
+        }
+
+        private void ApplyDoubleReward()
+        {
             _isDoubled = true;
             _currentBundle = _calculator.Calculate(_currentResult, _currentConfig, doubleReward: true);
             _totalCoins = ExtractCoinsFromBundle(_currentBundle);
+            _adPolicy?.RecordAdShown(AdPlacement.DoubleReward, AdType.Rewarded);
 
             _analytics?.TrackEvent(AnalyticsEvents.AdReward, new Dictionary<string, object>
             {
                 ["reward_type"] = "double_coins",
-                ["coins"] = _totalCoins
+                ["coins"] = _totalCoins,
+                ["placement"] = AdPlacement.DoubleReward.ToString()
             });
 
             _analytics?.TrackEvent("ad_reward_claimed", new Dictionary<string, object>
@@ -114,12 +184,12 @@ namespace Game.Presentation.UI
             });
 
             _view?.RefreshView(this);
-            return true;
+            _view?.SetButtonsInteractable(true);
         }
 
         public bool ClaimAndContinue()
         {
-            if (_isClaimed) return false;
+            if (_isClaimed || _isShowingAd) return false;
 
             _isClaimed = true;
             _view?.SetButtonsInteractable(false);
