@@ -177,7 +177,7 @@ namespace Game.Tests.EditMode.Meta
 
             Service.TryStartUpgrade(BarracksBuildingType.Recruitment);
             int medalCost = Service.GetInstantCompleteMedalCost(BarracksBuildingType.Recruitment);
-            Assert.That(medalCost, Is.GreaterThanOrEqualTo(5));
+            Assert.AreEqual(48, medalCost);
 
             bool instantCompleted = Service.TryInstantCompleteWithMedals(BarracksBuildingType.Recruitment);
             Assert.IsTrue(instantCompleted);

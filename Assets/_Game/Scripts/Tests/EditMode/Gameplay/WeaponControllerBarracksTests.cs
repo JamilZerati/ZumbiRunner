@@ -74,8 +74,9 @@ namespace Game.Tests.EditMode.Gameplay
             _weapon.Initialize(_pool, null, catalog, _eventBus, runConfig);
             _weapon.TryEquip("rifle");
 
-            // Base 20 + 5% (+1) = 21
             Assert.AreEqual(21, _weapon.DamagePerShot);
+            var modifiers = _weapon.Stats.GetModifiers(StatId.Damage);
+            Assert.IsTrue(modifiers.Count > 0 && Equals(modifiers[0].Source, WeaponController.BarracksArsenalSource) && modifiers[0].Kind == ModifierKind.PercentAdd);
         }
 
         [Test]
@@ -88,7 +89,6 @@ namespace Game.Tests.EditMode.Gameplay
             _weapon.TryEquip("rifle");
             Assert.AreEqual(21, _weapon.DamagePerShot);
 
-            // Re-inicialização para nova corrida ou reaplicação
             _weapon.Initialize(_pool, null, catalog, _eventBus, runConfig);
             Assert.AreEqual(21, _weapon.DamagePerShot, "Modificador BarracksArsenal não deve acumular entre corridas.");
         }
@@ -106,7 +106,6 @@ namespace Game.Tests.EditMode.Gameplay
             _weapon.TryEquip("rifle");
             Assert.AreEqual(21, _weapon.DamagePerShot);
 
-            // Equipar shotgun (dano base 40 + 5% = 42)
             bool equipped = _weapon.TryEquip("shotgun");
             Assert.IsTrue(equipped);
             Assert.AreEqual(42, _weapon.DamagePerShot, "Troca de arma via TryEquip deve preservar o bônus do Arsenal.");
@@ -120,9 +119,8 @@ namespace Game.Tests.EditMode.Gameplay
 
             _weapon.Initialize(_pool, null, catalog, _eventBus, runConfig);
             _weapon.TryEquip("rifle");
-            Assert.AreEqual(22, _weapon.DamagePerShot); // 20 + 10% = 22
+            Assert.AreEqual(22, _weapon.DamagePerShot);
 
-            // Corrida sem bônus (1.0f)
             _weapon.ApplyBarracksDamageBonus(1.0f);
             Assert.AreEqual(20, _weapon.DamagePerShot);
         }

@@ -1554,6 +1554,8 @@ namespace Game.Editor
             uiManager.RegisterWindow(tutView);
 
             var barracksGo = CreateRect(modalLayerGo, "BarracksView");
+            var barracksBg = barracksGo.AddComponent<Image>();
+            barracksBg.color = new Color(0.08f, 0.10f, 0.14f, 0.98f);
             var barracksView = barracksGo.AddComponent<BarracksView>();
             var barracksTitle = CreateTmp(barracksGo, "TitleText", "Quartel General", 40, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(400, 50));
             var barracksCloseBtn = CreateBtn(barracksGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.05f), Vector2.zero, new Vector2(200, 50));

@@ -159,7 +159,10 @@ namespace Game.Meta.Save
                     return ver;
                 }
             }
-            catch { }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException("Failed to extract version: corrupt or invalid JSON in save file.", ex);
+            }
             return 0;
         }
     }

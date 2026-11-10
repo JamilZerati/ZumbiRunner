@@ -63,125 +63,64 @@ namespace Game.Tests.PlayMode
                 Directory.CreateDirectory(dir);
             }
 
-            if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             {
-                var cam = Camera.main;
-                if (cam != null)
-                {
-                    var canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
-                    var prevCanvasStates = new List<(Canvas canvas, RenderMode mode, Camera worldCam, float planeDist)>(canvases.Length);
-                    foreach (var c in canvases)
-                    {
-                        prevCanvasStates.Add((c, c.renderMode, c.worldCamera, c.planeDistance));
-                        if (c.renderMode == RenderMode.ScreenSpaceOverlay)
-                        {
-                            c.renderMode = RenderMode.ScreenSpaceCamera;
-                            c.worldCamera = cam;
-                            c.planeDistance = 2f;
-                        }
-                    }
-
-                    Canvas.ForceUpdateCanvases();
-
-                    var rt = new RenderTexture(1080, 1920, 24, RenderTextureFormat.ARGB32);
-                    var prevTarget = cam.targetTexture;
-                    var prevActive = RenderTexture.active;
-
-                    try
-                    {
-                        cam.targetTexture = rt;
-                        cam.Render();
-
-                        RenderTexture.active = rt;
-                        var tex = new Texture2D(1080, 1920, TextureFormat.RGB24, false);
-                        tex.ReadPixels(new Rect(0, 0, 1080, 1920), 0, 0);
-                        tex.Apply();
-
-                        File.WriteAllBytes(path, tex.EncodeToPNG());
-                        Object.DestroyImmediate(tex);
-                    }
-                    finally
-                    {
-                        cam.targetTexture = prevTarget;
-                        RenderTexture.active = prevActive;
-                        rt.Release();
-                        Object.DestroyImmediate(rt);
-
-                        foreach (var (canvas, mode, worldCam, dist) in prevCanvasStates)
-                        {
-                            if (canvas != null)
-                            {
-                                canvas.renderMode = mode;
-                                canvas.worldCamera = worldCam;
-                                canvas.planeDistance = dist;
-                            }
-                        }
-                        Canvas.ForceUpdateCanvases();
-                    }
-                }
+                return;
             }
-            else
+
+            var cam = Camera.main;
+            if (cam != null)
             {
-                var tex = new Texture2D(1080, 1920, TextureFormat.RGB24, false);
-                var bg = new Color(0.10f, 0.12f, 0.16f);
-                var cardBg = new Color(0.16f, 0.20f, 0.26f);
-                var headerGold = new Color(0.95f, 0.75f, 0.20f);
-                var canteenBg = new Color(0.14f, 0.24f, 0.32f);
-                var btnGreen = new Color(0.20f, 0.70f, 0.35f);
-                var btnBlue = new Color(0.25f, 0.50f, 0.85f);
-                var btnYellow = new Color(0.90f, 0.65f, 0.15f);
-                var btnRed = new Color(0.75f, 0.25f, 0.25f);
-
-                var pixels = new Color[1080 * 1920];
-                for (int i = 0; i < pixels.Length; i++) pixels[i] = bg;
-
-                // Header Banner: Quartel General
-                for (int y = 1760; y < 1850; y++)
-                    for (int x = 140; x < 940; x++)
-                        pixels[y * 1080 + x] = headerGold;
-
-                // Canteen Section
-                for (int y = 1530; y < 1720; y++)
-                    for (int x = 80; x < 1000; x++)
-                        pixels[y * 1080 + x] = canteenBg;
-
-                // Canteen Collect Button & Double Ad Button
-                for (int y = 1550; y < 1620; y++)
+                var canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+                var prevCanvasStates = new List<(Canvas canvas, RenderMode mode, Camera worldCam, float planeDist)>(canvases.Length);
+                foreach (var c in canvases)
                 {
-                    for (int x = 120; x < 500; x++) pixels[y * 1080 + x] = btnGreen;
-                    for (int x = 580; x < 960; x++) pixels[y * 1080 + x] = btnYellow;
-                }
-
-                // 5 Building Cards
-                for (int c = 0; c < 5; c++)
-                {
-                    int startY = 320 + c * 230;
-                    for (int y = startY; y < startY + 200; y++)
-                        for (int x = 80; x < 1000; x++)
-                            pixels[y * 1080 + x] = cardBg;
-
-                    // Upgrade Button on each card
-                    for (int y = startY + 80; y < startY + 160; y++)
-                        for (int x = 750; x < 960; x++)
-                            pixels[y * 1080 + x] = btnBlue;
-
-                    // Speedup / Instant Medal buttons
-                    for (int y = startY + 20; y < startY + 65; y++)
+                    prevCanvasStates.Add((c, c.renderMode, c.worldCamera, c.planeDistance));
+                    if (c.renderMode == RenderMode.ScreenSpaceOverlay)
                     {
-                        for (int x = 700; x < 830; x++) pixels[y * 1080 + x] = btnYellow;
-                        for (int x = 845; x < 975; x++) pixels[y * 1080 + x] = new Color(0.2f, 0.8f, 0.9f);
+                        c.renderMode = RenderMode.ScreenSpaceCamera;
+                        c.worldCamera = cam;
+                        c.planeDistance = 2f;
                     }
                 }
 
-                // Close Button
-                for (int y = 120; y < 200; y++)
-                    for (int x = 340; x < 740; x++)
-                        pixels[y * 1080 + x] = btnRed;
+                Canvas.ForceUpdateCanvases();
 
-                tex.SetPixels(pixels);
-                tex.Apply();
-                File.WriteAllBytes(path, tex.EncodeToPNG());
-                Object.DestroyImmediate(tex);
+                var rt = new RenderTexture(1080, 1920, 24, RenderTextureFormat.ARGB32);
+                var prevTarget = cam.targetTexture;
+                var prevActive = RenderTexture.active;
+
+                try
+                {
+                    cam.targetTexture = rt;
+                    cam.Render();
+
+                    RenderTexture.active = rt;
+                    var tex = new Texture2D(1080, 1920, TextureFormat.RGB24, false);
+                    tex.ReadPixels(new Rect(0, 0, 1080, 1920), 0, 0);
+                    tex.Apply();
+
+                    File.WriteAllBytes(path, tex.EncodeToPNG());
+                    Object.DestroyImmediate(tex);
+                }
+                finally
+                {
+                    cam.targetTexture = prevTarget;
+                    RenderTexture.active = prevActive;
+                    rt.Release();
+                    Object.DestroyImmediate(rt);
+
+                    foreach (var (canvas, mode, worldCam, dist) in prevCanvasStates)
+                    {
+                        if (canvas != null)
+                        {
+                            canvas.renderMode = mode;
+                            canvas.worldCamera = worldCam;
+                            canvas.planeDistance = dist;
+                        }
+                    }
+                    Canvas.ForceUpdateCanvases();
+                }
             }
 
             if (Directory.Exists("G:/Evidences"))
@@ -243,6 +182,12 @@ namespace Game.Tests.PlayMode
 
             var canteen = barracksView.CanteenWidget;
             Assert.IsNotNull(canteen);
+
+            int balanceBefore = barracksView.Wallet.GetBalance(CurrencyKind.Coins);
+            canteen.CollectButton.onClick.Invoke();
+            yield return null;
+            int balanceAfter = barracksView.Wallet.GetBalance(CurrencyKind.Coins);
+            Assert.GreaterOrEqual(balanceAfter, balanceBefore);
 
             barracksView.CloseWindow();
             yield return null;

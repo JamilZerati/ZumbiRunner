@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Events;
 using Game.Meta.Barracks;
+using Game.Meta.Barracks.Events;
 using Game.Meta.Wallet;
 using TMPro;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace Game.Presentation.UI.Barracks
         private IWallet _wallet;
         private IEventBus _eventBus;
         private IDisposable _walletSubscription;
+        private IDisposable _upgradeCompletedSubscription;
         private float _timerAccumulator;
 
         public override UILayerType LayerType => UILayerType.Modal;
@@ -55,6 +57,8 @@ namespace Game.Presentation.UI.Barracks
         {
             _walletSubscription?.Dispose();
             _walletSubscription = null;
+            _upgradeCompletedSubscription?.Dispose();
+            _upgradeCompletedSubscription = null;
             UnwireButtons();
             OnCloseClicked = null;
             base.OnDestroy();
@@ -118,6 +122,7 @@ namespace Game.Presentation.UI.Barracks
             IEventBus eventBus = null)
         {
             _walletSubscription?.Dispose();
+            _upgradeCompletedSubscription?.Dispose();
             _service = service;
             _catalog = catalog;
             _wallet = wallet;
@@ -126,6 +131,7 @@ namespace Game.Presentation.UI.Barracks
             if (_eventBus != null)
             {
                 _walletSubscription = _eventBus.Subscribe<WalletChangedEvent>(OnWalletChanged);
+                _upgradeCompletedSubscription = _eventBus.Subscribe<BuildingUpgradeCompletedEvent>(_ => RefreshView());
             }
 
             if (_canteenWidget != null && _service != null)

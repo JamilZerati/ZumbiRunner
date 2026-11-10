@@ -126,10 +126,7 @@ namespace Game.Gameplay
             injectedCatalog = catalog;
             this.eventBus = eventBus;
 
-            if (runConfig != null)
-            {
-                ApplyBarracksDamageBonus(runConfig.BaseDamageMultiplier);
-            }
+            ApplyBarracksDamageBonus(runConfig?.BaseDamageMultiplier ?? 1.0f);
         }
 
         public void ApplyBarracksDamageBonus(float multiplier)
@@ -137,7 +134,7 @@ namespace Game.Gameplay
             _cachedBarracksDamageMultiplier = multiplier;
             stats.RemoveAllFromSource(BarracksArsenalSource);
 
-            float bonus = multiplier > 1.0f ? (multiplier - 1.0f) : (multiplier > 0f && multiplier < 1.0f ? multiplier : 0f);
+            float bonus = multiplier > 1.0f ? (multiplier - 1.0f) : 0f;
             if (bonus > 0f)
             {
                 stats.AddModifier(new StatModifier(StatId.Damage, ModifierKind.PercentAdd, bonus, BarracksArsenalSource));
@@ -158,7 +155,7 @@ namespace Game.Gameplay
             equippedWeaponId = profile.Id;
             ClampFireTimerToTwoIntervals(CurrentStats.FireRate);
 
-            if (_cachedBarracksDamageMultiplier > 1.0f || (_cachedBarracksDamageMultiplier > 0f && _cachedBarracksDamageMultiplier < 1.0f))
+            if (_cachedBarracksDamageMultiplier > 1.0f)
             {
                 ApplyBarracksDamageBonus(_cachedBarracksDamageMultiplier);
             }

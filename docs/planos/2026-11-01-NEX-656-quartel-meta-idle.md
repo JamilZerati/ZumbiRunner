@@ -70,6 +70,7 @@ Assets/_Game/Scripts/
 │   │   ├── [NOVO] BarracksBuildingType.cs
 │   │   ├── [NOVO] BarracksBuildingDefinition.cs
 │   │   ├── [NOVO] BarracksCatalog.cs
+│   │   ├── [NOVO] IBarracksCatalog.cs
 │   │   ├── [NOVO] IBarracksService.cs
 │   │   ├── [NOVO] BarracksService.cs
 │   │   └── Events/
@@ -106,7 +107,6 @@ Assets/_Game/Scripts/
     │   │   ├── [NOVO] SaveStoreMigrationTests.cs
     │   │   ├── [NOVO] BarracksServiceTests.cs
     │   │   ├── [NOVO] BarracksCanteenTests.cs
-    │   │   ├── [NOVO] RunConfigBuilderBarracksTests.cs
     │   │   └── [NOVO] RewardCalculatorRecruitsTests.cs
     │   ├── Gameplay/
     │   │   └── [NOVO] WeaponControllerBarracksTests.cs
@@ -388,11 +388,11 @@ flowchart TD
 ### Marco 4: Integração no RunConfigBuilder, WeaponController e Carteira de Recrutas
 - **Objetivo**: Conectar os bônus do Quartel ao `RunConfig`, aplicar modificador de dano em `WeaponController` imune a troca de arma e stacking, rastrear baixas na Enfermaria e creditar Recrutas no `RewardCalculator` apenas se $> 0$.
 - **Fontes Investigadas**: `RunConfigBuilder.cs`, `RewardCalculator.cs`, `LevelDirector.cs`, `WeaponController.cs`, `StatCollection.cs`.
-- **Arquivos & Símbolos**: `RunConfig.cs`, `RunResult.cs`, `RunConfigBuilder.cs`, `RewardCalculator.cs`, `LevelDirector.cs`, `WeaponController.cs`, `RunConfigBuilderBarracksTests.cs`, `RewardCalculatorRecruitsTests.cs`, `WeaponControllerBarracksTests.cs`.
+- **Arquivos & Símbolos**: `RunConfig.cs`, `RunResult.cs`, `RunConfigBuilder.cs`, `RewardCalculator.cs`, `LevelDirector.cs`, `WeaponController.cs`, `BarracksContractTests.cs`, `RewardCalculatorRecruitsTests.cs`, `WeaponControllerBarracksTests.cs`.
 - **Seam Público**: `RunConfigBuilder.Build`, `RewardCalculator.Calculate`, `WeaponController.Initialize`, `LevelDirector.EndRun`.
 - **Riscos**: Stacking de dano a cada corrida na mesma sessão; crash em `Wallet.Add` se total de recrutas for 0.
 - **Aceite (Pronto quando)**: `RunConfig` recebe +2 soldados por nível de Recrutamento e +5% dano por nível de Arsenal; `WeaponController` aplica modificador com `source: "BarracksArsenal"` após limpar prévios, resistindo a `TryEquip`; Enfermaria recupera soldados no fim da fase; `RewardCalculator` credita recrutas na `Wallet` apenas quando $> 0$, sem exceções quando 0. (AC-05, AC-06, CT-13..CT-16).
-- **Comandos & Verificação**: `tools/unity test-edit` verde em `RunConfigBuilderBarracksTests`, `RewardCalculatorRecruitsTests` e `WeaponControllerBarracksTests`.
+- **Comandos & Verificação**: `tools/unity test-edit` verde em `BarracksContractTests`, `RewardCalculatorRecruitsTests` e `WeaponControllerBarracksTests`.
 
 ### Marco 5: Interface uGUI do Quartel (BarracksView), Fiação no Hub e Validação em PlayMode
 - **Objetivo**: Criar a janela uGUI modal do Quartel, widgets das construções (`BarracksBuildingCardWidget`, `CanteenWidget`), registrar serviços no `GameLifetimeScope`, amarrar ao `HubView` e validar em cena viva.

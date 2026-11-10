@@ -142,7 +142,7 @@ namespace Game.Presentation.UI.Barracks
                 {
                     if (_timerText != null)
                     {
-                        _timerText.text = $"{remaining.Hours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
+                        _timerText.text = $"{(int)remaining.TotalHours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
                     }
                     if (_upgradeButton != null) _upgradeButton.interactable = false;
                     if (_speedupAdButton != null)
@@ -205,34 +205,42 @@ namespace Game.Presentation.UI.Barracks
         private void HandleUpgradeClicked()
         {
             if (_service == null) return;
+            bool success = false;
             if (_service.IsUnderConstruction(_type))
             {
                 if (_service.GetRemainingConstructionTime(_type) <= TimeSpan.Zero)
                 {
-                    _service.TryCompleteUpgrade(_type);
+                    success = _service.TryCompleteUpgrade(_type);
                 }
             }
             else
             {
-                _service.TryStartUpgrade(_type);
+                success = _service.TryStartUpgrade(_type);
             }
-            OnUpgradeClicked?.Invoke(_type);
+            if (success)
+            {
+                OnUpgradeClicked?.Invoke(_type);
+            }
             Refresh(_wallet);
         }
 
         private void HandleSpeedupAdClicked()
         {
             if (_service == null) return;
-            _service.TrySpeedupWithAd(_type);
-            OnSpeedupAdClicked?.Invoke(_type);
+            if (_service.TrySpeedupWithAd(_type))
+            {
+                OnSpeedupAdClicked?.Invoke(_type);
+            }
             Refresh(_wallet);
         }
 
         private void HandleInstantMedalClicked()
         {
             if (_service == null) return;
-            _service.TryInstantCompleteWithMedals(_type);
-            OnInstantMedalClicked?.Invoke(_type);
+            if (_service.TryInstantCompleteWithMedals(_type))
+            {
+                OnInstantMedalClicked?.Invoke(_type);
+            }
             Refresh(_wallet);
         }
     }

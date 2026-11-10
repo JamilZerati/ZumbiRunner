@@ -132,9 +132,14 @@ namespace Game.Meta.Barracks
             }
 
             BarracksBuildingDefinition def = _catalog.Get(type);
-            int maxLevel = def?.MaxLevel ?? 5;
+            if (def == null)
+            {
+                failReason = "Construção não encontrada no catálogo.";
+                return false;
+            }
+
             int currentLevel = GetBuildingLevel(type);
-            if (currentLevel >= maxLevel)
+            if (currentLevel >= def.MaxLevel)
             {
                 failReason = "Construção já atingiu o nível máximo.";
                 return false;
@@ -274,7 +279,7 @@ namespace Game.Meta.Barracks
                 return false;
             }
 
-            int targetLevel = _state.TargetLevel;
+            int targetLevel = _state.TargetLevel > 0 ? _state.TargetLevel : GetBuildingLevel(type) + 1;
             _state.SetLevel(type.ToString(), targetLevel);
             _state.ActiveConstructionType = null;
             _state.ConstructionEndUtcTicks = 0;
@@ -302,7 +307,7 @@ namespace Game.Meta.Barracks
                 return false;
             }
 
-            int targetLevel = _state.TargetLevel;
+            int targetLevel = _state.TargetLevel > 0 ? _state.TargetLevel : GetBuildingLevel(type) + 1;
             _state.SetLevel(type.ToString(), targetLevel);
             _state.ActiveConstructionType = null;
             _state.ConstructionEndUtcTicks = 0;

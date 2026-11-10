@@ -201,6 +201,41 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void SpeedupAdButton_WhenClicked_ReducesTimer()
+        {
+            _wallet.Add(CurrencyKind.Coins, 500, "grant");
+            _wallet.Add(CurrencyKind.Recruits, 50, "grant");
+
+            var card = _barracksView.GetCard(BarracksBuildingType.Recruitment);
+            card.UpgradeButton.onClick.Invoke();
+
+            var initialRemaining = _service.GetRemainingConstructionTime(BarracksBuildingType.Recruitment);
+            card.SpeedupAdButton.onClick.Invoke();
+
+            var afterRemaining = _service.GetRemainingConstructionTime(BarracksBuildingType.Recruitment);
+            Assert.AreEqual(initialRemaining - TimeSpan.FromMinutes(30), afterRemaining);
+        }
+
+        [Test]
+        public void UpgradeButton_WhenTimerExpired_CompletesUpgradeAndPromotesLevel()
+        {
+            _wallet.Add(CurrencyKind.Coins, 500, "grant");
+            _wallet.Add(CurrencyKind.Recruits, 50, "grant");
+
+            var card = _barracksView.GetCard(BarracksBuildingType.Recruitment);
+            card.UpgradeButton.onClick.Invoke();
+
+            _timeProvider.Advance(TimeSpan.FromHours(5));
+            _barracksView.RefreshView();
+
+            card.UpgradeButton.onClick.Invoke();
+
+            Assert.IsFalse(_service.IsUnderConstruction(BarracksBuildingType.Recruitment));
+            Assert.AreEqual(2, _service.GetBuildingLevel(BarracksBuildingType.Recruitment));
+            Assert.AreEqual("Nível 2", card.LevelText.text);
+        }
+
+        [Test]
         public void CanteenWidget_DisplaysPendingCoins_AndCollects()
         {
             _timeProvider.Advance(TimeSpan.FromHours(2));
