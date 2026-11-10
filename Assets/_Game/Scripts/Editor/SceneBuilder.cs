@@ -1489,20 +1489,32 @@ namespace Game.Editor
             var nextBtn = CreateBtn(stageWidgetGo, "NextButton", ">", new Vector2(0.5f, 0.6f), new Vector2(220, 0), new Vector2(60, 60));
             stageWidget.BindComponents(stageTitle, stageStars, lockIndicator, prevBtn, nextBtn);
             WireSerialized(stageWidget, ("_stageTitleText", stageTitle), ("_starsText", stageStars), ("_lockIndicator", lockIndicator), ("_prevButton", prevBtn), ("_nextButton", nextBtn));
-            var mutationWidgetGo = CreateRect(hubGo, "MutationSelectionWidget");
+            var mutationWidgetGo = new GameObject("MutationSelectionWidget", typeof(RectTransform));
+            mutationWidgetGo.transform.SetParent(hubGo.transform, false);
+            var mutRect = mutationWidgetGo.GetComponent<RectTransform>();
+            mutRect.anchorMin = mutRect.anchorMax = mutRect.pivot = new Vector2(0.5f, 0.40f);
+            mutRect.anchoredPosition = Vector2.zero;
+            mutRect.sizeDelta = new Vector2(980f, 150f);
             var mutationWidget = mutationWidgetGo.AddComponent<MutationSelectionWidget>();
-            var mutationItemsContainer = CreateRect(mutationWidgetGo, "ItemsContainer");
-            var totalBonusText = CreateTmp(mutationWidgetGo, "TotalBonusText", "+0% Moedas", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.45f), Vector2.zero, new Vector2(300, 30));
+
+            var mutationItemsContainer = new GameObject("ItemsContainer", typeof(RectTransform));
+            mutationItemsContainer.transform.SetParent(mutationWidgetGo.transform, false);
+            var itemsRect = mutationItemsContainer.GetComponent<RectTransform>();
+            itemsRect.anchorMin = itemsRect.anchorMax = itemsRect.pivot = new Vector2(0.5f, 0.5f);
+            itemsRect.anchoredPosition = Vector2.zero;
+            itemsRect.sizeDelta = new Vector2(980f, 100f);
+
+            var totalBonusText = CreateTmp(mutationWidgetGo, "TotalBonusText", "+0% Moedas", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(300, 30));
             var lockedOverlay = CreateRect(mutationWidgetGo, "LockedOverlay");
             var lockedReason = CreateTmp(lockedOverlay, "LockedReason", "Derrote o Boss da Fase 5", 18, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(250, 40));
 
             var explicitItems = new List<MutationToggleItem>
             {
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_armored", "Blindados"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_frenzy", "Frenesi"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_fog", "Neblina"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_last_soldier", "Último Soldado"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_no_multiplication", "Sem Multiplicação")
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_armored", "Blindados", 0),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_frenzy", "Frenesi", 1),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_fog", "Neblina", 2),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_last_soldier", "Último Soldado", 3),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_no_multiplication", "Sem Multiplicação", 4)
             };
 
             mutationWidget.BindComponents(mutationItemsContainer.transform, null, totalBonusText, lockedOverlay, lockedReason, explicitItems);
@@ -1761,6 +1773,7 @@ namespace Game.Editor
             tmp.fontSize = fontSize;
             tmp.alignment = alignment;
             tmp.color = Color.white;
+            tmp.raycastTarget = false;
             return tmp;
         }
 
@@ -1807,12 +1820,25 @@ namespace Game.Editor
             return toggle;
         }
 
-        private static MutationToggleItem CreateMutationToggleItem(GameObject parent, string name, string label)
+        private static MutationToggleItem CreateMutationToggleItem(GameObject parent, string name, string label, int index)
         {
-            var itemGo = CreateRect(parent, name);
+            float width = 180f;
+            float spacing = 15f;
+            float totalWidth = (5 * width) + (4 * spacing);
+            float startX = -totalWidth * 0.5f + width * 0.5f;
+            float posX = startX + index * (width + spacing);
+
+            var itemGo = new GameObject(name, typeof(RectTransform));
+            itemGo.transform.SetParent(parent.transform, false);
+            var itemRect = itemGo.GetComponent<RectTransform>();
+            itemRect.anchorMin = itemRect.anchorMax = itemRect.pivot = new Vector2(0.5f, 0.5f);
+            itemRect.anchoredPosition = new Vector2(posX, 0f);
+            itemRect.sizeDelta = new Vector2(width, 70f);
+
             var item = itemGo.AddComponent<MutationToggleItem>();
             var iconGo = CreateRect(itemGo, "Icon");
             var iconImg = iconGo.AddComponent<Image>();
+            iconImg.raycastTarget = false;
             var nameTxt = CreateTmp(itemGo, "Name", label, 18, TextAlignmentOptions.Left, new Vector2(0.3f, 0.5f), Vector2.zero, new Vector2(140, 30));
             var bonusTxt = CreateTmp(itemGo, "Bonus", "+50%", 16, TextAlignmentOptions.Right, new Vector2(0.8f, 0.5f), Vector2.zero, new Vector2(80, 30));
             var btnGo = CreateRect(itemGo, "Button");
