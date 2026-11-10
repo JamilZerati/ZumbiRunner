@@ -1445,6 +1445,10 @@ namespace Game.Editor
         {
             var uiManagerGo = new GameObject("UIManager", typeof(RectTransform));
             uiManagerGo.transform.SetParent(canvasGo.transform, false);
+            var uiRect = uiManagerGo.GetComponent<RectTransform>();
+            uiRect.anchorMin = Vector2.zero;
+            uiRect.anchorMax = Vector2.one;
+            uiRect.sizeDelta = Vector2.zero;
             var uiManager = uiManagerGo.AddComponent<UIManager>();
 
             var hubLayerGo = CreateLayer(uiManagerGo, "HubLayer", UILayerType.Hub, uiManager, out var hubLayer);
@@ -1555,18 +1559,25 @@ namespace Game.Editor
 
             var barracksGo = CreateRect(modalLayerGo, "BarracksView");
             var barracksBg = barracksGo.AddComponent<Image>();
-            barracksBg.color = new Color(0.08f, 0.10f, 0.14f, 0.98f);
+            barracksBg.color = new Color(0.06f, 0.08f, 0.12f, 0.98f);
             var barracksView = barracksGo.AddComponent<BarracksView>();
-            var barracksTitle = CreateTmp(barracksGo, "TitleText", "Quartel General", 40, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(400, 50));
-            var barracksCloseBtn = CreateBtn(barracksGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.05f), Vector2.zero, new Vector2(200, 50));
-            var clockWarning = CreateTmp(barracksGo, "ClockWarningText", "Horário alterado! Produção pausada.", 18, TextAlignmentOptions.Center, new Vector2(0.5f, 0.90f), Vector2.zero, new Vector2(500, 30));
+            var barracksTitle = CreateTmp(barracksGo, "TitleText", "Quartel General", 44, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(600, 60));
+            var barracksCloseBtn = CreateBtn(barracksGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.045f), Vector2.zero, new Vector2(260, 60));
+            var clockWarning = CreateTmp(barracksGo, "ClockWarningText", "Horário alterado! Produção pausada.", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.90f), Vector2.zero, new Vector2(700, 30));
             clockWarning.gameObject.SetActive(false);
 
-            var canteenGo = CreateRect(barracksGo, "CanteenWidget");
+            var canteenGo = new GameObject("CanteenWidget", typeof(RectTransform));
+            canteenGo.transform.SetParent(barracksGo.transform, false);
+            var canteenRect = canteenGo.GetComponent<RectTransform>();
+            canteenRect.anchorMin = canteenRect.anchorMax = canteenRect.pivot = new Vector2(0.5f, 0.84f);
+            canteenRect.anchoredPosition = Vector2.zero;
+            canteenRect.sizeDelta = new Vector2(980f, 110f);
+            var canteenBg = canteenGo.AddComponent<Image>();
+            canteenBg.color = new Color(0.12f, 0.16f, 0.22f, 0.95f);
             var canteenWidget = canteenGo.AddComponent<CanteenWidget>();
-            var canteenPending = CreateTmp(canteenGo, "PendingCoinsText", "0", 24, TextAlignmentOptions.Center, new Vector2(0.5f, 0.84f), Vector2.zero, new Vector2(200, 30));
-            var canteenCollectBtn = CreateBtn(canteenGo, "CollectButton", "Coletar", new Vector2(0.35f, 0.78f), Vector2.zero, new Vector2(160, 40));
-            var canteenDoubleBtn = CreateBtn(canteenGo, "DoubleAdButton", "Coletar 2x (Ad)", new Vector2(0.65f, 0.78f), Vector2.zero, new Vector2(160, 40));
+            var canteenPending = CreateTmp(canteenGo, "PendingCoinsText", "0", 26, TextAlignmentOptions.Center, new Vector2(0.20f, 0.50f), Vector2.zero, new Vector2(200, 35));
+            var canteenCollectBtn = CreateBtn(canteenGo, "CollectButton", "Coletar", new Vector2(0.55f, 0.50f), Vector2.zero, new Vector2(180, 50));
+            var canteenDoubleBtn = CreateBtn(canteenGo, "DoubleAdButton", "Coletar 2x (Ad)", new Vector2(0.80f, 0.50f), Vector2.zero, new Vector2(220, 50));
             canteenWidget.BindComponents(canteenPending, canteenCollectBtn, canteenDoubleBtn, clockWarning);
             WireSerialized(canteenWidget, ("_pendingCoinsText", canteenPending), ("_collectButton", canteenCollectBtn), ("_doubleAdButton", canteenDoubleBtn), ("_clockWarningText", clockWarning));
 
@@ -1582,18 +1593,26 @@ namespace Game.Editor
             for (int i = 0; i < buildingTypes.Length; i++)
             {
                 var bType = buildingTypes[i];
-                var cardGo = CreateRect(barracksGo, $"Card_{bType}");
+                float yPos = 0.72f - (i * 0.13f);
+                var cardGo = new GameObject($"Card_{bType}", typeof(RectTransform));
+                cardGo.transform.SetParent(barracksGo.transform, false);
+                var cardRect = cardGo.GetComponent<RectTransform>();
+                cardRect.anchorMin = cardRect.anchorMax = cardRect.pivot = new Vector2(0.5f, yPos);
+                cardRect.anchoredPosition = Vector2.zero;
+                cardRect.sizeDelta = new Vector2(980f, 130f);
+                var cardBg = cardGo.AddComponent<Image>();
+                cardBg.color = new Color(0.14f, 0.18f, 0.25f, 0.95f);
+
                 var cardWidget = cardGo.AddComponent<BarracksBuildingCardWidget>();
-                float yPos = 0.68f - (i * 0.12f);
-                var cardTitle = CreateTmp(cardGo, "CardTitle", bType.ToString(), 20, TextAlignmentOptions.Left, new Vector2(0.2f, yPos), Vector2.zero, new Vector2(180, 25));
-                var cardLevel = CreateTmp(cardGo, "CardLevel", "Nível 1", 18, TextAlignmentOptions.Left, new Vector2(0.2f, yPos - 0.03f), Vector2.zero, new Vector2(180, 25));
-                var cardCoins = CreateTmp(cardGo, "CardCoinCost", "100", 16, TextAlignmentOptions.Left, new Vector2(0.45f, yPos), Vector2.zero, new Vector2(120, 25));
-                var cardRecruits = CreateTmp(cardGo, "CardRecruitCost", "5", 16, TextAlignmentOptions.Left, new Vector2(0.45f, yPos - 0.03f), Vector2.zero, new Vector2(120, 25));
-                var cardTimer = CreateTmp(cardGo, "CardTimer", "", 16, TextAlignmentOptions.Center, new Vector2(0.65f, yPos), Vector2.zero, new Vector2(140, 25));
-                var cardUpgradeBtn = CreateBtn(cardGo, "UpgradeButton", "Evoluir", new Vector2(0.85f, yPos), Vector2.zero, new Vector2(110, 35));
-                var cardSpeedupBtn = CreateBtn(cardGo, "SpeedupAdButton", "-30m", new Vector2(0.72f, yPos - 0.035f), Vector2.zero, new Vector2(80, 30));
-                var cardInstantBtn = CreateBtn(cardGo, "InstantMedalButton", "Pular", new Vector2(0.88f, yPos - 0.035f), Vector2.zero, new Vector2(80, 30));
-                var cardMedalCost = CreateTmp(cardGo, "MedalCostText", "5 Medalhas", 14, TextAlignmentOptions.Center, new Vector2(0.88f, yPos - 0.035f), Vector2.zero, new Vector2(80, 20));
+                var cardTitle = CreateTmp(cardGo, "CardTitle", bType.ToString(), 24, TextAlignmentOptions.Left, new Vector2(0.04f, 0.70f), Vector2.zero, new Vector2(240, 30));
+                var cardLevel = CreateTmp(cardGo, "CardLevel", "Nível 1", 20, TextAlignmentOptions.Left, new Vector2(0.04f, 0.30f), Vector2.zero, new Vector2(200, 26));
+                var cardCoins = CreateTmp(cardGo, "CardCoinCost", "100", 20, TextAlignmentOptions.Left, new Vector2(0.32f, 0.70f), Vector2.zero, new Vector2(160, 28));
+                var cardRecruits = CreateTmp(cardGo, "CardRecruitCost", "5", 20, TextAlignmentOptions.Left, new Vector2(0.32f, 0.30f), Vector2.zero, new Vector2(160, 26));
+                var cardTimer = CreateTmp(cardGo, "CardTimer", "", 20, TextAlignmentOptions.Center, new Vector2(0.56f, 0.50f), Vector2.zero, new Vector2(160, 28));
+                var cardUpgradeBtn = CreateBtn(cardGo, "UpgradeButton", "Evoluir", new Vector2(0.85f, 0.70f), Vector2.zero, new Vector2(160, 48));
+                var cardSpeedupBtn = CreateBtn(cardGo, "SpeedupAdButton", "-30m", new Vector2(0.74f, 0.28f), Vector2.zero, new Vector2(100, 38));
+                var cardInstantBtn = CreateBtn(cardGo, "InstantMedalButton", "Pular", new Vector2(0.88f, 0.36f), Vector2.zero, new Vector2(110, 34));
+                var cardMedalCost = CreateTmp(cardGo, "MedalCostText", "5 Med.", 15, TextAlignmentOptions.Center, new Vector2(0.88f, 0.14f), Vector2.zero, new Vector2(110, 18));
 
                 cardWidget.BindComponents(cardTitle, cardLevel, cardCoins, cardRecruits, cardTimer, cardUpgradeBtn, cardSpeedupBtn, cardInstantBtn, cardMedalCost, bType);
                 WireSerialized(cardWidget,
