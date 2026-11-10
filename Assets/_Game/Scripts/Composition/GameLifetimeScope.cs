@@ -1,6 +1,8 @@
 using Game.Core;
 using Game.Core.Analytics;
+using Game.Meta.Barracks;
 using Game.Meta.Stages;
+using Game.Meta.Time;
 using Game.Meta.Wallet;
 using Game.Presentation.Settings;
 using VContainer;
@@ -19,6 +21,9 @@ namespace Game.Composition
             builder.Register<StageMapService>(Lifetime.Singleton).As<IStageMapService>();
             builder.Register<AudioSettings>(Lifetime.Singleton).As<IAudioSettings>();
             builder.Register<LocalizationSettings>(Lifetime.Singleton).As<ILocalizationSettings>();
+            builder.Register<MonotonicTimeProvider>(Lifetime.Singleton).As<ITimeProvider>();
+            builder.RegisterInstance(BarracksCatalog.CreateDefault()).As<IBarracksCatalog>();
+            builder.Register<BarracksService>(Lifetime.Singleton).As<IBarracksService>();
         }
     }
 }

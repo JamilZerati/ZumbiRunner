@@ -4,15 +4,18 @@ using Game.Core.Analytics;
 using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Gameplay.Tutorial;
+using Game.Meta.Barracks;
 using Game.Meta.Debut;
 using Game.Meta.Rewards;
 using Game.Meta.Run;
 using Game.Meta.Stages;
+using Game.Meta.Time;
 using Game.Meta.Tracks;
 using Game.Meta.Wallet;
 using Game.Presentation;
 using Game.Presentation.Settings;
 using Game.Presentation.UI;
+using Game.Presentation.UI.Barracks;
 using UnityEngine;
 using AudioSettings = Game.Presentation.Settings.AudioSettings;
 
@@ -166,6 +169,7 @@ namespace Game.Composition
                         eventBus,
                         analytics);
                     hubView.DebutJourneyHook = () => uiManager.OpenWindow<DebutJourneyView>();
+                    hubView.BarracksHook = () => uiManager.OpenWindow<BarracksView>();
                 }
 
                 var resultView = uiManager.GetWindow<ResultView>();
@@ -203,6 +207,15 @@ namespace Game.Composition
                 {
                     var tutorialController = new TutorialGuideController(new FtueStepProgress(), analytics);
                     tutorialView.Initialize(tutorialController);
+                }
+
+                var barracksView = uiManager.GetWindow<BarracksView>();
+                if (barracksView != null)
+                {
+                    var timeProvider = new MonotonicTimeProvider();
+                    var catalog = BarracksCatalog.CreateDefault();
+                    var barracksService = new BarracksService(timeProvider, wallet, catalog, eventBus: eventBus);
+                    barracksView.Initialize(barracksService, catalog, wallet, eventBus);
                 }
 
                 uiManager.OpenWindow<HubView>();
