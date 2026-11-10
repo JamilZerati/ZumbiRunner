@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Game.Meta.Barracks
 {
-    public class BarracksCatalog
+    public class BarracksCatalog : IBarracksCatalog
     {
         private readonly Dictionary<BarracksBuildingType, BarracksBuildingDefinition> _definitions;
 

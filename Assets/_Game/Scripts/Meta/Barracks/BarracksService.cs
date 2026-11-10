@@ -12,7 +12,7 @@ namespace Game.Meta.Barracks
     {
         private readonly ITimeProvider _timeProvider;
         private readonly IWallet _wallet;
-        private readonly BarracksCatalog _catalog;
+        private readonly IBarracksCatalog _catalog;
         private readonly BarracksState _state;
         private readonly IEventBus _eventBus;
 
@@ -21,7 +21,7 @@ namespace Game.Meta.Barracks
         public BarracksService(
             ITimeProvider timeProvider,
             IWallet wallet,
-            BarracksCatalog catalog = null,
+            IBarracksCatalog catalog = null,
             BarracksState state = null,
             IEventBus eventBus = null)
         {

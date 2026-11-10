@@ -9,8 +9,10 @@ using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Infrastructure;
 using Game.Infrastructure.Input;
+using Game.Meta.Barracks;
 using Game.Presentation;
 using Game.Presentation.UI;
+using Game.Presentation.UI.Barracks;
 using TMPro;
 using UnityEngine.UI;
 using UnityEditor;
@@ -1551,11 +1553,78 @@ namespace Game.Editor
             WireSerialized(tutView, ("_instructionText", tutText), ("_bannerRoot", bannerRoot), ("_stepIcon", stepIcon));
             uiManager.RegisterWindow(tutView);
 
+            var barracksGo = CreateRect(modalLayerGo, "BarracksView");
+            var barracksView = barracksGo.AddComponent<BarracksView>();
+            var barracksTitle = CreateTmp(barracksGo, "TitleText", "Quartel General", 40, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(400, 50));
+            var barracksCloseBtn = CreateBtn(barracksGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.05f), Vector2.zero, new Vector2(200, 50));
+            var clockWarning = CreateTmp(barracksGo, "ClockWarningText", "Horário alterado! Produção pausada.", 18, TextAlignmentOptions.Center, new Vector2(0.5f, 0.90f), Vector2.zero, new Vector2(500, 30));
+            clockWarning.gameObject.SetActive(false);
+
+            var canteenGo = CreateRect(barracksGo, "CanteenWidget");
+            var canteenWidget = canteenGo.AddComponent<CanteenWidget>();
+            var canteenPending = CreateTmp(canteenGo, "PendingCoinsText", "0", 24, TextAlignmentOptions.Center, new Vector2(0.5f, 0.84f), Vector2.zero, new Vector2(200, 30));
+            var canteenCollectBtn = CreateBtn(canteenGo, "CollectButton", "Coletar", new Vector2(0.35f, 0.78f), Vector2.zero, new Vector2(160, 40));
+            var canteenDoubleBtn = CreateBtn(canteenGo, "DoubleAdButton", "Coletar 2x (Ad)", new Vector2(0.65f, 0.78f), Vector2.zero, new Vector2(160, 40));
+            canteenWidget.BindComponents(canteenPending, canteenCollectBtn, canteenDoubleBtn, clockWarning);
+            WireSerialized(canteenWidget, ("_pendingCoinsText", canteenPending), ("_collectButton", canteenCollectBtn), ("_doubleAdButton", canteenDoubleBtn), ("_clockWarningText", clockWarning));
+
+            var buildingTypes = new[]
+            {
+                BarracksBuildingType.Recruitment,
+                BarracksBuildingType.Armory,
+                BarracksBuildingType.Canteen,
+                BarracksBuildingType.Infirmary,
+                BarracksBuildingType.Ammunition
+            };
+            var cardWidgets = new List<BarracksBuildingCardWidget>();
+            for (int i = 0; i < buildingTypes.Length; i++)
+            {
+                var bType = buildingTypes[i];
+                var cardGo = CreateRect(barracksGo, $"Card_{bType}");
+                var cardWidget = cardGo.AddComponent<BarracksBuildingCardWidget>();
+                float yPos = 0.68f - (i * 0.12f);
+                var cardTitle = CreateTmp(cardGo, "CardTitle", bType.ToString(), 20, TextAlignmentOptions.Left, new Vector2(0.2f, yPos), Vector2.zero, new Vector2(180, 25));
+                var cardLevel = CreateTmp(cardGo, "CardLevel", "Nível 1", 18, TextAlignmentOptions.Left, new Vector2(0.2f, yPos - 0.03f), Vector2.zero, new Vector2(180, 25));
+                var cardCoins = CreateTmp(cardGo, "CardCoinCost", "100", 16, TextAlignmentOptions.Left, new Vector2(0.45f, yPos), Vector2.zero, new Vector2(120, 25));
+                var cardRecruits = CreateTmp(cardGo, "CardRecruitCost", "5", 16, TextAlignmentOptions.Left, new Vector2(0.45f, yPos - 0.03f), Vector2.zero, new Vector2(120, 25));
+                var cardTimer = CreateTmp(cardGo, "CardTimer", "", 16, TextAlignmentOptions.Center, new Vector2(0.65f, yPos), Vector2.zero, new Vector2(140, 25));
+                var cardUpgradeBtn = CreateBtn(cardGo, "UpgradeButton", "Evoluir", new Vector2(0.85f, yPos), Vector2.zero, new Vector2(110, 35));
+                var cardSpeedupBtn = CreateBtn(cardGo, "SpeedupAdButton", "-30m", new Vector2(0.72f, yPos - 0.035f), Vector2.zero, new Vector2(80, 30));
+                var cardInstantBtn = CreateBtn(cardGo, "InstantMedalButton", "Pular", new Vector2(0.88f, yPos - 0.035f), Vector2.zero, new Vector2(80, 30));
+                var cardMedalCost = CreateTmp(cardGo, "MedalCostText", "5 Medalhas", 14, TextAlignmentOptions.Center, new Vector2(0.88f, yPos - 0.035f), Vector2.zero, new Vector2(80, 20));
+
+                cardWidget.BindComponents(cardTitle, cardLevel, cardCoins, cardRecruits, cardTimer, cardUpgradeBtn, cardSpeedupBtn, cardInstantBtn, cardMedalCost, bType);
+                WireSerialized(cardWidget,
+                    ("_titleText", cardTitle),
+                    ("_levelText", cardLevel),
+                    ("_coinCostText", cardCoins),
+                    ("_recruitCostText", cardRecruits),
+                    ("_timerText", cardTimer),
+                    ("_upgradeButton", cardUpgradeBtn),
+                    ("_speedupAdButton", cardSpeedupBtn),
+                    ("_instantMedalButton", cardInstantBtn),
+                    ("_instantMedalCostText", cardMedalCost));
+                cardWidgets.Add(cardWidget);
+            }
+
+            barracksView.BindComponents(barracksCloseBtn, canteenWidget, cardWidgets, clockWarning);
+            WireSerialized(barracksView, ("_closeButton", barracksCloseBtn), ("_canteenWidget", canteenWidget), ("_clockWarningText", clockWarning));
+            var serializedBarracks = new SerializedObject(barracksView);
+            var cardsProp = serializedBarracks.FindProperty("_buildingCards");
+            if (cardsProp != null)
+            {
+                cardsProp.arraySize = cardWidgets.Count;
+                for (int i = 0; i < cardWidgets.Count; i++) cardsProp.GetArrayElementAtIndex(i).objectReferenceValue = cardWidgets[i];
+                serializedBarracks.ApplyModifiedProperties();
+            }
+            uiManager.RegisterWindow(barracksView);
+
             WireLayerType(hubView, UILayerType.Hub);
             WireLayerType(pauseView, UILayerType.Modal);
             WireLayerType(optionsView, UILayerType.Modal);
             WireLayerType(resultView, UILayerType.Modal);
             WireLayerType(debutView, UILayerType.Modal);
+            WireLayerType(barracksView, UILayerType.Modal);
             WireLayerType(tutView, UILayerType.TutorialOverlay);
 
             var soUi = new SerializedObject(uiManager);
@@ -1567,13 +1636,14 @@ namespace Game.Editor
             layersProp.GetArrayElementAtIndex(3).objectReferenceValue = tutorialLayer;
 
             var windowsProp = soUi.FindProperty("_preloadedWindows");
-            windowsProp.arraySize = 6;
+            windowsProp.arraySize = 7;
             windowsProp.GetArrayElementAtIndex(0).objectReferenceValue = hubView;
             windowsProp.GetArrayElementAtIndex(1).objectReferenceValue = pauseView;
             windowsProp.GetArrayElementAtIndex(2).objectReferenceValue = optionsView;
             windowsProp.GetArrayElementAtIndex(3).objectReferenceValue = resultView;
             windowsProp.GetArrayElementAtIndex(4).objectReferenceValue = debutView;
             windowsProp.GetArrayElementAtIndex(5).objectReferenceValue = tutView;
+            windowsProp.GetArrayElementAtIndex(6).objectReferenceValue = barracksView;
             soUi.ApplyModifiedProperties();
 
             return (uiManager, pauseController);

@@ -336,7 +336,7 @@ flowchart TD
   - **Marco de PR**: Marco 4
   - **Effort**: medium
 
-- [ ] **Passo 5 (Marco 5)**: `Interface uGUI do Quartel (BarracksView), Fiação no Hub e Validação em PlayMode` [NEX-1265]
+- [x] **Passo 5 (Marco 5)**: `Interface uGUI do Quartel (BarracksView), Fiação no Hub e Validação em PlayMode` [NEX-1265]
   - **Ação**: Criar janela modal `BarracksView`, widgets das construções (`BarracksBuildingCardWidget`, `CanteenWidget`), registrar serviços no `GameLifetimeScope`, amarrar ao `HubView` e validar em PlayMode com evidências visuais.
   - **Lógica de Negócios / Responsabilidade**: Exibir cards das 5 construções com nível, custos, timers de obra, botão de pular com custo de medalhas, botões de upgrade/acelerar e coleta do Refeitório com aviso se relógio manipulado; amarrar ao `HubView._barracksButton`; validar fluxo completo em cena viva (`M6_Greybox.unity`).
   - **Dependências**: `implementação`: Marco 4.

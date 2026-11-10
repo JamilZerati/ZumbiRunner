@@ -6,6 +6,7 @@ using Game.Core.Events;
 using Game.Core.State;
 using Game.Meta.Stages;
 using Game.Meta.Wallet;
+using Game.Presentation.UI.Barracks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,10 +40,12 @@ namespace Game.Presentation.UI
         public TMP_Text NavigationFeedbackText => _navigationFeedbackText;
         public string LastNavigationShortcut { get; private set; }
         public Action DebutJourneyHook { get; set; }
+        public Action BarracksHook { get; set; }
 
         public event Action<string> OnRunStarted;
         public event Action OnOptionsRequested;
         public event Action OnDebutJourneyRequested;
+        public event Action OnBarracksRequested;
         public event Action<string> OnNavigationShortcutClicked;
 
         public string SelectedStageId => _stageSelectionWidget != null
@@ -65,8 +68,10 @@ namespace Game.Presentation.UI
             OnRunStarted = null;
             OnOptionsRequested = null;
             OnDebutJourneyRequested = null;
+            OnBarracksRequested = null;
             OnNavigationShortcutClicked = null;
             DebutJourneyHook = null;
+            BarracksHook = null;
             base.OnDestroy();
         }
 
@@ -137,6 +142,14 @@ namespace Game.Presentation.UI
         public void OpenOptions() { OnOptionsRequested?.Invoke(); _uiManager?.OpenWindow<OptionsView>(); }
         public void OpenDebutJourney() { OnDebutJourneyRequested?.Invoke(); DebutJourneyHook?.Invoke(); }
 
+        public void OpenBarracks()
+        {
+            NavigateToShortcut("Quartel");
+            OnBarracksRequested?.Invoke();
+            BarracksHook?.Invoke();
+            _uiManager?.OpenWindow<BarracksView>();
+        }
+
         public void NavigateToShortcut(string shortcut)
         {
             if (string.IsNullOrWhiteSpace(shortcut)) return;
@@ -159,7 +172,7 @@ namespace Game.Presentation.UI
             _playButton?.onClick.AddListener(() => StartSelectedRun());
             _optionsButton?.onClick.AddListener(OpenOptions);
             _debutJourneyButton?.onClick.AddListener(OpenDebutJourney);
-            _barracksButton?.onClick.AddListener(() => NavigateToShortcut("Quartel"));
+            _barracksButton?.onClick.AddListener(OpenBarracks);
             _shopButton?.onClick.AddListener(() => NavigateToShortcut("Loja"));
             _passButton?.onClick.AddListener(() => NavigateToShortcut("Passe"));
         }
