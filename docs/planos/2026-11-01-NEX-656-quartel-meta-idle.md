@@ -318,7 +318,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: medium
 
-- [ ] **Passo 3 (Marco 3)**: `Refeitório (Coleta Offline Segura, Teto de 8h e Dobra por Rewarded)` [NEX-1262]
+- [x] **Passo 3 (Marco 3)**: `Refeitório (Coleta Offline Segura, Teto de 8h e Dobra por Rewarded)` [NEX-1262]
   - **Ação**: Implementar acúmulo e coleta passiva de moedas offline no `BarracksService` com descarte de surplus pós-8h e preservação fracionária.
   - **Lógica de Negócios / Responsabilidade**: Calcular moedas pendentes proporcionalmente ao tempo decorrido até o teto estrito de 8 horas; ao coletar com $\ge 8$ horas offline, descartar o excedente além de 8h e atualizar `LastCollectionUtcTicks = UtcNow`; se o tempo acumulado render 0 moedas, retornar `false` sem alterar timestamp; permitir coleta dobrada via rewarded ad; congelar acúmulo sob `IsClockManipulated`.
   - **Dependências**: `implementação`: Marco 2.

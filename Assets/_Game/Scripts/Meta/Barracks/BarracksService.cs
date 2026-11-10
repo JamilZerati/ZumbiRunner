@@ -340,6 +340,12 @@ namespace Game.Meta.Barracks
 
         public bool TryCollectOfflineCoins(bool doubleWithAd, out int collectedCoins)
         {
+            if (IsClockManipulated)
+            {
+                collectedCoins = 0;
+                return false;
+            }
+
             int pending = GetPendingOfflineCoins();
             if (pending <= 0)
             {
@@ -347,8 +353,39 @@ namespace Game.Meta.Barracks
                 return false;
             }
 
+            DateTime lastCollection = _state.LastCanteenCollectionUtcTicks > 0
+                ? new DateTime(_state.LastCanteenCollectionUtcTicks, DateTimeKind.Utc)
+                : _timeProvider.UtcNow;
+
+            TimeSpan elapsed = _timeProvider.UtcNow - lastCollection;
+            if (elapsed >= TimeSpan.FromHours(8))
+            {
+                _state.LastCanteenCollectionUtcTicks = _timeProvider.UtcNow.Ticks;
+            }
+            else
+            {
+                BarracksBuildingDefinition canteenDef = _catalog.Get(BarracksBuildingType.Canteen);
+                int level = GetBuildingLevel(BarracksBuildingType.Canteen);
+                BarracksBuildingLevelDefinition levelDef = canteenDef?.GetLevel(level);
+                int coinsPerHour = levelDef?.CoinsPerHour ?? (50 * level);
+
+                if (coinsPerHour > 0)
+                {
+                    double hoursCollected = (double)pending / coinsPerHour;
+                    DateTime newLastCollection = lastCollection.AddHours(hoursCollected);
+                    if (newLastCollection > _timeProvider.UtcNow)
+                    {
+                        newLastCollection = _timeProvider.UtcNow;
+                    }
+                    _state.LastCanteenCollectionUtcTicks = newLastCollection.Ticks;
+                }
+                else
+                {
+                    _state.LastCanteenCollectionUtcTicks = _timeProvider.UtcNow.Ticks;
+                }
+            }
+
             collectedCoins = doubleWithAd ? pending * 2 : pending;
-            _state.LastCanteenCollectionUtcTicks = _timeProvider.UtcNow.Ticks;
             _wallet.Add(CurrencyKind.Coins, collectedCoins, "CanteenOffline");
             return true;
         }
