@@ -327,7 +327,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: medium
 
-- [ ] **Passo 4 (Marco 4)**: `Integração no RunConfigBuilder, WeaponController e Carteira de Recrutas` [NEX-1264]
+- [x] **Passo 4 (Marco 4)**: `Integração no RunConfigBuilder, WeaponController e Carteira de Recrutas` [NEX-1264]
   - **Ação**: Conectar o Quartel ao `RunConfigBuilder`, estender `RunConfig` e `RunResult`, aplicar multiplicador de dano em `WeaponController` com limpeza de fonte prévia, registrar baixas na Enfermaria e creditar Recrutas no `RewardCalculator` apenas quando $> 0$.
   - **Lógica de Negócios / Responsabilidade**: Compilar bônus de tropa inicial (+2/lv) e dano (+5%/lv) em `RunConfig`; `WeaponController` aplica `StatModifier` com `source: "BarracksArsenal"` após limpar modificadores anteriores da mesma fonte, preservando o bônus em `TryEquip`; `LevelDirector` rastreia baixas e calcula soldados recuperados pela Enfermaria; `RewardCalculator` gera recompensa em `Recruits` apenas se `totalRecruits > 0`, prevenindo exceção de carteira.
   - **Dependências**: `implementação`: Marco 3.

@@ -187,5 +187,69 @@ namespace Game.Tests.EditMode
             Assert.AreEqual(0, director.GetPendingBonusZombies(0));
             Assert.AreEqual(4, director.GetPendingBonusZombies(1));
         }
+
+        [Test]
+        public void CT_15_Infirmary_RecoversOneSoldierPerTenLost_CappedByLevel()
+        {
+            var eventBus = new EventBus();
+            RunEndedEvent? endedEvent = null;
+            eventBus.Subscribe<RunEndedEvent>(e => endedEvent = e);
+
+            var directorGo = CreateGameObject("LevelDirector");
+            var director = directorGo.AddComponent<LevelDirector>();
+            // InfirmaryLevel = 1: teto = 2 * 1 = 2
+            var config = new RunConfig { LevelId = "infirmary_test", InitialSquad = 50, InfirmaryLevel = 1 };
+            director.Initialize(config, null, eventBus);
+
+            // Perda de 10 soldados
+            director.RecordSoldiersLost(10);
+            director.EndRun(victory: true);
+
+            Assert.IsNotNull(endedEvent);
+            Assert.AreEqual(1, endedEvent.Value.Result.RecoveredSoldiers);
+            Assert.AreEqual(1, director.RecoveredSoldiers);
+        }
+
+        [Test]
+        public void CT_15_Infirmary_LossesOverCap_ClampedToTwoTimesLevel()
+        {
+            var eventBus = new EventBus();
+            RunEndedEvent? endedEvent = null;
+            eventBus.Subscribe<RunEndedEvent>(e => endedEvent = e);
+
+            var directorGo = CreateGameObject("LevelDirector");
+            var director = directorGo.AddComponent<LevelDirector>();
+            // InfirmaryLevel = 1: teto = 2
+            var config = new RunConfig { LevelId = "infirmary_test", InitialSquad = 50, InfirmaryLevel = 1 };
+            director.Initialize(config, null, eventBus);
+
+            // Perda de 30 soldados: 30 / 10 = 3, mas o teto para nível 1 é 2
+            director.RecordSoldiersLost(30);
+            director.EndRun(victory: true);
+
+            Assert.IsNotNull(endedEvent);
+            Assert.AreEqual(2, endedEvent.Value.Result.RecoveredSoldiers);
+        }
+
+        [Test]
+        public void CT_15_Infirmary_LossesTrackedViaSquadSizeChangedEvent()
+        {
+            var eventBus = new EventBus();
+            RunEndedEvent? endedEvent = null;
+            eventBus.Subscribe<RunEndedEvent>(e => endedEvent = e);
+
+            var directorGo = CreateGameObject("LevelDirector");
+            var director = directorGo.AddComponent<LevelDirector>();
+            var config = new RunConfig { LevelId = "infirmary_test", InitialSquad = 40, InfirmaryLevel = 2 }; // teto = 4
+            director.Initialize(config, null, eventBus);
+
+            // Simula redução de tropa de 40 para 20 (-20 soldados)
+            eventBus.Publish(new SquadSizeChangedEvent(40, 20));
+
+            Assert.AreEqual(20, director.SoldiersLost);
+
+            director.EndRun(victory: true);
+            Assert.AreEqual(2, endedEvent.Value.Result.RecoveredSoldiers); // 20 / 10 = 2
+        }
     }
 }

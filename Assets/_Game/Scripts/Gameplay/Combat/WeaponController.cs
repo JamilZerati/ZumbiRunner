@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Events;
+using Game.Core.State;
 using Game.Core.Stats;
 using Game.Core.Status;
 using Game.Data;
@@ -12,6 +13,8 @@ namespace Game.Gameplay
 {
     public class WeaponController : MonoBehaviour, IWeaponLoadout
     {
+        public const string BarracksArsenalSource = "BarracksArsenal";
+
         private readonly OnHitStatusSet onHitStatuses = new OnHitStatusSet();
         public OnHitStatusSet OnHitStatuses => onHitStatuses;
 
@@ -34,6 +37,7 @@ namespace Game.Gameplay
         private string equippedWeaponId = string.Empty;
         private IWeaponCatalog injectedCatalog;
         private IEventBus eventBus;
+        private float _cachedBarracksDamageMultiplier = 1.0f;
 
         public float FireRate
         {
@@ -112,7 +116,8 @@ namespace Game.Gameplay
         }
 
         public void Initialize(IObjectPool<Projectile> pool, ISquad squad = null,
-                               IWeaponCatalog catalog = null, IEventBus eventBus = null)
+                               IWeaponCatalog catalog = null, IEventBus eventBus = null,
+                               RunConfig runConfig = null)
         {
             Pool = pool;
             Squad = squad;
@@ -120,6 +125,23 @@ namespace Game.Gameplay
             _onProjectileRecycle = p => Pool?.Return(p);
             injectedCatalog = catalog;
             this.eventBus = eventBus;
+
+            if (runConfig != null)
+            {
+                ApplyBarracksDamageBonus(runConfig.BaseDamageMultiplier);
+            }
+        }
+
+        public void ApplyBarracksDamageBonus(float multiplier)
+        {
+            _cachedBarracksDamageMultiplier = multiplier;
+            stats.RemoveAllFromSource(BarracksArsenalSource);
+
+            float bonus = multiplier > 1.0f ? (multiplier - 1.0f) : (multiplier > 0f && multiplier < 1.0f ? multiplier : 0f);
+            if (bonus > 0f)
+            {
+                stats.AddModifier(new StatModifier(StatId.Damage, ModifierKind.PercentAdd, bonus, BarracksArsenalSource));
+            }
         }
 
         public bool TryEquip(string weaponId)
@@ -135,6 +157,12 @@ namespace Game.Gameplay
             spreadWidth = profile.SpreadWidth;
             equippedWeaponId = profile.Id;
             ClampFireTimerToTwoIntervals(CurrentStats.FireRate);
+
+            if (_cachedBarracksDamageMultiplier > 1.0f || (_cachedBarracksDamageMultiplier > 0f && _cachedBarracksDamageMultiplier < 1.0f))
+            {
+                ApplyBarracksDamageBonus(_cachedBarracksDamageMultiplier);
+            }
+
             eventBus?.Publish(new WeaponEquippedEvent(equippedWeaponId, previousWeaponId));
             return true;
         }
