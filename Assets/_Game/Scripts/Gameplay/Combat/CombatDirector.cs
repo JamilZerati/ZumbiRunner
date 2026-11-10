@@ -87,7 +87,7 @@ namespace Game.Gameplay
         private StageModifierController _stageModifiers;
         public StageModifierController StageModifiers
         {
-            get => _stageModifiers;
+            get => _stageModifiers != null ? _stageModifiers : (_stageModifiers = FindAnyObjectByType<LevelDirector>()?.StageModifierController ?? new StageModifierController());
             set
             {
                 _stageModifiers = value;
@@ -100,7 +100,7 @@ namespace Game.Gameplay
             StageModifiers = modifiers;
         }
 
-        public float EffectiveSquadRangeMultiplier => _stageModifiers != null ? _stageModifiers.CurrentSquadRangeMultiplier : 1f;
+        public float EffectiveSquadRangeMultiplier => StageModifiers != null ? StageModifiers.CurrentSquadRangeMultiplier : 1f;
 
         public float GetModifiedRange(float baseRange)
         {

@@ -18,16 +18,16 @@ MonoBehaviour:
   ContactDps: 5
   CoinValue: 2
   Behaviors:
-  - rid: 6580925696437649414
-  - rid: 6580925696437649415
+  - rid: 6580926312557838399
+  - rid: 6580926312557838400
   references:
     version: 2
     RefIds:
-    - rid: 6580925696437649414
+    - rid: 6580926312557838399
       type: {class: StopAtBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Distance: 25
-    - rid: 6580925696437649415
+    - rid: 6580926312557838400
       type: {class: RangedSpitBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Interval: 3

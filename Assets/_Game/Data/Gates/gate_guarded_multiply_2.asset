@@ -17,11 +17,11 @@ MonoBehaviour:
   perkId: multiply_2
   perk: {fileID: 11400000, guid: b929b3961e61ba449b1d08fbf376644e, type: 2}
   variant:
-    rid: 6580925928563277878
+    rid: 6580926312557838450
   references:
     version: 2
     RefIds:
-    - rid: 6580925928563277878
+    - rid: 6580926312557838450
       type: {class: GuardedGateVariant, ns: Game.Core.Gates, asm: Game.Core}
       data:
         enemyWaveId: wave_guard_1

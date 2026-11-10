@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Gates;
 using Game.Infrastructure;
 using UnityEngine;
 
@@ -63,13 +64,24 @@ namespace Game.Gameplay
         }
         public IReadOnlyList<EnemyController> ActiveEnemies => _activeEnemies;
 
+        private StageModifierController _stageModifierController;
+        public StageModifierController StageModifierController
+        {
+            get => _stageModifierController != null ? _stageModifierController : (_stageModifierController = LevelDirector?.StageModifierController);
+            set => _stageModifierController = value;
+        }
+
+        public int EffectiveEnemyHealth => (int)Math.Round(DefaultEnemyHealth * (StageModifierController != null ? StageModifierController.CurrentEnemyHealthMultiplier : 1f));
+        public float EffectiveEnemySpeed => DefaultEnemySpeed * (StageModifierController != null ? StageModifierController.CurrentEnemySpeedMultiplier : 1f);
+
         private readonly List<EnemyController> _activeEnemies = new List<EnemyController>();
         private Action<EnemyController> _onEnemyRecycled;
 
-        public void Initialize(LaneLayout layout, IObjectPool<EnemyController> pool)
+        public void Initialize(LaneLayout layout, IObjectPool<EnemyController> pool, StageModifierController stageModifiers = null)
         {
             Layout = layout;
             Pool = pool;
+            StageModifierController = stageModifiers;
             _onEnemyRecycled = OnEnemyRecycled;
         }
 
@@ -142,7 +154,7 @@ namespace Game.Gameplay
                 float z = startZ + (i * spacing);
                 enemy.transform.position = new Vector3(x, 0f, z);
                 enemy.gameObject.SetActive(true);
-                enemy.Initialize(laneIndex, DefaultEnemyHealth, DefaultEnemySpeed, recycleCallback, EventBus);
+                enemy.Initialize(laneIndex, EffectiveEnemyHealth, EffectiveEnemySpeed, recycleCallback, EventBus);
 
                 _activeEnemies.Add(enemy);
                 spawned.Add(enemy);

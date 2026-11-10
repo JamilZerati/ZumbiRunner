@@ -15,10 +15,10 @@ MonoBehaviour:
   id: recruit_cryomancer
   displayName: Recrutar Criomante
   effects:
-  - rid: 6580925956049338533
+  - rid: 6580926312557838529
   references:
     version: 2
     RefIds:
-    - rid: 6580925956049338533
+    - rid: 6580926312557838529
       type: {class: RecruitAllyPerkEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data: 

@@ -18,22 +18,22 @@ MonoBehaviour:
   ContactDps: 5
   CoinValue: 4
   Behaviors:
-  - rid: 6580925696437649411
-  - rid: 6580925696437649412
-  - rid: 6580925696437649413
+  - rid: 6580926312557838393
+  - rid: 6580926312557838394
+  - rid: 6580926312557838395
   references:
     version: 2
     RefIds:
-    - rid: 6580925696437649411
+    - rid: 6580926312557838393
       type: {class: StopAtBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Distance: 8
-    - rid: 6580925696437649412
+    - rid: 6580926312557838394
       type: {class: HealAuraBehavior, ns: Game.Data, asm: Game.Data}
       data:
         HealPerSecond: 5
         Radius: 4
-    - rid: 6580925696437649413
+    - rid: 6580926312557838395
       type: {class: ResurrectBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Interval: 6
