@@ -11,6 +11,7 @@ namespace Game.Core.State
         public int MultiplierReached { get; set; }
         public IReadOnlyDictionary<string, int> KillsByArchetype { get; set; }
         public int Rescued { get; set; }
+        public int RecoveredSoldiers { get; set; }
         public int CoinsEarned { get; set; }
         public IReadOnlyList<string> MutationIds { get; set; }
         public float DurationSeconds { get; set; }

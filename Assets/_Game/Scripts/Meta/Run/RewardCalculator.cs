@@ -49,6 +49,12 @@ namespace Game.Meta.Run
                 new CurrencyReward(CurrencyKind.Coins, finalCoins)
             };
 
+            int totalRecruits = result.Rescued + result.RecoveredSoldiers;
+            if (totalRecruits > 0)
+            {
+                rewards.Add(new CurrencyReward(CurrencyKind.Recruits, totalRecruits));
+            }
+
             return new RewardBundle(grantId, rewards);
         }
     }
