@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Meta.Ads;
 using Game.Meta.Tracks;
 
 namespace Game.Meta.Save
@@ -15,6 +16,7 @@ namespace Game.Meta.Save
         public HashSet<string> UnlockedStages { get; set; } = new HashSet<string>();
         public Dictionary<string, ProgressTrackState> TrackStates { get; set; } = new Dictionary<string, ProgressTrackState>();
         public BarracksState Barracks { get; set; } = new BarracksState();
+        public AdPolicyState AdPolicy { get; set; } = new AdPolicyState();
         public string IntegrityHash { get; set; }
     }
 }

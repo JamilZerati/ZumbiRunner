@@ -1,0 +1,9 @@
+{
+  "interstitialMinStage": 5,
+  "interstitialStageInterval": 3,
+  "interstitialMinTimeBetweenAdsSeconds": 90,
+  "interstitialCooldownAfterRewardedOrPurchaseSeconds": 120,
+  "interstitialMinStageFirstSessionOfDay": 2,
+  "dailyRewardedLimit": 20,
+  "dailyBarracksSpeedupLimit": 3
+}

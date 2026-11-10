@@ -15,11 +15,11 @@ MonoBehaviour:
   id: weapon_shotgun
   displayName: Escopeta
   effects:
-  - rid: 6580926312557838542
+  - rid: 5341296893003563214
   references:
     version: 2
     RefIds:
-    - rid: 6580926312557838542
+    - rid: 5341296893003563214
       type: {class: EquipWeaponEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         WeaponId: shotgun

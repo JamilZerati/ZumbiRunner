@@ -13,6 +13,7 @@ namespace Game.Meta.Save
         public const string DefaultSalt = "horde_runner_meta_save_salt_v1";
         public const int V1 = 1;
         public const int V2 = 2;
+        public const int V3 = 3;
 
         private readonly List<ISaveMigration> _migrations = new();
         private readonly string _salt;
@@ -35,6 +36,10 @@ namespace Game.Meta.Save
             if (!_migrations.Exists(m => m.SourceVersion == 1 && m.TargetVersion == 2))
             {
                 _migrations.Add(new SaveMigrationV1ToV2(_salt));
+            }
+            if (!_migrations.Exists(m => m.SourceVersion == 2 && m.TargetVersion == 3))
+            {
+                _migrations.Add(new SaveMigrationV2ToV3(_salt));
             }
         }
 
