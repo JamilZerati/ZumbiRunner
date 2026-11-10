@@ -300,7 +300,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: medium
 
-- [ ] **Passo 1 (Marco 1)**: `Catálogo de Dados, Blindagem de Integridade e Migração de Save V2` [NEX-1259]
+- [x] **Passo 1 (Marco 1)**: `Catálogo de Dados, Blindagem de Integridade e Migração de Save V2` [NEX-1259]
   - **Ação**: Criar `BarracksBuildingDefinition`, `BarracksCatalog`, `BarracksState`, refatorar `SaveStore.ValidateIntegrity` para validação em JSON puro (DOM) sem desserialização tipada e registrar `SaveMigrationV1ToV2`.
   - **Lógica de Negócios / Responsabilidade**: Estruturar os dados das 5 construções com níveis 1 a 5 e seus custos. Blindar `SaveStore` para que saves V1 legítimos não quebrem integridade ao adicionar campos de V2, e migrar V1 $\to$ V2 com hash HMAC/SHA256 correto.
   - **Dependências**: `implementação`: Marco 0.
