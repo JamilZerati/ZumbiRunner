@@ -32,6 +32,7 @@ namespace Game.Gameplay
         private readonly List<Cage> _trackedCages = new List<Cage>();
         private readonly Dictionary<int, int> _pendingBonusZombiesByLane = new Dictionary<int, int>();
         private int _rescuedSurvivorsCount;
+        private int _soldiersLost;
         private int _holdoutsAttempted;
         private int _holdoutsHeld;
 
@@ -58,6 +59,8 @@ namespace Game.Gameplay
         public string ActiveBossId { get; private set; }
         public BossCombatRuntimeState BossCombatState { get; private set; }
         public int RescuedSurvivorsCount => _rescuedSurvivorsCount;
+        public int SoldiersLost => _soldiersLost;
+        public int RecoveredSoldiers { get; private set; }
         public int HoldoutsAttempted => _holdoutsAttempted;
         public int HoldoutsHeld => _holdoutsHeld;
         public IReadOnlyDictionary<string, int> KillsByArchetype => _killsByArchetype;
@@ -147,6 +150,8 @@ namespace Game.Gameplay
             _trackedEnemies.Clear();
             _trackedCages.Clear();
             _rescuedSurvivorsCount = 0;
+            _soldiersLost = 0;
+            RecoveredSoldiers = 0;
             _pendingBonusZombiesByLane.Clear();
 
             _isInitialized = true;
@@ -421,6 +426,14 @@ namespace Game.Gameplay
                 }
             }
 
+            int recovered = 0;
+            if (_config != null && _config.InfirmaryLevel > 0 && _soldiersLost > 0)
+            {
+                int cap = 2 * _config.InfirmaryLevel;
+                recovered = Mathf.Min(_soldiersLost / 10, cap);
+            }
+            RecoveredSoldiers = recovered;
+
             string levelId = _levelDef != null ? _levelDef.LevelId : (_config != null ? _config.LevelId : string.Empty);
             var result = new RunResult
             {
@@ -431,6 +444,7 @@ namespace Game.Gameplay
                 MultiplierReached = _multiplierReached,
                 KillsByArchetype = new Dictionary<string, int>(_killsByArchetype),
                 Rescued = _rescuedSurvivorsCount,
+                RecoveredSoldiers = recovered,
                 DurationSeconds = 0f,
                 Stars = stars,
                 HoldoutsAttempted = _holdoutsAttempted,
@@ -440,6 +454,14 @@ namespace Game.Gameplay
 
             OnRunEnded?.Invoke(result);
             _eventBus?.Publish(new RunEndedEvent(result));
+        }
+
+        public void RecordSoldiersLost(int count)
+        {
+            if (count > 0)
+            {
+                _soldiersLost += count;
+            }
         }
 
         public void RecordHoldoutStarted()
@@ -467,6 +489,11 @@ namespace Game.Gameplay
 
         private void OnSquadSizeChanged(SquadSizeChangedEvent evt)
         {
+            if (evt.NewCount < evt.PreviousCount)
+            {
+                RecordSoldiersLost(evt.PreviousCount - evt.NewCount);
+            }
+
             _currentSquad = evt.NewCount;
             if (_currentSquad <= 0 && _isRunActive)
             {

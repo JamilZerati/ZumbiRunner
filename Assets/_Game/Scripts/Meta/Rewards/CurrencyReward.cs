@@ -20,6 +20,7 @@ namespace Game.Meta.Rewards
         public void Apply(IRewardSink sink)
         {
             if (sink == null) throw new ArgumentNullException(nameof(sink));
+            if (Amount <= 0) return;
             sink.Wallet?.Add(Currency, Amount, "reward", TokenId);
         }
     }

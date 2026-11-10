@@ -10,8 +10,10 @@ using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Infrastructure;
 using Game.Infrastructure.Input;
+using Game.Meta.Barracks;
 using Game.Presentation;
 using Game.Presentation.UI;
+using Game.Presentation.UI.Barracks;
 using TMPro;
 using UnityEngine.UI;
 using UnityEditor;
@@ -1456,6 +1458,10 @@ namespace Game.Editor
         {
             var uiManagerGo = new GameObject("UIManager", typeof(RectTransform));
             uiManagerGo.transform.SetParent(canvasGo.transform, false);
+            var uiRect = uiManagerGo.GetComponent<RectTransform>();
+            uiRect.anchorMin = Vector2.zero;
+            uiRect.anchorMax = Vector2.one;
+            uiRect.sizeDelta = Vector2.zero;
             var uiManager = uiManagerGo.AddComponent<UIManager>();
 
             var hubLayerGo = CreateLayer(uiManagerGo, "HubLayer", UILayerType.Hub, uiManager, out var hubLayer);
@@ -1483,20 +1489,32 @@ namespace Game.Editor
             var nextBtn = CreateBtn(stageWidgetGo, "NextButton", ">", new Vector2(0.5f, 0.6f), new Vector2(220, 0), new Vector2(60, 60));
             stageWidget.BindComponents(stageTitle, stageStars, lockIndicator, prevBtn, nextBtn);
             WireSerialized(stageWidget, ("_stageTitleText", stageTitle), ("_starsText", stageStars), ("_lockIndicator", lockIndicator), ("_prevButton", prevBtn), ("_nextButton", nextBtn));
-            var mutationWidgetGo = CreateRect(hubGo, "MutationSelectionWidget");
+            var mutationWidgetGo = new GameObject("MutationSelectionWidget", typeof(RectTransform));
+            mutationWidgetGo.transform.SetParent(hubGo.transform, false);
+            var mutRect = mutationWidgetGo.GetComponent<RectTransform>();
+            mutRect.anchorMin = mutRect.anchorMax = mutRect.pivot = new Vector2(0.5f, 0.40f);
+            mutRect.anchoredPosition = Vector2.zero;
+            mutRect.sizeDelta = new Vector2(980f, 150f);
             var mutationWidget = mutationWidgetGo.AddComponent<MutationSelectionWidget>();
-            var mutationItemsContainer = CreateRect(mutationWidgetGo, "ItemsContainer");
-            var totalBonusText = CreateTmp(mutationWidgetGo, "TotalBonusText", "+0% Moedas", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.45f), Vector2.zero, new Vector2(300, 30));
+
+            var mutationItemsContainer = new GameObject("ItemsContainer", typeof(RectTransform));
+            mutationItemsContainer.transform.SetParent(mutationWidgetGo.transform, false);
+            var itemsRect = mutationItemsContainer.GetComponent<RectTransform>();
+            itemsRect.anchorMin = itemsRect.anchorMax = itemsRect.pivot = new Vector2(0.5f, 0.5f);
+            itemsRect.anchoredPosition = Vector2.zero;
+            itemsRect.sizeDelta = new Vector2(980f, 100f);
+
+            var totalBonusText = CreateTmp(mutationWidgetGo, "TotalBonusText", "+0% Moedas", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(300, 30));
             var lockedOverlay = CreateRect(mutationWidgetGo, "LockedOverlay");
             var lockedReason = CreateTmp(lockedOverlay, "LockedReason", "Derrote o Boss da Fase 5", 18, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(250, 40));
 
             var explicitItems = new List<MutationToggleItem>
             {
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_armored", "Blindados"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_frenzy", "Frenesi"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_fog", "Neblina"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_last_soldier", "Último Soldado"),
-                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_no_multiplication", "Sem Multiplicação")
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_armored", "Blindados", 0),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_frenzy", "Frenesi", 1),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_fog", "Neblina", 2),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_last_soldier", "Último Soldado", 3),
+                CreateMutationToggleItem(mutationItemsContainer, "MutationItem_no_multiplication", "Sem Multiplicação", 4)
             };
 
             mutationWidget.BindComponents(mutationItemsContainer.transform, null, totalBonusText, lockedOverlay, lockedReason, explicitItems);
@@ -1583,11 +1601,95 @@ namespace Game.Editor
             WireSerialized(tutView, ("_instructionText", tutText), ("_bannerRoot", bannerRoot), ("_stepIcon", stepIcon));
             uiManager.RegisterWindow(tutView);
 
+            var barracksGo = CreateRect(modalLayerGo, "BarracksView");
+            var barracksBg = barracksGo.AddComponent<Image>();
+            barracksBg.color = new Color(0.06f, 0.08f, 0.12f, 0.98f);
+            var barracksView = barracksGo.AddComponent<BarracksView>();
+            var barracksTitle = CreateTmp(barracksGo, "TitleText", "Quartel General", 44, TextAlignmentOptions.Center, new Vector2(0.5f, 0.95f), Vector2.zero, new Vector2(600, 60));
+            var barracksCloseBtn = CreateBtn(barracksGo, "CloseButton", "Fechar", new Vector2(0.5f, 0.045f), Vector2.zero, new Vector2(260, 60));
+            var clockWarning = CreateTmp(barracksGo, "ClockWarningText", "Horário alterado! Produção pausada.", 20, TextAlignmentOptions.Center, new Vector2(0.5f, 0.90f), Vector2.zero, new Vector2(700, 30));
+            clockWarning.gameObject.SetActive(false);
+
+            var canteenGo = new GameObject("CanteenWidget", typeof(RectTransform));
+            canteenGo.transform.SetParent(barracksGo.transform, false);
+            var canteenRect = canteenGo.GetComponent<RectTransform>();
+            canteenRect.anchorMin = canteenRect.anchorMax = canteenRect.pivot = new Vector2(0.5f, 0.84f);
+            canteenRect.anchoredPosition = Vector2.zero;
+            canteenRect.sizeDelta = new Vector2(980f, 110f);
+            var canteenBg = canteenGo.AddComponent<Image>();
+            canteenBg.color = new Color(0.12f, 0.16f, 0.22f, 0.95f);
+            var canteenWidget = canteenGo.AddComponent<CanteenWidget>();
+            var canteenPending = CreateTmp(canteenGo, "PendingCoinsText", "0", 26, TextAlignmentOptions.Center, new Vector2(0.20f, 0.50f), Vector2.zero, new Vector2(200, 35));
+            var canteenCollectBtn = CreateBtn(canteenGo, "CollectButton", "Coletar", new Vector2(0.55f, 0.50f), Vector2.zero, new Vector2(180, 50));
+            var canteenDoubleBtn = CreateBtn(canteenGo, "DoubleAdButton", "Coletar 2x (Ad)", new Vector2(0.80f, 0.50f), Vector2.zero, new Vector2(220, 50));
+            canteenWidget.BindComponents(canteenPending, canteenCollectBtn, canteenDoubleBtn, clockWarning);
+            WireSerialized(canteenWidget, ("_pendingCoinsText", canteenPending), ("_collectButton", canteenCollectBtn), ("_doubleAdButton", canteenDoubleBtn), ("_clockWarningText", clockWarning));
+
+            var buildingTypes = new[]
+            {
+                BarracksBuildingType.Recruitment,
+                BarracksBuildingType.Armory,
+                BarracksBuildingType.Canteen,
+                BarracksBuildingType.Infirmary,
+                BarracksBuildingType.Ammunition
+            };
+            var cardWidgets = new List<BarracksBuildingCardWidget>();
+            for (int i = 0; i < buildingTypes.Length; i++)
+            {
+                var bType = buildingTypes[i];
+                float yPos = 0.72f - (i * 0.13f);
+                var cardGo = new GameObject($"Card_{bType}", typeof(RectTransform));
+                cardGo.transform.SetParent(barracksGo.transform, false);
+                var cardRect = cardGo.GetComponent<RectTransform>();
+                cardRect.anchorMin = cardRect.anchorMax = cardRect.pivot = new Vector2(0.5f, yPos);
+                cardRect.anchoredPosition = Vector2.zero;
+                cardRect.sizeDelta = new Vector2(980f, 130f);
+                var cardBg = cardGo.AddComponent<Image>();
+                cardBg.color = new Color(0.14f, 0.18f, 0.25f, 0.95f);
+
+                var cardWidget = cardGo.AddComponent<BarracksBuildingCardWidget>();
+                var cardTitle = CreateTmp(cardGo, "CardTitle", bType.ToString(), 24, TextAlignmentOptions.Left, new Vector2(0.04f, 0.70f), Vector2.zero, new Vector2(240, 30));
+                var cardLevel = CreateTmp(cardGo, "CardLevel", "Nível 1", 20, TextAlignmentOptions.Left, new Vector2(0.04f, 0.30f), Vector2.zero, new Vector2(200, 26));
+                var cardCoins = CreateTmp(cardGo, "CardCoinCost", "100", 20, TextAlignmentOptions.Left, new Vector2(0.32f, 0.70f), Vector2.zero, new Vector2(160, 28));
+                var cardRecruits = CreateTmp(cardGo, "CardRecruitCost", "5", 20, TextAlignmentOptions.Left, new Vector2(0.32f, 0.30f), Vector2.zero, new Vector2(160, 26));
+                var cardTimer = CreateTmp(cardGo, "CardTimer", "", 20, TextAlignmentOptions.Center, new Vector2(0.56f, 0.50f), Vector2.zero, new Vector2(160, 28));
+                var cardUpgradeBtn = CreateBtn(cardGo, "UpgradeButton", "Evoluir", new Vector2(0.85f, 0.70f), Vector2.zero, new Vector2(160, 48));
+                var cardSpeedupBtn = CreateBtn(cardGo, "SpeedupAdButton", "-30m", new Vector2(0.74f, 0.28f), Vector2.zero, new Vector2(100, 38));
+                var cardInstantBtn = CreateBtn(cardGo, "InstantMedalButton", "Pular", new Vector2(0.88f, 0.36f), Vector2.zero, new Vector2(110, 34));
+                var cardMedalCost = CreateTmp(cardGo, "MedalCostText", "5 Med.", 15, TextAlignmentOptions.Center, new Vector2(0.88f, 0.14f), Vector2.zero, new Vector2(110, 18));
+
+                cardWidget.BindComponents(cardTitle, cardLevel, cardCoins, cardRecruits, cardTimer, cardUpgradeBtn, cardSpeedupBtn, cardInstantBtn, cardMedalCost, bType);
+                WireSerialized(cardWidget,
+                    ("_titleText", cardTitle),
+                    ("_levelText", cardLevel),
+                    ("_coinCostText", cardCoins),
+                    ("_recruitCostText", cardRecruits),
+                    ("_timerText", cardTimer),
+                    ("_upgradeButton", cardUpgradeBtn),
+                    ("_speedupAdButton", cardSpeedupBtn),
+                    ("_instantMedalButton", cardInstantBtn),
+                    ("_instantMedalCostText", cardMedalCost));
+                cardWidgets.Add(cardWidget);
+            }
+
+            barracksView.BindComponents(barracksCloseBtn, canteenWidget, cardWidgets, clockWarning);
+            WireSerialized(barracksView, ("_closeButton", barracksCloseBtn), ("_canteenWidget", canteenWidget), ("_clockWarningText", clockWarning));
+            var serializedBarracks = new SerializedObject(barracksView);
+            var cardsProp = serializedBarracks.FindProperty("_buildingCards");
+            if (cardsProp != null)
+            {
+                cardsProp.arraySize = cardWidgets.Count;
+                for (int i = 0; i < cardWidgets.Count; i++) cardsProp.GetArrayElementAtIndex(i).objectReferenceValue = cardWidgets[i];
+                serializedBarracks.ApplyModifiedProperties();
+            }
+            uiManager.RegisterWindow(barracksView);
+
             WireLayerType(hubView, UILayerType.Hub);
             WireLayerType(pauseView, UILayerType.Modal);
             WireLayerType(optionsView, UILayerType.Modal);
             WireLayerType(resultView, UILayerType.Modal);
             WireLayerType(debutView, UILayerType.Modal);
+            WireLayerType(barracksView, UILayerType.Modal);
             WireLayerType(tutView, UILayerType.TutorialOverlay);
 
             var soUi = new SerializedObject(uiManager);
@@ -1599,13 +1701,14 @@ namespace Game.Editor
             layersProp.GetArrayElementAtIndex(3).objectReferenceValue = tutorialLayer;
 
             var windowsProp = soUi.FindProperty("_preloadedWindows");
-            windowsProp.arraySize = 6;
+            windowsProp.arraySize = 7;
             windowsProp.GetArrayElementAtIndex(0).objectReferenceValue = hubView;
             windowsProp.GetArrayElementAtIndex(1).objectReferenceValue = pauseView;
             windowsProp.GetArrayElementAtIndex(2).objectReferenceValue = optionsView;
             windowsProp.GetArrayElementAtIndex(3).objectReferenceValue = resultView;
             windowsProp.GetArrayElementAtIndex(4).objectReferenceValue = debutView;
             windowsProp.GetArrayElementAtIndex(5).objectReferenceValue = tutView;
+            windowsProp.GetArrayElementAtIndex(6).objectReferenceValue = barracksView;
             soUi.ApplyModifiedProperties();
 
             return (uiManager, pauseController);
@@ -1670,6 +1773,7 @@ namespace Game.Editor
             tmp.fontSize = fontSize;
             tmp.alignment = alignment;
             tmp.color = Color.white;
+            tmp.raycastTarget = false;
             return tmp;
         }
 
@@ -1716,12 +1820,25 @@ namespace Game.Editor
             return toggle;
         }
 
-        private static MutationToggleItem CreateMutationToggleItem(GameObject parent, string name, string label)
+        private static MutationToggleItem CreateMutationToggleItem(GameObject parent, string name, string label, int index)
         {
-            var itemGo = CreateRect(parent, name);
+            float width = 180f;
+            float spacing = 15f;
+            float totalWidth = (5 * width) + (4 * spacing);
+            float startX = -totalWidth * 0.5f + width * 0.5f;
+            float posX = startX + index * (width + spacing);
+
+            var itemGo = new GameObject(name, typeof(RectTransform));
+            itemGo.transform.SetParent(parent.transform, false);
+            var itemRect = itemGo.GetComponent<RectTransform>();
+            itemRect.anchorMin = itemRect.anchorMax = itemRect.pivot = new Vector2(0.5f, 0.5f);
+            itemRect.anchoredPosition = new Vector2(posX, 0f);
+            itemRect.sizeDelta = new Vector2(width, 70f);
+
             var item = itemGo.AddComponent<MutationToggleItem>();
             var iconGo = CreateRect(itemGo, "Icon");
             var iconImg = iconGo.AddComponent<Image>();
+            iconImg.raycastTarget = false;
             var nameTxt = CreateTmp(itemGo, "Name", label, 18, TextAlignmentOptions.Left, new Vector2(0.3f, 0.5f), Vector2.zero, new Vector2(140, 30));
             var bonusTxt = CreateTmp(itemGo, "Bonus", "+50%", 16, TextAlignmentOptions.Right, new Vector2(0.8f, 0.5f), Vector2.zero, new Vector2(80, 30));
             var btnGo = CreateRect(itemGo, "Button");

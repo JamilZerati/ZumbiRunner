@@ -5,6 +5,7 @@
         "Game.Core",
         "Game.Data",
         "Game.Gameplay",
+        "Game.Meta",
         "Game.Presentation",
         "Game.Infrastructure",
         "Game.Composition",
