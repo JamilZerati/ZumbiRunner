@@ -9,6 +9,7 @@ namespace Game.Core.Analytics
         public const string AdOffer = "ad_offer";
         public const string AdShown = "ad_shown";
         public const string AdReward = "ad_reward";
+        public const string AdFailed = "ad_failed";
         public const string IapPurchase = "iap_purchase";
         public const string ObjectiveComplete = "objective_complete";
         public const string TrackClaim = "track_claim";

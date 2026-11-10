@@ -1,7 +1,7 @@
 # Plano de Implementação: M13 · Anúncios: Rewarded e Interstitial com Política
 > Data: 2026-11-10  
 > Issue: NEX-518  
-> Status: Pronto para Execução via /executar  
+> Status: Cenários validados — Suíte Red comprovada em 2026-11-10  
 
 ---
 
