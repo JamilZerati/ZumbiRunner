@@ -309,7 +309,7 @@ flowchart TD
   - **Marco de PR**: Marco 1
   - **Effort**: medium
 
-- [ ] **Passo 2 (Marco 2)**: `Serviço do Quartel, Ciclo de Obras Atômico e Timers sobre ITimeProvider` [NEX-1260]
+- [x] **Passo 2 (Marco 2)**: `Serviço do Quartel, Ciclo de Obras Atômico e Timers sobre ITimeProvider` [NEX-1260]
   - **Ação**: Implementar `BarracksService` com início de obra com pré-validação atômica de saldos, timers, aceleração por ad (-30 min) e medalhas com custo proporcional.
   - **Lógica de Negócios / Responsabilidade**: Pré-validar moedas e recrutas antes de qualquer débito da `Wallet` para evitar perdas parciais; gerenciar timers contra `ITimeProvider.UtcNow`; respeitar limite diário de acelerações por anúncio; calcular custo de medalhas via `GetInstantCompleteMedalCost` e concluir instantaneamente; congelar timers sob `IsClockManipulated`.
   - **Dependências**: `implementação`: Marco 1.

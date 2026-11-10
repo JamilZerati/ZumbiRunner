@@ -483,13 +483,12 @@ namespace Game.Tests.EditMode.Meta
     {
         protected override IBarracksService CreateService(FakeTimeProvider timeProvider, IWallet wallet)
         {
-            // A implementação real BarracksService será construída nos Marcos 2 e 3.
-            return null;
+            return new BarracksService(timeProvider, wallet, null, null, EventBus);
         }
 
         protected override void SetBuildingLevel(BarracksBuildingType type, int level)
         {
-            // Implementação real será configurada no Marco 2.
+            ((BarracksService)Service).SetBuildingLevel(type, level);
         }
     }
 }
