@@ -46,5 +46,13 @@ namespace Game.Core.Abilities
 
             return false;
         }
+
+        public void GrantCharge(int amount = 1)
+        {
+            if (amount > 0)
+            {
+                CurrentCharges += amount;
+            }
+        }
     }
 }
