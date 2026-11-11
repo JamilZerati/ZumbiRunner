@@ -64,6 +64,10 @@ namespace Game.Gameplay
         public int HoldoutsAttempted => _holdoutsAttempted;
         public int HoldoutsHeld => _holdoutsHeld;
         public IReadOnlyDictionary<string, int> KillsByArchetype => _killsByArchetype;
+        public bool ReviveUsedInCurrentRun { get; private set; }
+        public bool IsAwaitingRevive { get; private set; }
+        public float ReviveInvulnerabilityDurationRemaining { get; private set; }
+        public bool IsReviveInvulnerable => ReviveInvulnerabilityDurationRemaining > 0f;
 
         private IWeatherSystem _weatherSystem;
         private StageModifierController _stageModifierController;
@@ -101,6 +105,7 @@ namespace Game.Gameplay
         public event Action<string> OnBossFightEnded;
         public event Action<SegmentDefinition, SegmentEvent> OnSegmentEventTriggered;
         public event Action<RunResult> OnRunEnded;
+        public event Action OnReviveOffered;
 
         public void Initialize(RunConfig config)
         {
@@ -153,6 +158,9 @@ namespace Game.Gameplay
             _soldiersLost = 0;
             RecoveredSoldiers = 0;
             _pendingBonusZombiesByLane.Clear();
+            ReviveUsedInCurrentRun = false;
+            IsAwaitingRevive = false;
+            ReviveInvulnerabilityDurationRemaining = 0f;
 
             _isInitialized = true;
             _isRunActive = true;
@@ -415,6 +423,8 @@ namespace Game.Gameplay
             }
 
             _isRunActive = false;
+            IsAwaitingRevive = false;
+            ReviveInvulnerabilityDurationRemaining = 0f;
 
             int stars = 0;
             if (victory)
@@ -489,6 +499,11 @@ namespace Game.Gameplay
 
         private void OnSquadSizeChanged(SquadSizeChangedEvent evt)
         {
+            if (IsReviveInvulnerable && evt.NewCount < evt.PreviousCount)
+            {
+                return;
+            }
+
             if (evt.NewCount < evt.PreviousCount)
             {
                 RecordSoldiersLost(evt.PreviousCount - evt.NewCount);
@@ -497,7 +512,67 @@ namespace Game.Gameplay
             _currentSquad = evt.NewCount;
             if (_currentSquad <= 0 && _isRunActive)
             {
-                EndRun(victory: false);
+                if (!ReviveUsedInCurrentRun && !IsAwaitingRevive && OnReviveOffered != null)
+                {
+                    IsAwaitingRevive = true;
+                    OnReviveOffered.Invoke();
+                }
+                else
+                {
+                    EndRun(victory: false);
+                }
+            }
+        }
+
+        public bool ReviveSquad(int count = 10)
+        {
+            if (!_isRunActive || ReviveUsedInCurrentRun)
+            {
+                return false;
+            }
+
+            ReviveUsedInCurrentRun = true;
+            IsAwaitingRevive = false;
+            _currentSquad = count;
+            _eventBus?.Publish(new SquadSizeChangedEvent(0, _currentSquad));
+            ApplyReviveProtection(1.5f, 5.0f);
+            return true;
+        }
+
+        public void ApplyReviveProtection(float invulnerabilityDuration = 1.5f, float repelRadius = 5.0f)
+        {
+            ReviveInvulnerabilityDurationRemaining = invulnerabilityDuration;
+
+            for (int i = 0; i < _trackedEnemies.Count; i++)
+            {
+                var enemy = _trackedEnemies[i];
+                if (enemy != null && enemy.IsActiveInPool)
+                {
+                    float enemyZ = enemy.transform.position.z;
+                    if (Mathf.Abs(enemyZ - _currentDistance) <= repelRadius)
+                    {
+                        enemy.transform.position = new Vector3(
+                            enemy.transform.position.x,
+                            enemy.transform.position.y,
+                            _currentDistance + repelRadius + 1.0f);
+                    }
+                }
+            }
+        }
+
+        public void TickInvulnerability(float deltaTime)
+        {
+            if (ReviveInvulnerabilityDurationRemaining > 0f && deltaTime > 0f)
+            {
+                ReviveInvulnerabilityDurationRemaining = Mathf.Max(0f, ReviveInvulnerabilityDurationRemaining - deltaTime);
+            }
+        }
+
+        private void Update()
+        {
+            if (ReviveInvulnerabilityDurationRemaining > 0f)
+            {
+                TickInvulnerability(Time.deltaTime);
             }
         }
 

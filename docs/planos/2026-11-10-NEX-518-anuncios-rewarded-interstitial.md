@@ -292,7 +292,7 @@ flowchart TD
   - **Marco de PR**: Marco 2
   - **Effort**: medium
 
-- [ ] **Passo 3 (Marco 3)**: `Placements Rewarded de Gameplay (Revive, Boost Pré-fase e Carga General)` [NEX-1499]
+- [x] **Passo 3 (Marco 3)**: `Placements Rewarded de Gameplay (Revive, Boost Pré-fase e Carga General)` [NEX-1499]
   - **Ação**: Criar/Modificar [GAMEPLAY] `RevivePromptWidget.cs`, `LevelDirector.cs`, `GeneralAbilityController.cs`, `HubView.cs` e `StageSelectionWidget.cs`.
   - **Lógica de Negócios / Responsabilidade**: Implementar fluxo de Revive (1x por fase, restaura 10 soldados, 1.5s invulnerabilidade com dispersão de zumbis em 5m), Boost Pré-fase (+10 tropa no `RunConfig`) e Carga Extra do Poder do General (+1 carga).
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0, Marco 1.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Core.Abilities;
 using Game.Core.Abilities.Policies;
+using Game.Core.Ads;
 using Game.Core.Events;
 using Game.Core.State;
 using Game.Data;
@@ -27,6 +28,8 @@ namespace Game.Gameplay.Abilities
         public int CurrentCharges => _tracker != null ? _tracker.CurrentCharges : 0;
         public int CurrentKills => _tracker != null ? _tracker.CurrentKills : 0;
         public int KillsPerCharge => _tracker != null ? _tracker.KillsPerCharge : (Definition != null ? Definition.ChargeKills : 25);
+        public bool BonusChargeUsedInCurrentRun { get; private set; }
+        public bool CanGrantBonusCharge => !BonusChargeUsedInCurrentRun && _tracker != null;
 
         public void Initialize(
             GeneralAbilityDefinition definition,
@@ -44,6 +47,7 @@ namespace Game.Gameplay.Abilities
             _triggerPolicy = triggerPolicy ?? new AutoHeroAbilityTriggerPolicy();
             _generalTransform = generalTransform != null ? generalTransform : transform;
 
+            BonusChargeUsedInCurrentRun = false;
             int killsPerCharge = definition != null ? definition.ChargeKills : 25;
             int initialCharges = runConfig != null ? runConfig.BonusAbilityCharges : 0;
             _tracker = new AbilityChargeTracker(killsPerCharge, initialCharges);
@@ -54,6 +58,62 @@ namespace Game.Gameplay.Abilities
             }
 
             PublishChargeProgress();
+        }
+
+        public bool GrantBonusCharge(int amount = 1)
+        {
+            if (BonusChargeUsedInCurrentRun || _tracker == null || amount <= 0)
+            {
+                return false;
+            }
+
+            BonusChargeUsedInCurrentRun = true;
+            _tracker.GrantCharge(amount);
+            PublishChargeProgress();
+            return true;
+        }
+
+        public bool TryRequestBonusChargeWithAd(IAdService adService, Func<AdPlacement, bool> adPolicyCheck = null, Action<bool> onComplete = null)
+        {
+            if (BonusChargeUsedInCurrentRun)
+            {
+                onComplete?.Invoke(false);
+                return false;
+            }
+
+            if (adPolicyCheck != null && !adPolicyCheck(AdPlacement.GeneralPowerCharge))
+            {
+                onComplete?.Invoke(false);
+                return false;
+            }
+
+            if (adService == null)
+            {
+                bool granted = GrantBonusCharge();
+                onComplete?.Invoke(granted);
+                return granted;
+            }
+
+            if (!adService.IsAdAvailable(AdPlacement.GeneralPowerCharge))
+            {
+                onComplete?.Invoke(false);
+                return false;
+            }
+
+            adService.ShowAd(AdPlacement.GeneralPowerCharge, result =>
+            {
+                if (result == AdShowResult.Completed)
+                {
+                    bool granted = GrantBonusCharge();
+                    onComplete?.Invoke(granted);
+                }
+                else
+                {
+                    onComplete?.Invoke(false);
+                }
+            });
+
+            return true;
         }
 
         public void SetTriggerPolicy(IHeroAbilityTriggerPolicy policy)
