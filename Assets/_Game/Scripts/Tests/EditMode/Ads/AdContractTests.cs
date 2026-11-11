@@ -67,7 +67,6 @@ namespace Game.Tests.EditMode.Ads
     }
 
     [TestFixture]
-    [Ignore("Red comprovado no Marco 0: o adapter de producao LevelPlayAdService e implementado no Marco 4 (NEX-1500).")]
     public class RealAdServiceContractTests : AdServiceContractTestsBase
     {
         protected override IAdService CreateAdService()

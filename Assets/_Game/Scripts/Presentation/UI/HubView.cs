@@ -50,6 +50,8 @@ namespace Game.Presentation.UI
         public TMP_Text BoostSquadStatusText => _boostSquadStatusText;
         public bool IsPreRunBoostActive { get; private set; }
         public bool CanRequestPreRunBoost => !IsPreRunBoostActive && (_adPolicy == null || _adPolicy.CanShowRewarded(AdPlacement.PreRunBoost)) && (_adService == null || _adService.IsAdAvailable(AdPlacement.PreRunBoost));
+        public IAdService AdService => _adService;
+        public IAdPolicy AdPolicy => _adPolicy;
         public StageSelectionWidget StageSelectionWidget => _stageSelectionWidget;
         public MutationSelectionWidget MutationSelectionWidget => _mutationSelectionWidget;
         public IReadOnlyList<string> SelectedMutations => _mutationSelectionWidget != null ? _mutationSelectionWidget.SelectedMutationIds : Array.Empty<string>();
