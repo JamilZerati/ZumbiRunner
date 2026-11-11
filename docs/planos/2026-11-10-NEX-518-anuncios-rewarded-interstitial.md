@@ -265,7 +265,7 @@ flowchart TD
 
 ## 6. Checklist de Execução
 
-- [ ] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Anúncios` [NEX-1496]
+- [x] **Passo 0 (Marco 0)**: `Suíte de Cenários & Contratos de Anúncios` [NEX-1496]
   - **Ação**: Criar contratos `IAdService`, `AdPlacement`, `AdType`, `AdShowResult` e implementação `MockAdService` em `Game.Core.Ads`, com testes Red de contrato.
   - **Lógica de Negócios / Responsabilidade**: Definir a abstração agnóstica de anúncios para todo o projeto, fornecer driver de testes determinístico com histórico de chamadas e integração analítica.
   - **Dependências / Pré-requisitos**: nenhuma (raiz).
@@ -274,7 +274,7 @@ flowchart TD
   - **Marco de PR**: Marco 0
   - **Effort**: medium
 
-- [ ] **Passo 1 (Marco 1)**: `AdPolicy Puro, AdPolicyDefinition e Migração Save V3` [NEX-1497]
+- [x] **Passo 1 (Marco 1)**: `AdPolicy Puro, AdPolicyDefinition e Migração Save V3` [NEX-1497]
   - **Ação**: Criar `AdPolicyDefinition`, `AdPolicyState`, `IAdPolicy`, `AdPolicy` em `Game.Meta.Ads`, migração `SaveMigrationV2ToV3` e atualizar `MetaState` e `SaveStore`.
   - **Lógica de Negócios / Responsabilidade**: Implementar todas as regras de negócio de interstitial (fase $\ge 5$, 3 fases de intervalo, 90s entre anúncios, 120s cooldown pós-rewarded/compra, 1ª sessão do dia $\ge 2$ fases, desativação por `"no_ads"`), tetos diários de rewarded e persistência criptográfica segura.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 0.
@@ -301,7 +301,7 @@ flowchart TD
   - **Marco de PR**: Marco 3
   - **Effort**: medium
 
-- [ ] **Passo 4 (Marco 4)**: `Pacing Interstitial, Adapter LevelPlay, DI e Validação PlayMode` [NEX-1500]
+- [x] **Passo 4 (Marco 4)**: `Pacing Interstitial, Adapter LevelPlay, DI e Validação PlayMode` [NEX-1500]
   - **Ação**: Criar/Modificar [TELA] [GAMEPLAY] `LevelPlayAdService.cs`, `GameLifetimeScope.cs`, `GreyboxRunComposer.cs` e suíte PlayMode em cena viva (`M6_Greybox.unity`).
   - **Lógica de Negócios / Responsabilidade**: Conectar o gatilho de interstitial entre fases conforme `AdPolicy.CanShowInterstitial()`, registrar serviços no VContainer, encapsular o adapter LevelPlay com fallback seguro, exercitar a cena viva completa e capturar evidências visuais em `G:/Evidences/HordeRunner/NEX-518/`.
   - **Dependências / Pré-requisitos**: `implementação`: Marco 2, Marco 3.

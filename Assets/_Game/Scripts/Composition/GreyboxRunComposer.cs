@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Ads;
 using Game.Core.Analytics;
 using Game.Core.Events;
 using Game.Core.Gates;
@@ -7,6 +9,8 @@ using Game.Data.Mutations;
 using Game.Gameplay;
 using Game.Gameplay.Abilities;
 using Game.Gameplay.Tutorial;
+using Game.Infrastructure.Ads;
+using Game.Meta.Ads;
 using Game.Meta.Barracks;
 using Game.Meta.Debut;
 using Game.Meta.Progression;
@@ -48,6 +52,47 @@ namespace Game.Composition
         public PauseController PauseController => pauseController;
         public IMutationCatalog MutationCatalog => mutationCatalog;
         public IProgressionService ProgressionService { get; private set; }
+        public IAdService AdService { get; private set; }
+        public IAdPolicy AdPolicy { get; private set; }
+        public ITimeProvider TimeProvider { get; private set; }
+        public IEntitlements Entitlements { get; private set; }
+        public IStageMapService StageMapService { get; private set; }
+        public int PlayerHighestStage { get; set; } = 1;
+
+        public void SetAdServices(IAdService adService, IAdPolicy adPolicy, ITimeProvider timeProvider = null, IEntitlements entitlements = null)
+        {
+            AdService = adService;
+            AdPolicy = adPolicy;
+            if (timeProvider != null) TimeProvider = timeProvider;
+            if (entitlements != null) Entitlements = entitlements;
+        }
+
+        public void SetStageMapService(IStageMapService service)
+        {
+            StageMapService = service;
+        }
+
+        public void SetPlayerHighestStage(int stage)
+        {
+            PlayerHighestStage = stage;
+        }
+
+        public int GetPlayerHighestStage()
+        {
+            int stageFromMap = 1;
+            if (StageMapService != null)
+            {
+                string stageId = StageMapService.GetHighestUnlockedStage();
+                if (!string.IsNullOrEmpty(stageId) && stageId.StartsWith("stage_", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(stageId.Substring("stage_".Length), out int num))
+                    {
+                        stageFromMap = num;
+                    }
+                }
+            }
+            return Math.Max(stageFromMap, PlayerHighestStage);
+        }
 
         public void ConfigureMutations(MutationCatalog catalog)
         {
@@ -90,6 +135,14 @@ namespace Game.Composition
             EventBus = eventBus;
             StateMachine = new GameStateMachine(eventBus, GameState.Hub);
             eventBus.Subscribe<RunStartedEvent>(OnRunStarted);
+            eventBus.Subscribe<RunEndedEvent>(OnRunEnded);
+            eventBus.Subscribe<GameStateChangedEvent>(OnGameStateChanged);
+
+            TimeProvider ??= new MonotonicTimeProvider();
+            Entitlements ??= new Entitlements();
+            AdPolicy ??= new AdPolicy(TimeProvider, Entitlements);
+            AdService ??= new LevelPlayAdService();
+            AdPolicy.RecordSessionStart();
 
 #if UNITY_EDITOR
             if (mutationCatalog == null)
@@ -184,7 +237,7 @@ namespace Game.Composition
 
                 var wallet = new Wallet(eventBus);
                 wallet.Add(CurrencyKind.Coins, 100, "initial");
-                var stageMapService = new StageMapService();
+                StageMapService ??= new StageMapService();
                 var sink = new RewardSink(wallet);
                 ProgressionService ??= new ProgressionService();
                 var mutationBonuses = mutationCatalog != null ? mutationCatalog.GetRewardBonuses() : null;
@@ -194,13 +247,15 @@ namespace Game.Composition
                 {
                     hubView.Initialize(
                         wallet,
-                        stageMapService,
+                        StageMapService,
                         StateMachine,
                         uiManager,
                         eventBus,
                         analytics,
                         mutationCatalog,
-                        ProgressionService);
+                        ProgressionService,
+                        AdService,
+                        AdPolicy);
                     hubView.DebutJourneyHook = () => uiManager.OpenWindow<DebutJourneyView>();
                     hubView.BarracksHook = () => uiManager.OpenWindow<BarracksView>();
                 }
@@ -214,7 +269,9 @@ namespace Game.Composition
                         sink,
                         StateMachine,
                         analytics,
-                        resultView);
+                        resultView,
+                        AdService,
+                        AdPolicy);
                     resultView.Initialize(presenter);
                 }
 
@@ -248,10 +305,64 @@ namespace Game.Composition
                     var timeProvider = new MonotonicTimeProvider();
                     var catalog = BarracksCatalog.CreateDefault();
                     var barracksService = new BarracksService(timeProvider, wallet, catalog, eventBus: eventBus);
-                    barracksView.Initialize(barracksService, catalog, wallet, eventBus);
+                    barracksView.Initialize(barracksService, catalog, wallet, eventBus, AdService, AdPolicy);
+                }
+
+                var revivePrompt = FindFirstObjectByType<RevivePromptWidget>();
+                if (revivePrompt != null)
+                {
+                    var levelDirector = combatDirector != null ? combatDirector.GetComponent<LevelDirector>() : FindFirstObjectByType<LevelDirector>();
+                    revivePrompt.Initialize(levelDirector, AdService, AdPolicy, analytics);
                 }
 
                 uiManager.OpenWindow<HubView>();
+            }
+        }
+
+        public bool TryShowInterLevelInterstitial(Action onCompleted = null)
+        {
+            if (AdPolicy == null || AdService == null)
+            {
+                onCompleted?.Invoke();
+                return false;
+            }
+
+            int highestStage = GetPlayerHighestStage();
+            if (!AdPolicy.CanShowInterstitial(highestStage))
+            {
+                onCompleted?.Invoke();
+                return false;
+            }
+
+            if (!AdService.IsAdAvailable(AdPlacement.InterLevel))
+            {
+                onCompleted?.Invoke();
+                return false;
+            }
+
+            AdService.ShowAd(AdPlacement.InterLevel, result =>
+            {
+                AdPolicy.RecordAdShown(AdPlacement.InterLevel, AdType.Interstitial);
+                onCompleted?.Invoke();
+            });
+
+            return true;
+        }
+
+        private void OnRunEnded(RunEndedEvent evt)
+        {
+            AdPolicy?.RecordStageCompleted();
+        }
+
+        private void OnGameStateChanged(GameStateChangedEvent evt)
+        {
+            if (evt.NewState == GameState.Hub &&
+                (evt.PreviousState == GameState.Result ||
+                 evt.PreviousState == GameState.Run ||
+                 evt.PreviousState == GameState.Victory ||
+                 evt.PreviousState == GameState.Defeat))
+            {
+                TryShowInterLevelInterstitial();
             }
         }
 
