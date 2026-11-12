@@ -15,11 +15,11 @@ MonoBehaviour:
   id: ammo_shock
   displayName: "Muni\xE7\xE3o El\xE9trica"
   effects:
-  - rid: 6580926312557838539
+  - rid: 5341296893003563211
   references:
     version: 2
     RefIds:
-    - rid: 6580926312557838539
+    - rid: 5341296893003563211
       type: {class: ApplyStatusOnHitEffect, ns: Game.Core.Perks.Effects, asm: Game.Core}
       data:
         Status: 4

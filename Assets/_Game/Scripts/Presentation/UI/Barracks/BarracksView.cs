@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Game.Core.Ads;
 using Game.Core.Events;
+using Game.Meta.Ads;
 using Game.Meta.Barracks;
 using Game.Meta.Barracks.Events;
 using Game.Meta.Wallet;
@@ -26,6 +28,8 @@ namespace Game.Presentation.UI.Barracks
         private IBarracksCatalog _catalog;
         private IWallet _wallet;
         private IEventBus _eventBus;
+        private IAdService _adService;
+        private IAdPolicy _adPolicy;
         private IDisposable _walletSubscription;
         private IDisposable _upgradeCompletedSubscription;
         private float _timerAccumulator;
@@ -43,6 +47,8 @@ namespace Game.Presentation.UI.Barracks
         public IBarracksService Service => _service;
         public IBarracksCatalog Catalog => _catalog;
         public IWallet Wallet => _wallet;
+        public IAdService AdService => _adService;
+        public IAdPolicy AdPolicy => _adPolicy;
 
         public event Action OnCloseClicked;
 
@@ -119,7 +125,9 @@ namespace Game.Presentation.UI.Barracks
             IBarracksService service,
             IBarracksCatalog catalog,
             IWallet wallet = null,
-            IEventBus eventBus = null)
+            IEventBus eventBus = null,
+            IAdService adService = null,
+            IAdPolicy adPolicy = null)
         {
             _walletSubscription?.Dispose();
             _upgradeCompletedSubscription?.Dispose();
@@ -127,6 +135,8 @@ namespace Game.Presentation.UI.Barracks
             _catalog = catalog;
             _wallet = wallet;
             _eventBus = eventBus;
+            _adService = adService;
+            _adPolicy = adPolicy;
 
             if (_eventBus != null)
             {
@@ -136,7 +146,7 @@ namespace Game.Presentation.UI.Barracks
 
             if (_canteenWidget != null && _service != null)
             {
-                _canteenWidget.Initialize(_service, _wallet);
+                _canteenWidget.Initialize(_service, _wallet, _adService, _adPolicy);
             }
 
             if (_buildingCards != null && _service != null && _catalog != null)
@@ -147,7 +157,7 @@ namespace Game.Presentation.UI.Barracks
                     if (card != null)
                     {
                         var def = _catalog.Get(card.BuildingType);
-                        card.Initialize(card.BuildingType, _service, def, _wallet);
+                        card.Initialize(card.BuildingType, _service, def, _wallet, _adService, _adPolicy);
                     }
                 }
             }

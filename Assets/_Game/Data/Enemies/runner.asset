@@ -18,15 +18,15 @@ MonoBehaviour:
   ContactDps: 4
   CoinValue: 1
   Behaviors:
-  - rid: 6580926312557838390
-  - rid: 6580926312557838391
+  - rid: 5341296893003563062
+  - rid: 5341296893003563063
   references:
     version: 2
     RefIds:
-    - rid: 6580926312557838390
+    - rid: 5341296893003563062
       type: {class: MoveStraightBehavior, ns: Game.Data, asm: Game.Data}
       data: 
-    - rid: 6580926312557838391
+    - rid: 5341296893003563063
       type: {class: ChaseLaneBehavior, ns: Game.Data, asm: Game.Data}
       data:
         Delay: 1

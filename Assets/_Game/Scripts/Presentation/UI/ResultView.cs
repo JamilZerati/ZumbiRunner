@@ -91,7 +91,7 @@ namespace Game.Presentation.UI
 
             if (_doubleRewardButton != null)
             {
-                _doubleRewardButton.interactable = !presenter.IsDoubled && !presenter.IsClaimed;
+                _doubleRewardButton.interactable = presenter.CanDoubleReward;
             }
 
             if (_continueButton != null)
@@ -102,8 +102,14 @@ namespace Game.Presentation.UI
 
         public void SetButtonsInteractable(bool interactable)
         {
-            if (_doubleRewardButton != null) _doubleRewardButton.interactable = interactable;
-            if (_continueButton != null) _continueButton.interactable = interactable;
+            if (_doubleRewardButton != null)
+            {
+                _doubleRewardButton.interactable = interactable && (_presenter?.CanDoubleReward ?? false);
+            }
+            if (_continueButton != null)
+            {
+                _continueButton.interactable = interactable && !(_presenter?.IsClaimed ?? false);
+            }
         }
 
         private void OnDoubleRewardClicked() => _presenter?.DoubleReward();

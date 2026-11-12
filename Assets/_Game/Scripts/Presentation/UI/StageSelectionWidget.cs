@@ -13,7 +13,8 @@ namespace Game.Presentation.UI
 
         [SerializeField] private TMP_Text _stageTitleText, _starsText;
         [SerializeField] private GameObject _lockIndicator;
-        [SerializeField] private Button _prevButton, _nextButton;
+        [SerializeField] private Button _prevButton, _nextButton, _boostSquadButton;
+        [SerializeField] private TMP_Text _boostSquadText;
         [SerializeField] private List<StageItemBinding> _stageBindings = new();
 
         private IStageMapService _stageMapService;
@@ -21,6 +22,7 @@ namespace Game.Presentation.UI
         private string _selectedStageId;
 
         public event Action<string> OnStageSelected;
+        public event Action OnBoostSquadClicked;
         public string SelectedStageId => _selectedStageId;
         public IReadOnlyList<string> AvailableStages => _availableStages;
         public TMP_Text StageTitleText => _stageTitleText;
@@ -28,11 +30,13 @@ namespace Game.Presentation.UI
         public GameObject LockIndicator => _lockIndicator;
         public Button PrevButton => _prevButton;
         public Button NextButton => _nextButton;
+        public Button BoostSquadButton => _boostSquadButton;
+        public TMP_Text BoostSquadText => _boostSquadText;
 
         private void Awake() => WireButtons();
-        private void OnDestroy() { UnwireButtons(); OnStageSelected = null; }
+        private void OnDestroy() { UnwireButtons(); OnStageSelected = null; OnBoostSquadClicked = null; }
 
-        public void BindComponents(TMP_Text title = null, TMP_Text stars = null, GameObject lockObj = null, Button prev = null, Button next = null, IEnumerable<StageItemBinding> bindings = null)
+        public void BindComponents(TMP_Text title = null, TMP_Text stars = null, GameObject lockObj = null, Button prev = null, Button next = null, IEnumerable<StageItemBinding> bindings = null, Button boostSquad = null, TMP_Text boostSquadText = null)
         {
             UnwireButtons();
             if (title != null) _stageTitleText = title;
@@ -40,6 +44,8 @@ namespace Game.Presentation.UI
             if (lockObj != null) _lockIndicator = lockObj;
             if (prev != null) _prevButton = prev;
             if (next != null) _nextButton = next;
+            if (boostSquad != null) _boostSquadButton = boostSquad;
+            if (boostSquadText != null) _boostSquadText = boostSquadText;
             if (bindings != null) { _stageBindings.Clear(); _stageBindings.AddRange(bindings); }
             WireButtons();
             Refresh();
@@ -100,6 +106,7 @@ namespace Game.Presentation.UI
         {
             _prevButton?.onClick.AddListener(SelectPrevious);
             _nextButton?.onClick.AddListener(SelectNext);
+            _boostSquadButton?.onClick.AddListener(() => OnBoostSquadClicked?.Invoke());
             for (int i = 0; i < _stageBindings.Count; i++)
             {
                 var b = _stageBindings[i];
@@ -111,6 +118,7 @@ namespace Game.Presentation.UI
         {
             _prevButton?.onClick.RemoveListener(SelectPrevious);
             _nextButton?.onClick.RemoveListener(SelectNext);
+            _boostSquadButton?.onClick.RemoveAllListeners();
             for (int i = 0; i < _stageBindings.Count; i++) _stageBindings[i]?.Button?.onClick.RemoveAllListeners();
         }
     }

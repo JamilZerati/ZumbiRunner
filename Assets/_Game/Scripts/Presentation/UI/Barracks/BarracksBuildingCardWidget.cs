@@ -1,4 +1,6 @@
 using System;
+using Game.Core.Ads;
+using Game.Meta.Ads;
 using Game.Meta.Barracks;
 using Game.Meta.Wallet;
 using TMPro;
@@ -23,6 +25,9 @@ namespace Game.Presentation.UI.Barracks
         private IBarracksService _service;
         private BarracksBuildingDefinition _definition;
         private IWallet _wallet;
+        private IAdService _adService;
+        private IAdPolicy _adPolicy;
+        private bool _isShowingAd;
 
         public BarracksBuildingType BuildingType => _type;
         public TMP_Text TitleText => _titleText;
@@ -34,6 +39,8 @@ namespace Game.Presentation.UI.Barracks
         public Button SpeedupAdButton => _speedupAdButton;
         public Button InstantMedalButton => _instantMedalButton;
         public TMP_Text InstantMedalCostText => _instantMedalCostText;
+        public IAdService AdService => _adService;
+        public IAdPolicy AdPolicy => _adPolicy;
 
         public event Action<BarracksBuildingType> OnUpgradeClicked;
         public event Action<BarracksBuildingType> OnSpeedupAdClicked;
@@ -82,12 +89,17 @@ namespace Game.Presentation.UI.Barracks
             BarracksBuildingType type,
             IBarracksService service,
             BarracksBuildingDefinition definition,
-            IWallet wallet = null)
+            IWallet wallet = null,
+            IAdService adService = null,
+            IAdPolicy adPolicy = null)
         {
             _type = type;
             _service = service;
             _definition = definition;
             _wallet = wallet;
+            _adService = adService;
+            _adPolicy = adPolicy;
+            _isShowingAd = false;
 
             Refresh(_wallet);
         }
@@ -131,7 +143,7 @@ namespace Game.Presentation.UI.Barracks
                     if (_timerText != null) _timerText.text = "Concluído";
                     if (_upgradeButton != null)
                     {
-                        _upgradeButton.interactable = true;
+                        _upgradeButton.interactable = !_isShowingAd;
                         var btnTxt = _upgradeButton.GetComponentInChildren<TMP_Text>();
                         if (btnTxt != null) btnTxt.text = "Concluir";
                     }
@@ -148,7 +160,16 @@ namespace Game.Presentation.UI.Barracks
                     if (_speedupAdButton != null)
                     {
                         _speedupAdButton.gameObject.SetActive(true);
-                        _speedupAdButton.interactable = !_service.IsClockManipulated;
+                        bool canSpeedup = !_service.IsClockManipulated && !_isShowingAd;
+                        if (_adPolicy != null && !_adPolicy.CanShowRewarded(AdPlacement.BarracksSpeedup))
+                        {
+                            canSpeedup = false;
+                        }
+                        if (_adService != null && !_adService.IsAdAvailable(AdPlacement.BarracksSpeedup))
+                        {
+                            canSpeedup = false;
+                        }
+                        _speedupAdButton.interactable = canSpeedup;
                     }
                     if (_instantMedalButton != null)
                     {
@@ -159,7 +180,7 @@ namespace Game.Presentation.UI.Barracks
                             _instantMedalCostText.text = $"{medalCost} Medalhas";
                         }
                         int medalBalance = _wallet?.GetBalance(CurrencyKind.Medals) ?? 0;
-                        _instantMedalButton.interactable = medalBalance >= medalCost && !_service.IsClockManipulated;
+                        _instantMedalButton.interactable = medalBalance >= medalCost && !_service.IsClockManipulated && !_isShowingAd;
                     }
                 }
 
@@ -175,7 +196,7 @@ namespace Game.Presentation.UI.Barracks
                 if (_recruitCostText != null) _recruitCostText.text = recruitCost.ToString();
                 if (_timerText != null) _timerText.text = "";
 
-                bool canUpgrade = _service.CanStartUpgrade(_type, out _);
+                bool canUpgrade = _service.CanStartUpgrade(_type, out _) && !_isShowingAd;
                 if (_upgradeButton != null)
                 {
                     _upgradeButton.interactable = canUpgrade;
@@ -204,7 +225,7 @@ namespace Game.Presentation.UI.Barracks
 
         private void HandleUpgradeClicked()
         {
-            if (_service == null) return;
+            if (_service == null || _isShowingAd) return;
             bool success = false;
             if (_service.IsUnderConstruction(_type))
             {
@@ -226,17 +247,49 @@ namespace Game.Presentation.UI.Barracks
 
         private void HandleSpeedupAdClicked()
         {
-            if (_service == null) return;
-            if (_service.TrySpeedupWithAd(_type))
+            if (_service == null || _isShowingAd) return;
+
+            if (_adPolicy != null && !_adPolicy.CanShowRewarded(AdPlacement.BarracksSpeedup))
             {
-                OnSpeedupAdClicked?.Invoke(_type);
+                return;
             }
-            Refresh(_wallet);
+
+            if (_adService == null)
+            {
+                if (_service.TrySpeedupWithAd(_type))
+                {
+                    OnSpeedupAdClicked?.Invoke(_type);
+                }
+                Refresh(_wallet);
+                return;
+            }
+
+            if (!_adService.IsAdAvailable(AdPlacement.BarracksSpeedup))
+            {
+                return;
+            }
+
+            _isShowingAd = true;
+            if (_speedupAdButton != null) _speedupAdButton.interactable = false;
+
+            _adService.ShowAd(AdPlacement.BarracksSpeedup, result =>
+            {
+                _isShowingAd = false;
+                if (result == AdShowResult.Completed)
+                {
+                    _adPolicy?.RecordAdShown(AdPlacement.BarracksSpeedup, AdType.Rewarded);
+                    if (_service.TrySpeedupWithAd(_type))
+                    {
+                        OnSpeedupAdClicked?.Invoke(_type);
+                    }
+                }
+                Refresh(_wallet);
+            });
         }
 
         private void HandleInstantMedalClicked()
         {
-            if (_service == null) return;
+            if (_service == null || _isShowingAd) return;
             if (_service.TryInstantCompleteWithMedals(_type))
             {
                 OnInstantMedalClicked?.Invoke(_type);
