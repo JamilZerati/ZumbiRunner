@@ -10,6 +10,7 @@ Horde Runner: runner mobile (retrato, Android) em Unity. O General lidera uma tr
 - Visão e arquitetura base: `docs/planos/2026-09-26-horde-runner-gdd-arquitetura.md`.
 - Regras de combate, meta, monetização, live-ops e roadmap: `docs/planos/2026-09-29-horde-runner-gameplay-meta-liveops.md`.
 - Plano da história em curso: `docs/planos/<data>-NEX-<n>-*.md`.
+- Antes de mudar comportamento, leia `docs/MAPA.md` e a doc que cobre os arquivos tocados.
 
 **CLI-first**: agentes trabalham sem o Editor GUI. Build, teste e validação rodam em batchmode pelo harness `tools/unity` e são julgados por exit code e pelos artefatos em `.artifacts/`.
 
